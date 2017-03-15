@@ -10,3 +10,4 @@ open import Text.Parser.Examples.NList
 
 open import Text.Parser.Examples.STLC
 
+open import Text.Parser.Examples.RegExp

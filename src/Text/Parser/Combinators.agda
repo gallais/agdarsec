@@ -35,22 +35,30 @@ module _ {Tok : Set} {M : Set → Set} {{𝕄 : RawMonadPlus M}} where
 
  anyTok : [ Parser Tok M Tok ]
 
- runParser anyTok lt s with view s
+ runParser anyTok m≤n s with view s
  ... | []     = 𝕄.∅ 
- ... | a ∷ as = 𝕄.return (a ^ ≤-refl , as)
+ ... | t ∷ ts = 𝕄.return (t ^ ≤-refl , ts)
+
+ module _ {A B : Set} where
+
+  guardM : (A → Maybe B) → [ Parser Tok M A ⟶ Parser Tok M B ]
+  runParser (guardM p A) m≤n s =
+    runParser A m≤n s 𝕄.>>= λ rA → let (a ^ p<m , s′) = rA in
+    maybe (λ b → 𝕄.return (b ^ p<m , s′)) 𝕄.∅ (p a)
 
  module _ {A : Set} where
+
+  guard : (A → Bool) → [ Parser Tok M A ⟶ Parser Tok M A ]
+  guard p = guardM (λ a → if p a then just a else nothing)
+
+  maybeTok : (Tok → Maybe A) → [ Parser Tok M A ]
+  maybeTok p = guardM p anyTok
 
   return : [ Parser Tok M A ⟶ □ Parser Tok M A ]
   runParser (call (return A) m<n) p≤m = runParser A (≤-trans p≤m (<⇒≤ m<n))
 
   lower : {m n : ℕ} → .(m ≤ n) → Parser Tok M A n → Parser Tok M A m
   runParser (lower m≤n A) p≤m = runParser A (≤-trans p≤m m≤n)
-
-  guard : (A → Bool) → [ Parser Tok M A ⟶ Parser Tok M A ]
-  runParser (guard p A) m≤n s =
-    runParser A m≤n s 𝕄.>>= λ a →
-    if p (Success.value a) then 𝕄.return a else 𝕄.∅
 
   fail : [ Parser Tok M A ]
   runParser fail _ _ = 𝕄.∅
