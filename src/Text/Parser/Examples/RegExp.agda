@@ -24,7 +24,7 @@ data Range : Set where
 data RegExp : Set where
   ε     : RegExp
   `[_]  : (as : List⁺ Range) → RegExp
-  `[^_] : (as : List⁺ Range) → RegExp
+  `[^_] : (as : List Range) → RegExp
   _∥_   : (e₁ e₂ : RegExp) → RegExp
   _∙_   : (e₁ e₂ : RegExp) → RegExp
   _⋆    : (e : RegExp) → RegExp
@@ -34,7 +34,7 @@ literal c = `[ NonEmpty.[ singleton c ] ]
 
 data TOK : Set where
   OPEN NOPEN CLOSE : TOK
-  STAR DOTS OR     : TOK
+  ANY STAR DOTS OR : TOK
   LPAR RPAR        : TOK
   CHAR             : Char → TOK
 
@@ -47,6 +47,7 @@ eqTOK OPEN     OPEN     = yes refl
 eqTOK NOPEN    NOPEN    = yes refl
 eqTOK CLOSE    CLOSE    = yes refl
 eqTOK STAR     STAR     = yes refl
+eqTOK ANY      ANY      = yes refl
 eqTOK DOTS     DOTS     = yes refl
 eqTOK OR       OR       = yes refl
 eqTOK LPAR     LPAR     = yes refl
@@ -64,6 +65,7 @@ toTOKs ('[' ∷ '^' ∷ cs) = NOPEN  ∷ toTOKs cs
 toTOKs ('[' ∷ cs)       = OPEN   ∷ toTOKs cs
 toTOKs (']' ∷ cs)       = CLOSE  ∷ toTOKs cs
 toTOKs ('.' ∷ '.' ∷ cs) = DOTS   ∷ toTOKs cs
+toTOKs ('.' ∷ cs)       = ANY    ∷ toTOKs cs
 toTOKs ('(' ∷ cs)       = LPAR   ∷ toTOKs cs
 toTOKs (')' ∷ cs)       = RPAR   ∷ toTOKs cs
 toTOKs ('*' ∷ cs)       = STAR   ∷ toTOKs cs
@@ -83,16 +85,16 @@ regexp : [ Parser TOK Maybe RegExp ]
 regexp = fix (Parser TOK Maybe RegExp) $ λ rec →
          let lpar     = exact LPAR
              rpar     = return $ exact RPAR
-             ranges   = (`[_] <$ exact OPEN <|> `[^_] <$ exact NOPEN) <*> list⁺ range <& return (exact CLOSE)
+             ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN) <*> list⁺ range <& return (exact CLOSE)
              literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
-             base     = ranges <|> literals <|> lpar &> rec <& rpar
+             base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> lpar &> rec <& rpar
              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> return (exact STAR))
              disj     = lpar ?&> chainr1 star (return $ _∥_ <$ exact OR) <&? rpar
          in NonEmpty.foldr _∙_ id <$> list⁺ disj
 
 -- test
 
-_ : "[a..zA..Z0..9-]*.agd(a|ai)" ∈ regexp
+_ : "[a..zA..Z0..9-]*\\.agd(a|ai)" ∈ regexp
 _ = `[ interval 'a' 'z' ∷ interval 'A' 'Z' ∷ interval '0' '9' ∷ singleton '-' ∷ [] ] ⋆
   ∙ (`[ singleton '.' ∷ [] ] ∙ `[ singleton 'a' ∷ [] ] ∙ `[ singleton 'g' ∷ [] ] ∙ `[ singleton 'd' ∷ [] ])
   ∙ (`[ singleton 'a' ∷ [] ]
