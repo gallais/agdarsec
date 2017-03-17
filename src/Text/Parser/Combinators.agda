@@ -150,6 +150,9 @@ module _ {Tok : Set} {M : Set → Set} {{𝕄 : RawMonadPlus M}} where
   between : [ Parser Tok M A ⟶ □ Parser Tok M C ⟶ □ Parser Tok M B ⟶ Parser Tok M B ]
   between A C B = A &> B <& C
 
+  between? : [ Parser Tok M A ⟶ □ Parser Tok M C ⟶ Parser Tok M B ⟶ Parser Tok M B ]
+  between? A C B = between A C (return B) <|> B
+
  module _ {{eq? : Decidable {A = Tok} _≡_}} where
 
   anyOf : List Tok → [ Parser Tok M Tok ]

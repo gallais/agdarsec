@@ -35,5 +35,8 @@ module _ {M : Set → Set} {{𝕄 : RawMonadPlus M}} where
   parens : [ □ Parser Char M A ⟶ Parser Char M A ]
   parens = between (char '(') (return (char ')'))
 
+  parens? : [ Parser Char M A ⟶ Parser Char M A ]
+  parens? = between? (char '(') (return (char ')'))
+
   withSpaces : [ Parser Char M A ⟶ Parser Char M A ]
   withSpaces A = spaces ?&> A <&? return spaces

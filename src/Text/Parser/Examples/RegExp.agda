@@ -83,14 +83,15 @@ range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
 
 regexp : [ Parser TOK Maybe RegExp ]
 regexp = fix (Parser TOK Maybe RegExp) $ λ rec →
-         let lpar     = exact LPAR
-             rpar     = return $ exact RPAR
-             ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN) <*> list⁺ range <& return (exact CLOSE)
+         let parens   = between (exact LPAR) (return (exact RPAR))
+             parens?  = between? (exact LPAR) (return (exact RPAR))
+             ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
+                        <*> list⁺ range <& return (exact CLOSE)
              literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
-             base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> lpar &> rec <& rpar
+             base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> return (exact STAR))
-             disj     = lpar ?&> chainr1 star (return $ _∥_ <$ exact OR) <&? rpar
-         in NonEmpty.foldr _∙_ id <$> list⁺ disj
+             disj     = chainr1 star (return $ _∥_ <$ exact OR)
+         in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
 
 -- test
 
