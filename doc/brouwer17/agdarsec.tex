@@ -1,0 +1,110 @@
+\documentclass{beamer}
+\usetheme{ru}
+\usepackage{minted}
+
+\title{agdarsec -- Total Parser Combinators}
+\author{Guillaume Allais}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Parser Combinators: An Embedded DSL}
+
+\begin{itemize}
+  \item Host language's tooling \& libraries
+  \item Help from the coverage \& type checkers
+  \item Higher-Order Parser (+ fixpoints)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Parser Combinators: The Basics}
+
+\begin{minted}{haskell}
+type Parser a =
+   String           -- input string
+   -> [(a, String)] -- possible values + leftover
+\end{minted}
+
+\begin{minted}{haskell}
+parse :: Parser a -> String -> Maybe a
+parse p s = case filter (null . snd) (p s) of
+  [(a,[])] -> Just a
+  _        -> Nothing 
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Our First Combinators}
+\begin{minted}{haskell}
+anyChar :: Parser Char
+anyChar []      = []
+anyChar (c : s) = [(c, s)]
+\end{minted}
+\begin{onlyenv}<1>
+\begin{minted}{haskell}
+guard :: (a -> Bool) -> Parser a -> Parser a
+guard f p s = filter (f . fst) (p s)
+\end{minted}
+\begin{minted}{haskell}
+digit :: Parser Char
+digit = guard (`elem` "0123456789") anyChar
+\end{minted}
+\end{onlyenv}
+\begin{onlyenv}<2>
+\begin{minted}{haskell}
+guard' :: (a -> Maybe b) -> Parser a -> Parser b
+guard' f p s = catMaybes $ fmap check (p s) where
+  check (a, s) = fmap (,s) (f a)
+\end{minted}
+\begin{minted}{haskell}
+digit' :: Parser Int
+digit' = guard' (readMaybe . (:[])) anyChar
+\end{minted}
+\end{onlyenv}
+\end{frame}
+
+\begin{frame}[fragile]{Structures}
+\begin{minted}{haskell}
+instance Functor Parser where (...)
+instance Applicative Parser where (...)
+instance Monad Parser where (...)
+
+instance Alternative Parser where
+  empty :: Parser a
+  empty s = []
+
+  (<|>) :: Parser a -> Parser a -> Parser a
+  (p <|> q) s = p s ++ q s
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Fixpoints}
+\begin{minted}{haskell}
+some :: Parser a -> Parser [a]
+some p = (:) <$> p <*> many p
+
+many :: Parser a -> Parser [a]
+many p = some p <|> pure []
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Non Total}
+\begin{minted}{haskell}
+data Expr = Literal Int | Plus Expr Expr
+
+int :: Parser Int
+int = convert <$> some digit' where
+  convert ds = (...)
+
+expr :: Parser Expr
+expr = Literal <$> int
+  <|> Plus <$> expr <* guard ('+' ==) anyChar <*> expr
+\end{minted}
+
+
+\begin{minted}{haskell}
+\end{minted}
+\end{frame}
+
+\end{document}
