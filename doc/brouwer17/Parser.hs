@@ -67,10 +67,17 @@ many p = some p <|> pure []
 data Expr = Literal Int | Plus Expr Expr
   deriving (Show)
 
+char :: Char -> Parser Char
+char c = guard (c ==) anyChar
+
 int :: Parser Int
 int = convert <$> some digit' where
   convert ds = sum $ zipWith (\ d e -> d * 10 ^ e) (reverse ds) [0..]
 
 expr :: Parser Expr
-expr = Literal <$> int 
-  <|> Plus <$> expr <* guard ('+' ==) anyChar <*> expr
+expr = Literal <$> int <|> Plus <$> expr <* char '+' <*> expr
+
+expr' :: Parser Expr
+expr' = base <|> Plus <$> base <* char '+' <*> expr'
+    where base = Literal <$> int <|> char '(' *> expr' <* char ')'
+
