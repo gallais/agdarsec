@@ -33,14 +33,14 @@
 
 \begin{minted}{haskell}
 type Parser a =
-   String           -- input string
-   -> [(a, String)] -- possible values + leftover
+  String           -- input string
+  -> [(String, a)] -- possible values + leftover
 \end{minted}
 
 \begin{minted}{haskell}
 parse :: Parser a -> String -> Maybe a
-parse p s = case filter (null . snd) (p s) of
-  [(a,[])] -> Just a
+parse p s = case filter (null . fst) (p s) of
+  [(_,a)] -> Just a
   _        -> Nothing 
 \end{minted}
 \end{frame}
@@ -49,12 +49,12 @@ parse p s = case filter (null . snd) (p s) of
 \begin{minted}{haskell}
 anyChar :: Parser Char
 anyChar []      = []
-anyChar (c : s) = [(c, s)]
+anyChar (c : s) = [(s, c)]
 \end{minted}
 \begin{onlyenv}<1>
 \begin{minted}{haskell}
 guard :: (a -> Bool) -> Parser a -> Parser a
-guard f p s = filter (f . fst) (p s)
+guard f p s = filter (f . snd) (p s)
 \end{minted}
 \begin{minted}{haskell}
 digit :: Parser Char
@@ -64,8 +64,7 @@ digit = guard (`elem` "0123456789") anyChar
 \begin{onlyenv}<2>
 \begin{minted}{haskell}
 guard' :: (a -> Maybe b) -> Parser a -> Parser b
-guard' f p s = catMaybes $ fmap check (p s) where
-  check (a, s) = fmap (,s) (f a)
+guard' f p s = catMaybes $ traverse f <$> p s
 \end{minted}
 \begin{minted}{haskell}
 digit' :: Parser Int
