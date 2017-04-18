@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+set -u
+
+AGDA=agda-2.5.3
+STDLIB=~/languages/agda/libs/agda-stdlib/src/
+TARGET="$1"
+DIRECTORY=$( dirname  "$1" )
+FILE=$( basename "$1" .lagda )
+INCLUDE=src
+FULLDIRECTORY=${INCLUDE}/${DIRECTORY}
+
+# Move to the directory
+cd ${FULLDIRECTORY}
+# Compute the checksum of the target
+NEWCHECK=`md5sum ${FILE}.lagda | awk '{ print $1 }'`
+# If the hash file does not exist, create a dummy one
+if [ ! -f ${FILE}.hash ]; then
+  echo 0 > ${FILE}.hash
+fi
+cd -
+OLDCHECK=`cat ${FULLDIRECTORY}/${FILE}.hash`
+# If the tex file hasn't been generated yet or if the
+# file has changed, then (re)generate it.
+if [ ! -f latex/${DIRECTORY}/${FILE}.tex ] || [ "$OLDCHECK" != "$NEWCHECK" ]; then
+  echo REGENERATE: ${DIRECTORY}/${FILE}.tex
+  ${AGDA} -i ${INCLUDE} --latex ${FULLDIRECTORY}/${FILE}.lagda > ${FULLDIRECTORY}/${FILE}.log
+else
+  echo FROM CACHE: ${DIRECTORY}/${FILE}.tex
+fi
+echo ${NEWCHECK} > ${FULLDIRECTORY}/${FILE}.hash

@@ -15,12 +15,18 @@
                         %% http://ctan.org/pkg/booktabs
 \usepackage{subcaption} %% For complex figures with subfigures/subcaptions
                         %% http://ctan.org/pkg/subcaption
+\usepackage{agda}
+\usepackage{todonotes}
 \usepackage{catchfilebetweentags}
 
-\newcommand{\grab}[1]{\bigskip\ExecuteMetaData[parser.tex]{#1}}
+\newcommand{\shgrab}[1]{\bigskip\ExecuteMetaData[parser.tex]{#1}}
+\newcommand{\hgrab}[1]{\ExecuteMetaData[parser.tex]{#1}}
 
+\newcommand{\sagrab}[2]{\bigskip\ExecuteMetaData[#1.tex]{#2}}
+\newcommand{\agrab}[2]{\ExecuteMetaData[#1.tex]{#2}}
+
+\input{commands.tex}
 \input{lhs2tex-prelude.tex}
-
 
 \makeatletter\if@ACM@journal\makeatother
 %% Journal information (used by PACMPL format)
@@ -164,7 +170,7 @@ thanks to polymorphism and higher order functions.
 
 \paragraph{Parser Type}
 
-\grab{parser}
+\shgrab{parser}
 
 It is naturally possible to run such a parser and try to extract
 a value from a successful parse. Opinions may vary on whether a
@@ -175,7 +181,7 @@ guaranteeing that only runs with no leftovers are successful or
 by extending a grammar with a dummy case consuming the rest of
 the input string.
 
-\grab{parse}
+\shgrab{parse}
 
 \paragraph{(Strongly-Typed) Combinators}
 
@@ -184,7 +190,7 @@ It succeeds as long as the input string is non empty and
 returns one result: the tail of the string together with the
 character it just read.
 
-\grab{anychar}
+\shgrab{anychar}
 
 However what makes parsers interesting is that they recognize
 structure. As such, they need to reject invalid inputs. The
@@ -193,8 +199,8 @@ It can be implemented in terms of \parser{guard}, a higher
 order parser checking that the value returned by its argument
 abides by a predicate.
 
-\grab{guard}
-\ExecuteMetaData[parser.tex]{digit}
+\shgrab{guard}
+\hgrab{digit}
 
 These two definitions are only somewhat satisfactory: the
 resut of the \parser{digit} parser is still stringly-typed.
@@ -209,8 +215,8 @@ return an \type{Int} corresponding to it. Once more the
 standard library has just the right function to use together
 with \parser{guardM}.
 
-\grab{guard2}
-\ExecuteMetaData[parser.tex]{digit2}
+\shgrab{guard2}
+\hgrab{digit2}
 
 \paragraph{Code Reuse: Recognizing Structures}
 
@@ -218,7 +224,7 @@ We have seen how we can already rely on the standard library
 of the host language to seemlessly implement combinators.
 We can leverage even more of the existing codebase by noticing
 that the type constructor \type{Parser} is a \type{Functor},
-an \type{Applicative}, a \type{Monad} and also an \type{Alternative}.
+an \type{Applicative}~\todo{cite}, a \type{Monad} and also an \type{Alternative}.
 
 % insert alternative instance
 
@@ -231,7 +237,8 @@ which takes as arguments a validation function as well as another
 parser and produces a parser for the type of witnesses returned
 by the validation function.
 
-% insert some, many
+\shgrab{some}
+\hgrab{many}
 
 \section{The Issue with Haskell's Parser Types}
 
@@ -248,19 +255,110 @@ is not the typical hurdle programmers stumble upon: demanding
 a non empty list of nothing at all is after all rather silly.
 The issue manifests itself naturally whenever defining a left
 recursive grammar which leads us to introducing the prototypical
-such example \type{Expr}:
+such example: \type{Expr}, a minimal language of arithmetic
+expressions.
 
 \[
 \texttt{Expr} ~::=~ \texttt{<Int>} ~|~ \texttt{<Expr>} ~\text{`+`}~ \texttt{<Expr>}
 \]
 
-If we simply reproduce this definition,
+The intuitive solution is to simply reproduce this definition by
+introducing an inductive type for \type{Expr} and then defining
+the parser as an alternative between a literal on one hand and a
+sub-expression, the character '+', and another sub-expression on
+the other.
 
+\shgrab{Expr}
+\hgrab{expr}
+
+However this leads to an infinite loop. Indeed, the second
+alternative performs a recursive call to \parser{expr} even
+though it hasn't consumed any character from the input string.
+
+The typical solution to this problem is to introduce two 'tiers'
+of expressions: the \parser{base} ones which can only be whole
+expressions if we consume an opening parenthesis first and the
+\parser{expr'} ones which are left-associated chains of \parser{base}
+expressions connected by '+'.
+
+\shgrab{base}
+\hgrab{expr2}
+
+This approach can be generalised when defining more complex
+languages by having even more tiers, one for each
+\emph{fixity level}. An extended language of arithmetic
+expressions would for instance distinguish the level at
+which addition and substraction live from the one at which
+multiplication and division do.
+
+
+Our issue with this solution is twofold. Firt, although we did
+eventually managed to build a parser that worked as expected,
+the compiler was unable to warn us and guide us towards this
+correct solution. Additionnally, the blatant partiality of
+some of these definitions means that these combinators and
+these types are wholly unsuitable in a total. We could, of
+course use an escape hatch and implement our parsers in Haskell
+but that would both be unsafe and mean we would not be able
+to run them at typechecking time which we may want to do if
+we embed checked examples in our software's documentation,
+or use constant values (e.g. filepaths).
 
 \section{Indexed Sets and Course-of-Values Recursion}
 
+Our implementation of Total Parser Combinators is in Agda,
+a total dependently typed programming language and it will
+rely heavily on indexed sets. But the indices will not be
+playing any interesting role apart from enforcing totality.
+As a consequence, we introduce combinators to build indexed
+sets without having to mention the index explicitly. This
+ought to make the types more readable by focusing on the
+important components and hiding away the artefacts of the
+encoding.
+
+The first kind of combinator corresponds to operations on
+sets which are lifted to indexed sets by silently propagating
+the index. It may be a bit surprising to see infix notations
+(in Agda underscores correspond to positions in which arguments
+are to be inserted) for functions taking three arguments but
+they are only meant to be partially applied.
+
+\sagrab{Relation/Unary/Indexed}{arrow}
+\agrab{Relation/Unary/Indexed}{product}
+
+The second kind turns an indexed set into a set by universally
+quantifying over the index. Here we use curly braces so that
+the index we use is an \emph{implicit} argument we will never
+have to write.
+
+\sagrab{Relation/Unary/Indexed}{forall}
+
+Finally, the last kind of combinator\todo{cite}
+Instead of defining it as a 
 
 
+\sagrab{Induction/Nat/Strong}{box}
+
+
+
+\sagrab{Induction/Nat/Strong}{extract}
+\agrab{Induction/Nat/Strong}{duplicate}
+
+\sagrab{Induction/Nat/Strong}{map}
+\agrab{Induction/Nat/Strong}{app}
+
+
+\agrab{Induction/Nat/Strong}{fix}
+
+\paragraph{Remark} The type of \AF{fix} corresponds exactly to
+strong induction for the natural numbers. A similar \AR{□} type
+constructor can be defined for any induction principle relying
+on an accessibility predicate. Which means that a library's
+types can be cleaned up by using these combinators in any
+situation where one had to give up structural induction for a
+more powerful alternative.
+
+\section{Parsing, Totally}
 
 %% Acknowledgments
 %\begin{acks}                            %% acks environment is optional

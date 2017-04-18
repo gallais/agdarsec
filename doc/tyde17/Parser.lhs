@@ -1,5 +1,11 @@
 %include lhs2TeX.fmt
 
+%format <|> = "\mathbin{<\!\!|\!\!>}"
+%format <*> = "\mathbin{<\!\!*\!\!>}"
+%format <*  = "\mathbin{<\!\!*}"
+%format *>  = "\mathbin{*\!\!>}"
+%format <$> = "\mathbin{<\!\!\$\!\!>}"
+
 \begin{code}
 {-# LANGUAGE TupleSections        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -16,9 +22,8 @@ import Control.Monad (ap)
 %<*parser>
 \begin{code}
 newtype Parser a = Parser { runParser
-  ::  String        -- input string
-  ->  [(String, a)] -- possible values + leftover
-  }
+  ::  String           -- input string
+  ->  [(String, a)] }  -- possible values + leftover
 \end{code}
 %</parser>
 
@@ -54,15 +59,15 @@ digit = guard (`elem` "0123456789") anyChar
 %</digit>
 %<*guard2>
 \begin{code}
-guard' :: (a -> Maybe b) -> Parser a -> Parser b
-guard' f p = Parser  $ catMaybes . fmap (traverse f)
+guardM :: (a -> Maybe b) -> Parser a -> Parser b
+guardM f p = Parser  $ catMaybes . fmap (traverse f)
                      . runParser p
 \end{code}
 %</guard2>
 %<*digit2>
 \begin{code}
 digit' :: Parser Int
-digit' = guard' (readMaybe . (:[])) anyChar
+digit' = guardM (readMaybe . (:[])) anyChar
 \end{code}
 %</digit2>
 
@@ -100,11 +105,11 @@ many p = some p <|> pure []
 %<*Expr>
 \begin{code}
 data Expr = Literal Int | Plus Expr Expr
-  deriving (Show)
 \end{code}
 %</Expr>
-
 \begin{code}
+  deriving (Show)
+
 char :: Char -> Parser Char
 char c = guard (c ==) anyChar
 
@@ -116,12 +121,20 @@ int = convert <$> some digit' where
 %<*expr>
 \begin{code}
 expr :: Parser Expr
-expr =  Literal <$> int
-        <|> Plus <$> expr <* char '+' <*> expr
+expr  =    Literal <$> int
+      <|>  Plus <$> expr <* char '+' <*> expr
 \end{code}
-%</exor>
+%</expr>
+%<*base>
+\begin{code}
+base :: Parser Expr
+base  =    Literal <$> int
+      <|>  char '(' *> expr' <* char ')'
+\end{code}
+%</base>
+%<*expr2>
 \begin{code}
 expr' :: Parser Expr
 expr' = base <|> Plus <$> base <* char '+' <*> expr'
-    where base = Literal <$> int <|> char '(' *> expr' <* char ')'
 \end{code}
+%</expr2>
