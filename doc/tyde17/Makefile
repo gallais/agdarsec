@@ -1,9 +1,14 @@
 PAPER=main
 
-all:
+main: all
+
+prepare:
+	lhs2TeX --poly Parser.lhs -o parser.tex
+
+all:prepare
 	mkdir -p __build/
-	cp *.tex *.cls __build/
-	cd __build/ && pdflatex ${PAPER}.tex
+	cp *.tex *.sty *.cls __build/
+	cd __build/ && latexmk -pdf ${PAPER}.tex
 	ln -sf __build/${PAPER}.pdf
 	xdotool search --class mupdf key --window %@ r > /dev/null 2>&1
 

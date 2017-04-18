@@ -15,6 +15,11 @@
                         %% http://ctan.org/pkg/booktabs
 \usepackage{subcaption} %% For complex figures with subfigures/subcaptions
                         %% http://ctan.org/pkg/subcaption
+\usepackage{catchfilebetweentags}
+
+\newcommand{\grab}[1]{\bigskip\ExecuteMetaData[parser.tex]{#1}}
+
+\input{lhs2tex-prelude.tex}
 
 
 \makeatletter\if@ACM@journal\makeatother
@@ -159,6 +164,8 @@ thanks to polymorphism and higher order functions.
 
 \paragraph{Parser Type}
 
+\grab{parser}
+
 It is naturally possible to run such a parser and try to extract
 a value from a successful parse. Opinions may vary on whether a
 run with leftover characters can be considered successful or not.
@@ -168,6 +175,8 @@ guaranteeing that only runs with no leftovers are successful or
 by extending a grammar with a dummy case consuming the rest of
 the input string.
 
+\grab{parse}
+
 \paragraph{(Strongly-Typed) Combinators}
 
 The most basic parser is the one that accepts any character.
@@ -175,7 +184,7 @@ It succeeds as long as the input string is non empty and
 returns one result: the tail of the string together with the
 character it just read.
 
-% insert anyChar
+\grab{anychar}
 
 However what makes parsers interesting is that they recognize
 structure. As such, they need to reject invalid inputs. The
@@ -184,7 +193,8 @@ It can be implemented in terms of \parser{guard}, a higher
 order parser checking that the value returned by its argument
 abides by a predicate.
 
-% insert guard, digit
+\grab{guard}
+\ExecuteMetaData[parser.tex]{digit}
 
 These two definitions are only somewhat satisfactory: the
 resut of the \parser{digit} parser is still stringly-typed.
@@ -199,7 +209,8 @@ return an \type{Int} corresponding to it. Once more the
 standard library has just the right function to use together
 with \parser{guardM}.
 
-% insert guardM, digit
+\grab{guard2}
+\ExecuteMetaData[parser.tex]{digit2}
 
 \paragraph{Code Reuse: Recognizing Structures}
 
