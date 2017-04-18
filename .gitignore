@@ -1,2 +1,5 @@
 *.agdai
-*.agda~
+*~
+*.pdf
+*.cls
+*.sty
