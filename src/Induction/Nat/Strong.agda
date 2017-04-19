@@ -15,7 +15,7 @@ open □_ public
 module _ {A B : ℕ → Set} where
 
  map : [ A ⟶ B ] → [ □ A ⟶ □ B ]
- call (map f A) m≤n = f (call A m≤n)
+ call (map f A) m<n = f (call A m<n)
 
 module _ {A : ℕ → Set} where
 

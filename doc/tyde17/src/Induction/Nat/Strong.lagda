@@ -24,7 +24,7 @@ module _ {A B : ℕ → Set} where
 %<*map>
 \begin{code}
  map : [ A ⟶ B ] → [ □ A ⟶ □ B ]
- call (map f A) m≤n = f (call A m≤n)
+ call (map f A) m<n = f (call A m<n)
 \end{code}
 %</map>
 \begin{code}
