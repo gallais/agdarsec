@@ -21,47 +21,16 @@ data PAR : Set where
   LSQU RSQU : PAR
 
 instance
-  {- eqPAR x y             -}
-  {- C-c C-c x y           -}
-  {- F3 C-c C-f C-c C-a F4 -}
-  {- F4 (repeat ∣PAR∣^2)    -}
   eqPAR : Decidable {A = PAR} _≡_
   eqPAR LPAR LPAR = yes refl
-  eqPAR LPAR RPAR = no (λ ())
-  eqPAR LPAR LCUR = no (λ ())
-  eqPAR LPAR RCUR = no (λ ())
-  eqPAR LPAR LSQU = no (λ ())
-  eqPAR LPAR RSQU = no (λ ())
-  eqPAR RPAR LPAR = no (λ ())
   eqPAR RPAR RPAR = yes refl
-  eqPAR RPAR LCUR = no (λ ())
-  eqPAR RPAR RCUR = no (λ ())
-  eqPAR RPAR LSQU = no (λ ())
-  eqPAR RPAR RSQU = no (λ ())
-  eqPAR LCUR LPAR = no (λ ())
-  eqPAR LCUR RPAR = no (λ ())
   eqPAR LCUR LCUR = yes refl
-  eqPAR LCUR RCUR = no (λ ())
-  eqPAR LCUR LSQU = no (λ ())
-  eqPAR LCUR RSQU = no (λ ())
-  eqPAR RCUR LPAR = no (λ ())
-  eqPAR RCUR RPAR = no (λ ())
-  eqPAR RCUR LCUR = no (λ ())
   eqPAR RCUR RCUR = yes refl
-  eqPAR RCUR LSQU = no (λ ())
-  eqPAR RCUR RSQU = no (λ ())
-  eqPAR LSQU LPAR = no (λ ())
-  eqPAR LSQU RPAR = no (λ ())
-  eqPAR LSQU LCUR = no (λ ())
-  eqPAR LSQU RCUR = no (λ ())
   eqPAR LSQU LSQU = yes refl
-  eqPAR LSQU RSQU = no (λ ())
-  eqPAR RSQU LPAR = no (λ ())
-  eqPAR RSQU RPAR = no (λ ())
-  eqPAR RSQU LCUR = no (λ ())
-  eqPAR RSQU RCUR = no (λ ())
-  eqPAR RSQU LSQU = no (λ ())
   eqPAR RSQU RSQU = yes refl
+  -- catchall for no
+  eqPAR _ _ = no whatever where
+    postulate whatever : {A : Set} → A
 
   tokPAR : Tokenizer PAR
   tokPAR = mkTokenizer $ List.foldr (_++_ ∘ toPAR) [] where
