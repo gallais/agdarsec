@@ -19,11 +19,12 @@
 \usepackage{todonotes}
 \usepackage{catchfilebetweentags}
 
-\newcommand{\shgrab}[1]{\bigskip\ExecuteMetaData[parser.tex]{#1}}
+\newcommand{\shgrab}[1]{\medskip\ExecuteMetaData[parser.tex]{#1}}
 \newcommand{\hgrab}[1]{\ExecuteMetaData[parser.tex]{#1}}
 
-\newcommand{\sagrab}[2]{\bigskip\ExecuteMetaData[#1.tex]{#2}}
+\newcommand{\sagrab}[2]{\medskip\ExecuteMetaData[#1.tex]{#2}}
 \newcommand{\agrab}[2]{\ExecuteMetaData[#1.tex]{#2}}
+\newcommand{\BOX}{\AR{□}}
 
 \input{commands.tex}
 \input{lhs2tex-prelude.tex}
@@ -333,30 +334,82 @@ have to write.
 
 \sagrab{Relation/Unary/Indexed}{forall}
 
-Finally, the last kind of combinator\todo{cite}
-Instead of defining it as a 
+We can already see the benefits of using these aliases. For instance
+the fairly compact expression \AF{[} (\AB{P} \AF{⊗} \AB{Q}) \AF{⟶} \AB{R} \AF{]}
+corresponds to the more verbose type
+\AS{∀} \{\AB{n}\} \AS{→} (\AB{P} \AB{n} \AF{×} \AB{Q} \AB{n}) \AS{→} \AB{R} \AB{n}.
 
+
+Last but not least, the \BOX{} type constructor takes a \AD{ℕ}-indexed
+set and produces the one corresponding to the allowed recursive
+calls in a function defined by course-of-values recursion: \BOX{}
+\AB{A} \AB{n} associates to each \AB{m} strictly smaller than \AB{n}
+a value of type \AB{A} \AB{m}.
 
 \sagrab{Induction/Nat/Strong}{box}
 
+\paragraph{Remark: Record Wrapper} Instead of defining \BOX{} as a
+function like the other combinators, we wrap the corresponding
+function space in a record type. This prevents normalisation from
+unfolding the combinator too eagerly and makes types more readable
+during interactive development.
 
+\paragraph{Remark: Irrelevance} The argument stating that \AB{m}
+is strictly smaller than \AB{n} is preceded by a dot. In Agda,
+it means that this value is irrelevant and can be erased by the
+compiler. In Coq, we would define the relation \AF{\_<\_} in
+\type{Prop} to achieve the same.
 
-\sagrab{Induction/Nat/Strong}{extract}
-\agrab{Induction/Nat/Strong}{duplicate}
+\medskip{}
+
+This \BOX{} type combinator has some useful value combinators.
+The first thing we can notice is the fact that \textbf{\BOX{} is a
+functor}; that is to say that given a natural transformation from
+\AB{A} to \AB{B}, we can define a natural transformation from
+\BOX{} \AB{A} to \BOX{} \AB{B}.
 
 \sagrab{Induction/Nat/Strong}{map}
+
+\paragraph{Remark: Copatterns} The definition of \AF{map} uses
+the \BOX{} field named \ARF{call} on the \emph{left hand side}.
+This is a copattern\todo{cite}, meaning that we explain how
+the definition is \emph{observed} (via \ARF{call}) rather than
+\emph{constructed} (via \AIC{mkBox}).
+
+\medskip{}
+
+Because \AF{\_<\_} is defined in terms of \AD{\_≤\_}, \AF{≤-refl}
+which is the proof that \AD{\_≤\_} is reflexive is also a proof
+that any \AB{n} is strictly smaller than \AN{1} \AF{+} \AB{n}.
+We can use this fact to write the following \AF{extract} function:
+
+\sagrab{Induction/Nat/Strong}{extract}
+
+\paragraph{Remark: Counit} The careful reader will have noticed
+that this is not quite the extract we would expect from a comonad:
+for a counit, we would need a natural transformation between
+\BOX{} \AB{A} and \AB{A} i.e. a function of type
+\AF{[} \BOX{} \AB{A} \AF{⟶} \AB{A} \AF{]}. We will not be able
+to define such a function: \BOX{} \AB{A} \AN{0} is isomorphic to
+the unit type so we would have to generate an \AB{A} \AN{0} out
+of thin air.
+
+\medskip
+
+Even though we cannot have a counit, we are still able to define
+a comultiplication thanks to the fact that \AF{\_<\_} is transitive.
+
+\sagrab{Induction/Nat/Strong}{duplicate}
+
 \agrab{Induction/Nat/Strong}{app}
+\sagrab{Induction/Nat/Strong}{fix}
 
-
-\agrab{Induction/Nat/Strong}{fix}
-
-\paragraph{Remark} The type of \AF{fix} corresponds exactly to
-strong induction for the natural numbers. A similar \AR{□} type
-constructor can be defined for any induction principle relying
-on an accessibility predicate. Which means that a library's
-types can be cleaned up by using these combinators in any
-situation where one had to give up structural induction for a
-more powerful alternative.
+\paragraph{Remark: Generalisation} The type of \AF{fix} corresponds
+exactly to strong induction for the natural numbers. A similar \BOX{}
+type constructor can be defined for any induction principle relying
+on an accessibility predicate. Which means that a library's types
+can be cleaned up by using these combinators in any situation where
+one had to give up structural induction for a more powerful alternative.
 
 \section{Parsing, Totally}
 
