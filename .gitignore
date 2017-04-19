@@ -3,3 +3,7 @@
 *.pdf
 *.cls
 *.sty
+*.hash
+*.log
+__build/
+latex/
