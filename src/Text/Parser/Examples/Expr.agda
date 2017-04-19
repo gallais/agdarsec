@@ -7,6 +7,7 @@ open import Data.Nat.Base
 open import Data.Char.Base
 open import Data.List.Base as List hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
+open import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
 open import Function
@@ -22,16 +23,18 @@ data Expr : Set where
   Add Sub : Expr → Expr → Expr
   Mul Div : Expr → Expr → Expr
 
-Expr′ : [ Parser Char Maybe Expr ]
-Expr′ = fix (Parser Char Maybe Expr) $ λ rec →
-        let var    = Var <$> alpha
-            lit    = Lit <$> decimal
-            addop  = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
-            mulop  = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
-            factor = parens rec <|> var <|> lit
-            term   = chainl1 factor $ return mulop
-            expr   = chainl1 term   $ return addop
-        in expr
+module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+
+ Expr′ : [ Parser Char Chars Maybe Expr ]
+ Expr′ = fix (Parser Char Chars Maybe Expr) $ λ rec →
+         let var    = Var <$> alpha
+             lit    = Lit <$> decimal
+             addop  = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
+             mulop  = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
+             factor = parens rec <|> var <|> lit
+             term   = chainl1 factor $ return mulop
+             expr   = chainl1 term   $ return addop
+         in expr
 
 
 -- tests

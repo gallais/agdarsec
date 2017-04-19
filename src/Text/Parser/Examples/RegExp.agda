@@ -1,9 +1,11 @@
 module Text.Parser.Examples.RegExp where
 
+open import Data.Nat.Base
 open import Data.Bool.Base
 open import Data.Char as Char
 open import Data.List.Base     as List     hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
+open import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
 open import Function
@@ -77,21 +79,23 @@ instance
   _ = eqTOK
   _ = mkTokenizer toTOKs
 
-range : [ Parser TOK Maybe Range ]
-range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
-        <$> (maybeTok isCHAR <&?> (return $ exact DOTS &> return (maybeTok isCHAR)))
+module _ {TOKS : ℕ → Set} {{𝕊 : Sized TOK TOKS}} where
 
-regexp : [ Parser TOK Maybe RegExp ]
-regexp = fix (Parser TOK Maybe RegExp) $ λ rec →
-         let parens   = between (exact LPAR) (return (exact RPAR))
-             parens?  = between? (exact LPAR) (return (exact RPAR))
-             ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
-                        <*> list⁺ range <& return (exact CLOSE)
-             literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
-             base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
-             star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> return (exact STAR))
-             disj     = chainr1 star (return $ _∥_ <$ exact OR)
-         in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
+ range : [ Parser TOK TOKS Maybe Range ]
+ range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
+         <$> (maybeTok isCHAR <&?> (return $ exact DOTS &> return (maybeTok isCHAR)))
+
+ regexp : [ Parser TOK TOKS Maybe RegExp ]
+ regexp = fix (Parser TOK TOKS Maybe RegExp) $ λ rec →
+          let parens   = between (exact LPAR) (return (exact RPAR))
+              parens?  = between? (exact LPAR) (return (exact RPAR))
+              ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
+                         <*> return (list⁺ range <& return (exact CLOSE))
+              literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
+              base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
+              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> return (exact STAR))
+              disj     = chainr1 star (return $ _∥_ <$ exact OR)
+          in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
 
 -- test
 

@@ -1,9 +1,11 @@
 module Text.Parser.Examples.Parentheses where
 
+open import Data.Nat.Base
 open import Data.Unit
-open import Data.Maybe
+open import Data.Maybe.Base
 open import Data.Char
 open import Data.List.Base as List hiding ([_])
+open import Data.List.Sized.Interface
 open import Data.Bool
 open import Relation.Nullary
 open import Relation.Binary
@@ -73,11 +75,13 @@ instance
          else if c == ']' then RSQU ∷ []
          else [] -- ignoring other characters as noise
 
-PAR′ : [ Parser PAR Maybe ⊤ ]
-PAR′ = fix (Parser PAR Maybe ⊤) $ λ rec →
-        tt <$ ((exact LPAR <&?> rec) <& return (exact RPAR <&?> rec))
-    <|> tt <$ ((exact LCUR <&?> rec) <& return (exact RCUR <&?> rec))
-    <|> tt <$ ((exact LSQU <&?> rec) <& return (exact RSQU <&?> rec))
+module _ {PARS : ℕ → Set} {{𝕊 : Sized PAR PARS}} where
+
+ PAR′ : [ Parser PAR PARS Maybe ⊤ ]
+ PAR′ = fix (Parser PAR PARS Maybe ⊤) $ λ rec →
+         tt <$ ((exact LPAR <&?> rec) <& return (exact RPAR <&?> rec))
+     <|> tt <$ ((exact LCUR <&?> rec) <& return (exact RCUR <&?> rec))
+     <|> tt <$ ((exact LSQU <&?> rec) <& return (exact RSQU <&?> rec))
 
 
 -- tests

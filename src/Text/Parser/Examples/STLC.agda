@@ -4,6 +4,7 @@ open import Data.Nat.Base
 open import Data.Char.Base
 open import Data.List.Base as List hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
+open import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
 open import Function
@@ -16,9 +17,11 @@ data Type : Set where
   `κ   : ℕ → Type
   _`→_ : Type → Type → Type
 
-Type′ : [ Parser Char Maybe Type ]
-Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimal <|> parens rec)
-                                (return $ _`→_ <$ withSpaces (char '→'))
+module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+
+ Type′ : [ Parser Char Chars Maybe Type ]
+ Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimal <|> parens rec)
+                                 (return $ _`→_ <$ withSpaces (char '→'))
 
 _ : "1 → (2 → 3) → 4" ∈ Type′
 _ = `κ 1 `→ ((`κ 2 `→ `κ 3) `→ `κ 4) !
@@ -34,18 +37,20 @@ mutual
     Cut : Val → Type → Neu
     App : Neu → Val → Neu
 
-Val′ : [ Parser Char Maybe Val ]
-Val′ = fix _ $ λ rec →
-       let var = Var <$> identifier
-           cut = uncurry Cut <$> (char '(' &> rec
-                             <& return (withSpaces (char ':'))
-                             <&> return Type′
-                             <& return (char ')'))
-           neu = hchainl (var <|> cut) (return (App <$ space)) rec
-       in uncurry Lam <$> (char 'λ' &> return (withSpaces identifier)
-                                   <&> return ((char '.')
-                                    &> rec))
-          <|> Emb <$> neu
+module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+
+ Val′ : [ Parser Char Chars Maybe Val ]
+ Val′ = fix _ $ λ rec →
+        let var = Var <$> identifier
+            cut = uncurry Cut <$> (char '(' &> rec
+                              <& return (withSpaces (char ':'))
+                              <&> return Type′
+                              <& return (char ')'))
+            neu = hchainl (var <|> cut) (return (App <$ space)) rec
+        in uncurry Lam <$> (char 'λ' &> return (withSpaces identifier)
+                                    <&> return ((char '.')
+                                     &> rec))
+           <|> Emb <$> neu
 
 -- tests
 
