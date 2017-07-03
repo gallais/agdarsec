@@ -7,6 +7,7 @@ open import Data.List.NonEmpty as NonEmpty hiding ([_])
 open import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
+import Induction.Nat.Strong as INS
 open import Function
 
 open import Text.Parser.Examples.Base
@@ -39,18 +40,33 @@ mutual
 
 module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
 
- Val′ : [ Parser Char Chars Maybe Val ]
- Val′ = fix _ $ λ rec →
-        let var = Var <$> identifier
-            cut = uncurry Cut <$> (char '(' &> rec
-                              <& return (withSpaces (char ':'))
-                              <&> return Type′
-                              <& return (char ')'))
-            neu = hchainl (var <|> cut) (return (App <$ space)) rec
-        in uncurry Lam <$> (char 'λ' &> return (withSpaces identifier)
+ record Language (n : ℕ) : Set where
+   field pVal : Parser Char Chars Maybe Val n
+         pNeu : Parser Char Chars Maybe Neu n
+ open Language
+
+ language : [ Language ]
+ language = fix Language $ λ rec →
+             let □val = INS.map pVal rec
+                 cut  = uncurry Cut <$> (char '(' &> □val
+                               <& return (withSpaces (char ':'))
+                               <&> return Type′
+                               <& return (char ')'))
+                 neu  = hchainl (var <|> cut) (return (App <$ space)) □val
+                 val  = uncurry Lam <$> (char 'λ' &> return (withSpaces identifier)
                                     <&> return ((char '.')
-                                     &> rec))
-           <|> Emb <$> neu
+                                     &> □val))
+                        <|> Emb <$> neu
+             in record { pVal = val ; pNeu = neu }
+
+   where
+
+    var : [ Parser Char Chars Maybe Neu ]
+    var = Var <$> identifier
+
+
+ Val′ : [ Parser Char Chars Maybe Val ]
+ Val′ = pVal language
 
 -- tests
 

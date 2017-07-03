@@ -11,11 +11,11 @@ open import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
 open import Function
+import Induction.Nat.Strong as INS
 
 open import Text.Parser.Examples.Base
 open import Text.Parser.Examples.Identifier
 open import Text.Parser.Examples.Decimal
-
 
 data Expr : Set where
   Var     : Char → Expr
@@ -25,17 +25,41 @@ data Expr : Set where
 
 module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
 
- Expr′ : [ Parser Char Chars Maybe Expr ]
- Expr′ = fix (Parser Char Chars Maybe Expr) $ λ rec →
-         let var    = Var <$> alpha
-             lit    = Lit <$> decimal
-             addop  = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
-             mulop  = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
-             factor = parens rec <|> var <|> lit
+ record PExpr (n : ℕ) : Set where
+   field pvar : Parser Char Chars Maybe Expr n
+         plit : Parser Char Chars Maybe Expr n
+         pfac : Parser Char Chars Maybe Expr n
+         pexp : Parser Char Chars Maybe Expr n
+ open PExpr
+
+ pExpr : [ PExpr ]
+ pExpr = fix PExpr $ λ rec →
+         let factor = parens (INS.map pexp rec) <|> var <|> lit
              term   = chainl1 factor $ return mulop
              expr   = chainl1 term   $ return addop
-         in expr
+         in record { pvar = var
+                   ; plit = lit
+                   ; pfac = factor
+                   ; pexp = expr }
 
+
+  module Details where
+
+    var : [ Parser Char Chars Maybe Expr ]
+    lit : [ Parser Char Chars Maybe Expr ]
+
+    var = Var <$> alpha
+    lit = Lit <$> decimal
+
+    addop : [ Parser Char Chars Maybe (Expr → Expr → Expr) ]
+    mulop : [ Parser Char Chars Maybe (Expr → Expr → Expr) ]
+
+    addop = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
+    mulop = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
+
+
+ Expr′ : [ Parser Char Chars Maybe Expr ]
+ Expr′ = pexp pExpr
 
 -- tests
 
