@@ -341,10 +341,13 @@ corresponds to the more verbose type
 
 
 Last but not least, the \BOX{} type constructor takes a \AD{ℕ}-indexed
-set and produces the one corresponding to the allowed recursive
-calls in a function defined by course-of-values recursion: \BOX{}
-\AB{A} \AB{n} associates to each \AB{m} strictly smaller than \AB{n}
-a value of type \AB{A} \AB{m}.
+set and produces the set of valid recursive calls for a function defined
+by course-of-values recursion: \BOX{} \AB{A} \AB{n} associates to each
+\AB{m} strictly smaller than \AB{n} a value of type \AB{A} \AB{m}.
+This construct, analogous to the later modality showing up in Guarded
+Type Theory~\cite{vezzosi2015guarded}, empowers the user to give precise
+types in a total language to programs commonly written in partial ones
+(see e.g. the definition of \textit{fix} below).
 
 \sagrab{Induction/Nat/Strong}{box}
 
@@ -401,6 +404,11 @@ a comultiplication thanks to the fact that \AF{\_<\_} is transitive.
 
 \sagrab{Induction/Nat/Strong}{duplicate}
 
+\paragraph{Remark: Identifiers in Agda} In Agda, any space-free
+string which is not a reserved keyword is a valid identifier. As
+a consequence we can pick suggestive names such as \AB{m<n} for
+a proof that $m < n$.
+
 \agrab{Induction/Nat/Strong}{app}
 \sagrab{Induction/Nat/Strong}{fix}
 
@@ -432,7 +440,7 @@ one had to give up structural induction for a more powerful alternative.
 
 
 %% Bibliography
-%\bibliography{bibfile}
+\bibliography{main.bib}
 
 
 %% Appendix

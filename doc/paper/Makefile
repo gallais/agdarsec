@@ -8,7 +8,7 @@ prepare:
 
 all:prepare
 	mkdir -p __build/
-	cp -R *.tex *.cls latex/* __build/	
+	cp -R *.tex *.cls *.bib *.bst latex/* __build/
 	cd __build/ && latexmk -pdf ${PAPER}.tex
 	ln -sf __build/${PAPER}.pdf
 	xdotool search --class mupdf key --window %@ r > /dev/null 2>&1
