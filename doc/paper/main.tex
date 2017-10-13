@@ -157,26 +157,53 @@
 \section{Introduction}
 
 Parser combinators have made functional languages such as Haskell
-shine: they are a prime example of the advantages Embedded Domain
+shine. They are a prime example of the advantages Embedded Domain
 Specific Languages provide the end user. She not only has access
-to a library of powerful composable abstractions but she is also
-able to rely on the existing tooling and libraries of the host
-language, she gets feedback from the static analysis built in the
-compiler (e.g. type and coverage checking) and can exploit from
-the expressivity of the host language to write generic parsers
-thanks to polymorphism and higher order functions.
+to a library of powerful and composable abstractions but she is also
+able to rely on the host language's existing tooling and libraries.
+She also gets feedback from the static analyses built in the compiler
+(e.g. type and coverage checking) and can exploit the expressivity
+of the host language to write generic parsers thanks to polymorphism
+and higher order functions.
 
+However she only gets the guarantees the host language is willing
+to give. In non-total programming languages such as Haskell this
+means she will not be prevented from writing parsers which will
+unexpectedly fail on some (or even all!) inputs. Handling a
+left-recursive grammar is perhaps the most iconic pitfall leading
+beginners to their doom: a parser never making any progress.
+
+We start with a primer on parser combinators and follow up with the
+definition of a broken parser which is silently accepted by Haskell.
+We then move on to Agda~\todo{cite} and introduce combinators to
+define functions by well-founded recursion. This allows us to define
+a more informative notion of parser and give more precise types to
+the combinators commonly used. We then demonstrate that broken parsers
+such as the one presented earlier are rejected whilst typical example
+can be ported with minimal modifications.
 
 \section{A Primer on Parser Combinators}
 
-\paragraph{Parser Type}
+\paragraph{Parser Type} Let us start by reminding ourselves what
+a parser is. Although we will eventually move to a more generic
+type, Fritz Ruehr's rhyme gives us the \emph{essence} of parsers:
+
+\begin{verse}
+  A Parser for Things\\
+  is a function from Strings\\
+  to Lists of Pairs\\
+  of Things and Strings!
+\end{verse}
+
+This stanza directly translates to the following Haskell type (we
+use a \textbf{newtype} wrapper to have cleaner error messages):
 
 \shgrab{parser}
 
 It is naturally possible to run such a parser and try to extract
 a value from a successful parse. Opinions may vary on whether a
 run with leftover characters can be considered successful or not.
-We decide against it. This is not crucial as both styles can be
+We decide against it.\todo{ambiguity} This is not crucial as both styles can be
 mutually emulated by either providing an 'end of file' parser
 guaranteeing that only runs with no leftovers are successful or
 by extending a grammar with a dummy case consuming the rest of
@@ -228,7 +255,6 @@ that the type constructor \type{Parser} is a \type{Functor},
 an \type{Applicative}~\todo{cite}, a \type{Monad} and also an \type{Alternative}.
 
 % insert alternative instance
-
 % interesting use case? replicateM?
 
 \paragraph{Expressivity: Higher Order Parsers and Fixpoints}
@@ -238,10 +264,16 @@ which takes as arguments a validation function as well as another
 parser and produces a parser for the type of witnesses returned
 by the validation function.
 
+The two parsers \AB{some} and \AB{many} turn a parser for elements
+into ones for non-empty and potentially empty lists of such elements
+respectively. They concisely showcase the power of mutual recursion,
+higher-order functions and the \type{Functor}, \type{Applicative},
+and \type{Alternative} structure.
+
 \shgrab{some}
 \hgrab{many}
 
-\section{The Issue with Haskell's Parser Types}
+\section{The Issue with Haskell's Parser Types}\label{sec:haskellproblem}
 
 The ability to parse recursive grammars by simply declaring
 them in a recursive manner is however dangerous: unlike type
@@ -351,13 +383,13 @@ types in a total language to programs commonly written in partial ones
 
 \sagrab{Induction/Nat/Strong}{box}
 
-\paragraph{Remark: Record Wrapper} Instead of defining \BOX{} as a
+\remark{Record Wrapper} Instead of defining \BOX{} as a
 function like the other combinators, we wrap the corresponding
 function space in a record type. This prevents normalisation from
 unfolding the combinator too eagerly and makes types more readable
 during interactive development.
 
-\paragraph{Remark: Irrelevance} The argument stating that \AB{m}
+\remark{Irrelevance} The argument stating that \AB{m}
 is strictly smaller than \AB{n} is preceded by a dot. In Agda,
 it means that this value is irrelevant and can be erased by the
 compiler. In Coq, we would define the relation \AF{\_<\_} in
@@ -373,11 +405,11 @@ functor}; that is to say that given a natural transformation from
 
 \sagrab{Induction/Nat/Strong}{map}
 
-\paragraph{Remark: Copatterns} The definition of \AF{map} uses
+\remark{Copatterns} The definition of \AF{map} uses
 the \BOX{} field named \ARF{call} on the \emph{left hand side}.
-This is a copattern\todo{cite}, meaning that we explain how
-the definition is \emph{observed} (via \ARF{call}) rather than
-\emph{constructed} (via \AIC{mkBox}).
+This is a copattern~\cite{abel2013copatterns}, meaning that we
+explain how the definition is \emph{observed} (via \ARF{call})
+rather than \emph{constructed} (via \AIC{mkBox}).
 
 \medskip{}
 
@@ -388,7 +420,7 @@ We can use this fact to write the following \AF{extract} function:
 
 \sagrab{Induction/Nat/Strong}{extract}
 
-\paragraph{Remark: Counit} The careful reader will have noticed
+\remark{Counit} The careful reader will have noticed
 that this is not quite the extract we would expect from a comonad:
 for a counit, we would need a natural transformation between
 \BOX{} \AB{A} and \AB{A} i.e. a function of type
@@ -397,22 +429,37 @@ to define such a function: \BOX{} \AB{A} \AN{0} is isomorphic to
 the unit type so we would have to generate an \AB{A} \AN{0} out
 of thin air.
 
-\medskip
+\medskip{}
 
 Even though we cannot have a counit, we are still able to define
 a comultiplication thanks to the fact that \AF{\_<\_} is transitive.
 
 \sagrab{Induction/Nat/Strong}{duplicate}
 
-\paragraph{Remark: Identifiers in Agda} In Agda, any space-free
-string which is not a reserved keyword is a valid identifier. As
-a consequence we can pick suggestive names such as \AB{m<n} for
-a proof that $m < n$.
+\remark{Identifiers in Agda} Any space-free string which
+is not a reserved keyword is a valid identifier. As a consequence
+we can pick suggestive names such as \AB{m<n} for a proof that $m < n$.
+
+\medskip{}
+
+Exploring further the structure of the functor \BOX{}, we can observe
+that just like it is not quite a comonad, it is not quite an applicative
+functor. Indeed we can only define \AB{pure}, a natural transformation
+of type \AF{[} \AB{A} \AF{⟶} \BOX{} \AB{A} \AF{]}, for the types \AB{A}
+that are downwards closed. Providing the user with \AB{app} is however
+possible:
 
 \agrab{Induction/Nat/Strong}{app}
+
+Finally, we can reach what will serve as the backbone of our parser
+definitions: a safe, total fixpoint combinator. It differs from the
+traditional $Y$ combinator in that all the recursive calls have to be
+guarded.
+
 \sagrab{Induction/Nat/Strong}{fix}
 
-\paragraph{Remark: Generalisation} The type of \AF{fix} corresponds
+\remark{Generalisation} If we were to unfold all the type-level
+combinators and record wrappers, the type of \AF{fix} would correspond
 exactly to strong induction for the natural numbers. A similar \BOX{}
 type constructor can be defined for any induction principle relying
 on an accessibility predicate. Which means that a library's types
@@ -420,6 +467,16 @@ can be cleaned up by using these combinators in any situation where
 one had to give up structural induction for a more powerful alternative.
 
 \section{Parsing, Totally}
+
+As already highlighted in Section~\ref{sec:haskellproblem}, \AB{some}
+and \AB{many} can yield diverging computations if the parser they are
+given as an argument succeeds on the empty string. To avoid any such
+issue, we adopt a radical solution: for a parser's run to be considered
+successful, it must have consumed some of its input.
+
+\agrab{Text/Parser/Success}{success}
+
+\agrab{Text/Parser/Combinators}{parser}
 
 %% Acknowledgments
 %\begin{acks}                            %% acks environment is optional

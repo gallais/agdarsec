@@ -56,8 +56,9 @@ module _ {A : ℕ → Set} where
 \begin{code}
  call (fix□ f {zero})  ()
  call (fix□ f {suc n}) m<sn =
-  f $ mkBox $ λ p<m → 
-  call (fix□ f) (≤-trans p<m (<⇒≤pred m<sn))
+  f $ mkBox $ λ p<m →
+  call (fix□ f {n}) (≤-trans p<m (<⇒≤pred m<sn))
+
 module _ {A B : ℕ → Set} where
 
  map2 : {C : ℕ → Set} → [ A ⟶ B ⟶ C ] → [ □ A ⟶ □ B ⟶ □ C ]

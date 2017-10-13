@@ -2,7 +2,7 @@
 set -e
 set -u
 
-AGDA=agda-2.5.3
+AGDA=agda-2.5.2
 STDLIB=~/languages/agda/libs/agda-stdlib/src/
 TARGET="$1"
 DIRECTORY=$( dirname  "$1" )
