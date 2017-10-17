@@ -19,6 +19,8 @@
 \usepackage{todonotes}
 \usepackage{catchfilebetweentags}
 
+\DeclareUnicodeCharacter{8759}{:\,:}
+
 \newcommand{\shgrab}[1]{\medskip\ExecuteMetaData[parser.tex]{#1}}
 \newcommand{\hgrab}[1]{\ExecuteMetaData[parser.tex]{#1}}
 
@@ -389,11 +391,11 @@ function space in a record type. This prevents normalisation from
 unfolding the combinator too eagerly and makes types more readable
 during interactive development.
 
-\remark{Irrelevance} The argument stating that \AB{m}
-is strictly smaller than \AB{n} is preceded by a dot. In Agda,
-it means that this value is irrelevant and can be erased by the
-compiler. In Coq, we would define the relation \AF{\_<\_} in
-\type{Prop} to achieve the same.
+\remark{Irrelevance} The argument stating that \AB{m} is strictly
+smaller than \AB{n} is preceded by a dot. In Agda, it means that
+this value is irrelevant and can be erased by the compiler.
+In Coq, we would define the relation \AF{\_<\_} in \type{Prop} to
+achieve the same.
 
 \medskip{}
 
@@ -474,9 +476,28 @@ given as an argument succeeds on the empty string. To avoid any such
 issue, we adopt a radical solution: for a parser's run to be considered
 successful, it must have consumed some of its input.
 
+This can be made formal with the \AR{Success} record type: a \AF{Success}
+of type \AB{A} and size {n} is a value of type \AB{A} together with the
+leftovers of the input string of size strictly smaller than \AB{n}.
+
 \agrab{Text/Parser/Success}{success}
 
+\remark{Implicit Field} Just like the arguments to a function can be
+implicit, so can a record's fields. The user can them leave them out
+when building a value and they will be filled in by unification.
+
+\medskip{}
+
+Coming back to Fritz Ruehr's rhyme, we can define our own \AR{Parser}
+type: a parser for things up to size \AB{n} is a function from strings
+of length \AB{m} less than \AB{n} to lists of \AR{Success}es of size \AB{m}.
+
 \agrab{Text/Parser/Combinators}{parser}
+
+\agrab{Text/Parser/Combinators}{anyChar}
+
+\agrab{Text/Parser/Combinators}{guardM}
+
 
 %% Acknowledgments
 %\begin{acks}                            %% acks environment is optional

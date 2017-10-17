@@ -14,7 +14,7 @@ open import Data.Maybe.Base
 open import Data.Char
 open import Data.Bool.Base
 open import Data.Nat.Properties
-open import Data.List as List hiding ([_] ; any)
+open import Data.List as DataList hiding ([_] ; any ; module List)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
 open import Relation.Nullary.Decidable
 open import Relation.Binary
@@ -40,19 +40,31 @@ open Parser public
 
 module _ where
 
- private module 𝕄 = RawMonadPlus (List.monadPlus {Level.zero})
+ private module List = RawMonadPlus (DataList.monadPlus {Level.zero})
 
+\end{code}
+%<*anyChar>
+\begin{code}
  anyChar : [ Parser Char ]
- runParser anyChar m≤n s with s
- ... | []     = 𝕄.∅
- ... | t ∷ ts = 𝕄.return (t ^ ≤-refl , ts)
+ runParser anyChar _ s with s
+ ... | []      = []
+ ... | t ∷ ts  = (t ^ ≤-refl , ts) ∷ []
+\end{code}
+%</anyChar>
+\begin{code}
 
  module _ {A B : Set} where
 
+\end{code}
+%<*guardM>
+\begin{code}
   guardM : (A → Maybe B) → [ Parser A ⟶ Parser B ]
   runParser (guardM p A) m≤n s =
-    runParser A m≤n s 𝕄.>>= λ rA → let (a ^ p<m , s′) = rA in
-    maybe (λ b → 𝕄.return (b ^ p<m , s′)) 𝕄.∅ (p a)
+    runParser A m≤n s List.>>= λ rA → let (a ^ p<m , s′) = rA in
+    maybe (λ b → List.return (b ^ p<m , s′)) [] (p a)
+\end{code}
+%</guardM>
+\begin{code}
 
  module _ {A : Set} where
 
@@ -69,17 +81,17 @@ module _ where
   runParser (lower m≤n A) p≤m = runParser A (≤-trans p≤m m≤n)
 
   fail : [ Parser A ]
-  runParser fail _ _ = 𝕄.∅
+  runParser fail _ _ = List.∅
 
   infixr 3 _<|>_
   _<|>_ : [ Parser A ⟶ Parser A ⟶ Parser A ]
-  runParser (A₁ <|> A₂) m≤n s = runParser A₁ m≤n s 𝕄.∣ runParser A₂ m≤n s
+  runParser (A₁ <|> A₂) m≤n s = runParser A₁ m≤n s List.∣ runParser A₂ m≤n s
 
  module _ {A B : Set} where
 
   infixr 5 _<$>_
   _<$>_ : (A → B) → [ Parser A ⟶ Parser B ]
-  runParser (f <$> p) lt s = Success.map f 𝕄.<$> (runParser p lt s)
+  runParser (f <$> p) lt s = Success.map f List.<$> (runParser p lt s)
 
   infixr 5 _<$_
   _<$_ : B → [ Parser A ⟶ Parser B ]
@@ -88,18 +100,18 @@ module _ where
   _&?>>=_ : [ Parser A ⟶ (const A ⟶ □ Parser B) ⟶
               Parser (A × Maybe B) ]
   runParser (A &?>>= B) m≤n s =
-    runParser A m≤n s 𝕄.>>= λ rA →
+    runParser A m≤n s List.>>= λ rA →
     let (a ^ p<m , s′) = rA in
-    (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (lift (<⇒≤ p<m) (Success.map ((a ,_) ∘ just) rB)))
-    𝕄.∣ 𝕄.return (a , nothing ^ p<m , s′)
+    (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ List.>>= λ rB →
+     List.return (lift (<⇒≤ p<m) (Success.map ((a ,_) ∘ just) rB)))
+    List.∣ List.return (a , nothing ^ p<m , s′)
 
   _&>>=_ : [ Parser A ⟶ (const A ⟶ □ Parser B) ⟶ Parser (A × B) ]
   runParser (A &>>= B) m≤n s =
-    runParser A m≤n s 𝕄.>>= λ rA →
+    runParser A m≤n s List.>>= λ rA →
     let (a ^ p<m , s′) = rA in
-    (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (lift (<⇒≤ p<m) (Success.map (a ,_) rB)))
+    (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ List.>>= λ rB →
+     List.return (lift (<⇒≤ p<m) (Success.map (a ,_) rB)))
 
  module _ {A B : Set} where
 
@@ -139,11 +151,11 @@ module _ where
   infixl 4 _<?&>_ _<?&_ _?&>_
   _<?&>_ : [ Parser A ⟶ Parser B ⟶ Parser (Maybe A × B) ]
   runParser (A <?&> B) m≤n s =
-    (runParser (A <⊎> B) m≤n s) 𝕄.>>= λ rA⊎B → let (a⊎b ^ p<m , s′) = rA⊎B in
+    (runParser (A <⊎> B) m≤n s) List.>>= λ rA⊎B → let (a⊎b ^ p<m , s′) = rA⊎B in
     case a⊎b of λ where
-      (inj₂ b) → 𝕄.return (nothing , b ^ p<m , s′)
+      (inj₂ b) → List.return (nothing , b ^ p<m , s′)
       (inj₁ a) → let r = runParser ((just a ,_) <$> B) (≤-trans (<⇒≤ p<m) m≤n) s′
-                 in lift (<⇒≤ p<m) 𝕄.<$> r
+                 in lift (<⇒≤ p<m) List.<$> r
 
   _<?&_ : [ Parser A ⟶ Parser B ⟶ Parser (Maybe A) ]
   A <?& B = proj₁ <$> (A <?&> B)
@@ -162,10 +174,10 @@ module _ where
  module _ {{eq? : Decidable {A = Char} _≡_}} where
 
   anyOf : List Char → [ Parser Char ]
-  anyOf ts = guard (λ c → not (null ts) ∧ List.any (⌊_⌋ ∘ eq? c) ts) anyChar
+  anyOf ts = guard (λ c → not (null ts) ∧ DataList.any (⌊_⌋ ∘ eq? c) ts) anyChar
 
   exact : Char → [ Parser Char ]
-  exact = anyOf ∘ List.[_]
+  exact = anyOf ∘ DataList.[_]
 
   exacts : List⁺ Char → [ Parser (List⁺ Char) ]
   exacts (x ∷ xs) = go x xs where
@@ -177,18 +189,18 @@ module _ where
  module _ {A : Set} where
 
   schainl : [ Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A ]
-  schainl = fix goal $ λ rec sA op → rest rec sA op 𝕄.∣ 𝕄.return sA where
+  schainl = fix goal $ λ rec sA op → rest rec sA op List.∣ List.return sA where
 
     goal = Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A
 
     rest : [ □ goal ⟶ goal ]
-    rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s 𝕄.>>= λ sOp →
-          call rec p<m (Success.map (_$ a) sOp) (Iℕ.lower (<⇒≤ p<m) op) 𝕄.>>=
-          𝕄.return ∘ lift (<⇒≤ p<m)
+    rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s List.>>= λ sOp →
+          call rec p<m (Success.map (_$ a) sOp) (Iℕ.lower (<⇒≤ p<m) op) List.>>=
+          List.return ∘ lift (<⇒≤ p<m)
 
   iterate : [ Parser A ⟶ □ Parser (A → A) ⟶ Parser A ]
   runParser (iterate {n} a op) m≤n s =
-    runParser a m≤n s 𝕄.>>= λ sA → schainl sA $ Iℕ.lower m≤n op
+    runParser a m≤n s List.>>= λ sA → schainl sA $ Iℕ.lower m≤n op
 
  module _ {A B : Set} where
 
@@ -203,18 +215,18 @@ module _ where
 
   chainr1 : [ Parser A ⟶ □ Parser (A → A → A) ⟶ Parser A ]
   chainr1 = fix goal $ λ rec A op → mkParser λ m≤n s →
-            runParser A m≤n s 𝕄.>>= λ sA →
+            runParser A m≤n s List.>>= λ sA →
             rest (Iℕ.lower m≤n rec) (lower m≤n A) (Iℕ.lower m≤n op) sA
-            𝕄.∣  𝕄.return sA where
+            List.∣  List.return sA where
 
     goal = Parser A ⟶ □ Parser (A → A → A) ⟶ Parser A
 
     rest : [ □ goal ⟶ Parser A ⟶ □ Parser (A → A → A) ⟶
              Success A ⟶ List ∘ Success A ]
-    rest rec A op sA@(a ^ m<n , s) = runParser (call op m<n) ≤-refl s 𝕄.>>=
+    rest rec A op sA@(a ^ m<n , s) = runParser (call op m<n) ≤-refl s List.>>=
           λ sOp → let (f ^ p<m , s′) = sOp ; .p<n : _ < _; p<n = <-trans p<m m<n in
           let rec′ = call rec p<n (lower (<⇒≤ p<n) A) (Iℕ.lower (<⇒≤ p<n) op) in
-          lift (<⇒≤ p<n) ∘ Success.map (f a $_) 𝕄.<$> runParser rec′ ≤-refl s′
+          lift (<⇒≤ p<n) ∘ Success.map (f a $_) List.<$> runParser rec′ ≤-refl s′
 
   head+tail : [ Parser A ⟶ □ Parser A ⟶ Parser (List⁺ A) ]
   head+tail hd tl = NonEmpty.reverse
