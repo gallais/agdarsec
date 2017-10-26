@@ -20,6 +20,7 @@
 \usepackage{catchfilebetweentags}
 
 \DeclareUnicodeCharacter{8759}{:\,:}
+\DeclareUnicodeCharacter{954}{$\kappa$}
 
 \newcommand{\shgrab}[1]{\medskip\ExecuteMetaData[parser.tex]{#1}}
 \newcommand{\hgrab}[1]{\ExecuteMetaData[parser.tex]{#1}}
@@ -351,15 +352,18 @@ ought to make the types more readable by focusing on the
 important components and hiding away the artefacts of the
 encoding.
 
-The first kind of combinator corresponds to operations on
+The first kind of combinators corresponds to operations on
 sets which are lifted to indexed sets by silently propagating
-the index. It may be a bit surprising to see infix notations
-(in Agda underscores correspond to positions in which arguments
-are to be inserted) for functions taking three arguments but
-they are only meant to be partially applied.
+the index. We only show the ones we will use in this paper:
+the pointwise arrow and product types and the constant function.
+It may be a bit surprising to see infix notations (in Agda
+underscores correspond to positions in which arguments are to
+be inserted) for functions taking three arguments but they are
+only meant to be partially applied.
 
 \sagrab{Relation/Unary/Indexed}{arrow}
 \agrab{Relation/Unary/Indexed}{product}
+\agrab{Relation/Unary/Indexed}{constant}
 
 The second kind turns an indexed set into a set by universally
 quantifying over the index. Here we use curly braces so that
@@ -369,9 +373,9 @@ have to write.
 \sagrab{Relation/Unary/Indexed}{forall}
 
 We can already see the benefits of using these aliases. For instance
-the fairly compact expression \AF{[} (\AB{P} \AF{⊗} \AB{Q}) \AF{⟶} \AB{R} \AF{]}
+the fairly compact expression \AF{[} (\AF{κ} \AB{P} \AF{⊗} \AB{Q}) \AF{⟶} \AB{R} \AF{]}
 corresponds to the more verbose type
-\AS{∀} \{\AB{n}\} \AS{→} (\AB{P} \AB{n} \AF{×} \AB{Q} \AB{n}) \AS{→} \AB{R} \AB{n}.
+\AS{∀} \{\AB{n}\} \AS{→} (\AB{P} \AF{×} \AB{Q} \AB{n}) \AS{→} \AB{R} \AB{n}.
 
 
 Last but not least, the \BOX{} type constructor takes a \AD{ℕ}-indexed
@@ -429,7 +433,9 @@ for a counit, we would need a natural transformation between
 \AF{[} \BOX{} \AB{A} \AF{⟶} \AB{A} \AF{]}. We will not be able
 to define such a function: \BOX{} \AB{A} \AN{0} is isomorphic to
 the unit type so we would have to generate an \AB{A} \AN{0} out
-of thin air.
+of thin air. The types \AB{A} for which \BOX{} has a counit are
+interesting in their own right: they are inhabited at every single
+index as demonstrated by \AF{fix} later on.
 
 \medskip{}
 
@@ -483,7 +489,7 @@ leftovers of the input string of size strictly smaller than \AB{n}.
 \agrab{Text/Parser/Success}{success}
 
 \remark{Implicit Field} Just like the arguments to a function can be
-implicit, so can a record's fields. The user can them leave them out
+implicit, so can a record's fields. The user can then leave them out
 when building a value and they will be filled in by unification.
 
 \medskip{}
@@ -494,10 +500,124 @@ of length \AB{m} less than \AB{n} to lists of \AR{Success}es of size \AB{m}.
 
 \agrab{Text/Parser/Combinators}{parser}
 
+Now that we have a precise definition of \AR{Parser}s, we can start
+building our library of combinators. Our first example \AF{anyChar}
+can be defined by copattern-matching and then case analysis on the
+input string: if it is empty then the list of \AR{Success}es is also
+empty, otherwise it contains exactly one element which corresponds to
+the head of the input string and its tail as leftovers.
+
 \agrab{Text/Parser/Combinators}{anyChar}
+
+Unsurprisingly \AF{guardM} is still a valid higher-order combinator:
+filtering out results which do not agree with a predicate is absolutely
+compatible with the consumption constraint we have drawn. To implement
+\AF{guardM} we can once more reuse existing library functions such
+\AF{gfilter} which turns a \mbox{\AD{List} \AB{A}} into a \mbox{\AD{List} \AB{B}}
+provided a predicate \mbox{\AB{A} \AS{→} \AD{Maybe} \AB{B}}.
 
 \agrab{Text/Parser/Combinators}{guardM}
 
+Demonstrating that \AR{Parser} is a functor goes along the same
+lines: using \AD{List}'s and \AR{Success}'s \AF{map}s. Similarly,
+we can prove that it is an \AF{Alternative}: failing corresponds
+to returning the empty list no matter what whilst disjunction is
+implemented using concatenation.
+
+\agrab{Text/Parser/Combinators}{fmap}\vspace*{-2em}
+\agrab{Text/Parser/Combinators}{fail}\vspace*{-2em}
+\agrab{Text/Parser/Combinators}{disjunction}
+
+So far the types we have ascribed to our combinators are exactly the
+same as the ones one would find in any other parsec library. In none
+of the previous combinators do we run a second parser on the leftovers
+of a first one. All we do is either manipulate or combine the results
+of one or more parsers run in parallel, potentially discarding some of
+these results on the way.
+
+However when we run a parser \emph{after} some of the input has already
+been consumed, we could safely perform a \emph{guarded} call. This being
+made explicit would be useful when using \AF{fix} to define a parser for
+a recursive grammar. Luckily \AR{Parser} is, by definition, a
+downwards-closed type. This means that we may use very precise types marking
+all the guarded positions with \BOX{}; if the user doesn't need that extra
+power she can very easily bypass the \BOX{} annotations by using \AF{box}:
+
+\agrab{Text/Parser/Combinators}{box}
+
+The most basic example we can give of such an annotation is probably the
+definition of a conjunction combinator \AF{\_<\&>\_} taking two parsers,
+running sequentially and returning a pair of their results. The second
+parser is given the type \mbox{\BOX{} \AR{Parser} \AB{B}} instead of
+\mbox{\AR{Parser} \AB{B}} which we would expect to find in other parsec libraries.
+
+\agrab{Text/Parser/Combinators}{conjunction}
+
+We can immediately use all of these newly-defined combinator to give
+a safe, total definition of \AF{some} which takes a parser for \AB{A}
+and returns a parser for non-empty lists of \AB{A}s. It is defined as
+a fixpoint and proceeds as follows: it either combines a head and a
+non-empty tail using \AF{$\_::^{+}\_$} or returns a singleton list.
+
+\agrab{Text/Parser/Combinators}{badsome}
+
+\remark{Inefficiency} Unfortunately this definition is inefficient.
+Indeed, in the base case \mbox{\AF{some} \AB{p}} is going to run the parser
+\AB{p} twice: once in the first branch before realising that \AB{rec}
+fails and once again in the second branch. Compare this to the Haskell
+version (after inlining \AB{many}):
+
+\shgrab{some2}
+
+This inefficiency can be fixed by using a notion of conjunction
+\AF{\_<\&?>\_} which allows the second parser to fail whilst still
+producing a successful run. The parser \mbox{\AF{some} \AB{p}} can then be
+defined as the conjunction of \AB{p} and a potentially failing
+recursive call. The function \AF{cons} (whose definition we omit here)
+either uses \AF{$\_::^{+}\_$} to put the head and the non-empty
+tail together or returns a singleton list if the recursive call
+failed.
+
+\agrab{Text/Parser/Combinators}{conjunction2}
+\agrab{Text/Parser/Combinators}{goodsome}
+
+\remark{Non-compositionality} The higher-order parser \AF{some}
+expects a \emph{fully} defined parser as an argument. This makes
+it impossible to use it as one of the building blocks of a larger,
+recursive parser. Ideally we would rather have a combinator of
+type \mbox{\AF{[} \AF{Parser} \AB{A} \AF{⟶} \AF{Parser} (\AF{List$^+$} \AB{A}) \AF{]}}.
+This will be adressed in the next subsection.
+\medskip{}
+
+As the previous code snippet shows, \AF{\_<\&?>\_} is defined in
+terms of a more fundamental notion \AF{\_\&?>>=\_} which is a
+combinator analogous to a monad's \textit{bind}. On top of running
+two parsers sequentially (with the second one being chosen based on
+the result of running the first), it allows the second one to fail
+and returns both results.
+
+\agrab{Text/Parser/Combinators}{mbind}
+
+This crucial definition makes it possible to port a lot of the Haskell
+definitions where one would use a parser which does not use any of its
+input. And this is possible without incurring any additional cost as
+the optimised version of \AF{some} showed.
+
+\subsection{Left and Right Chains}
+
+The pattern used in the solution presented in section~\ref{sec:haskellproblem}
+can be abstracted with the notion of an (heterogeneous) left chain which takes
+a parser for a seed, one for a constructor, and one for and argument. The crucial
+thing is to make sure \emph{not} to use the parser one is currently defining as
+the seed.
+
+\shgrab{hchainl}
+
+We naturally want to include a safe variant of this combinator in our
+library. However this definition relies on the ability to simply use
+\textit{return} in case it's not possible to parse an constructor
+additional constructor and argument and that is something we simply
+don't have access to.
 
 %% Acknowledgments
 %\begin{acks}                            %% acks environment is optional

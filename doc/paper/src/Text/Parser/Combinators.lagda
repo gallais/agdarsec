@@ -14,7 +14,7 @@ open import Data.Maybe.Base
 open import Data.Char
 open import Data.Bool.Base
 open import Data.Nat.Properties
-open import Data.List as DataList hiding ([_] ; any ; module List)
+open import Data.List as DataList hiding ([_] ; any ; module List ; sequence)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
 open import Relation.Nullary.Decidable
 open import Relation.Binary
@@ -60,8 +60,7 @@ module _ where
 \begin{code}
   guardM : (A → Maybe B) → [ Parser A ⟶ Parser B ]
   runParser (guardM p A) m≤n s =
-    runParser A m≤n s List.>>= λ rA → let (a ^ p<m , s′) = rA in
-    maybe (λ b → List.return (b ^ p<m , s′)) [] (p a)
+    gfilter (sequence ∘ Success.map p) (runParser A m≤n s)
 \end{code}
 %</guardM>
 \begin{code}
@@ -74,31 +73,63 @@ module _ where
   maybeChar : (Char → Maybe A) → [ Parser A ]
   maybeChar p = guardM p anyChar
 
-  return : [ Parser A ⟶ □ Parser A ]
-  runParser (call (return A) m<n) p≤m = runParser A (≤-trans p≤m (<⇒≤ m<n))
+\end{code}
+%<*box>
+\begin{code}
+  box : [ Parser A ⟶ □ Parser A ]
+\end{code}
+%</box>
+\begin{code}
+  runParser (call (box A) m<n) p≤m = runParser A (≤-trans p≤m (<⇒≤ m<n))
 
   lower : {m n : ℕ} → .(m ≤ n) → Parser A n → Parser A m
   runParser (lower m≤n A) p≤m = runParser A (≤-trans p≤m m≤n)
-
+\end{code}
+%<*fail>
+\begin{code}
   fail : [ Parser A ]
-  runParser fail _ _ = List.∅
+\end{code}
+%</fail>
+\begin{code}
+  runParser fail _ _ = []
 
   infixr 3 _<|>_
+\end{code}
+%<*disjunction>
+\begin{code}
   _<|>_ : [ Parser A ⟶ Parser A ⟶ Parser A ]
-  runParser (A₁ <|> A₂) m≤n s = runParser A₁ m≤n s List.∣ runParser A₂ m≤n s
+\end{code}
+%</disjunction>
+\begin{code}
+  runParser (p <|> q) m≤n s =
+    runParser p m≤n s List.∣ runParser q m≤n s
+
 
  module _ {A B : Set} where
 
   infixr 5 _<$>_
+\end{code}
+%<*fmap>
+\begin{code}
   _<$>_ : (A → B) → [ Parser A ⟶ Parser B ]
-  runParser (f <$> p) lt s = Success.map f List.<$> (runParser p lt s)
+\end{code}
+%</fmap>
+\begin{code}
+  runParser (f <$> p) lt s = Success.map f List.<$> runParser p lt s
 
   infixr 5 _<$_
   _<$_ : B → [ Parser A ⟶ Parser B ]
   b <$ p = const b <$> p
 
-  _&?>>=_ : [ Parser A ⟶ (const A ⟶ □ Parser B) ⟶
-              Parser (A × Maybe B) ]
+\end{code}
+%<*mbind>
+\begin{code}
+  _&?>>=_ : [  Parser A ⟶ (κ A ⟶ □ Parser B) ⟶
+               Parser (A × Maybe B) ]
+\end{code}
+%</mbind>
+\begin{code}
+
   runParser (A &?>>= B) m≤n s =
     runParser A m≤n s List.>>= λ rA →
     let (a ^ p<m , s′) = rA in
@@ -119,7 +150,13 @@ module _ where
   A >>= B = proj₂ <$> A &>>= B
 
   infixl 4 _<&>_ _<&_ _&>_
+\end{code}
+%<*conjunction>
+\begin{code}
   _<&>_ : [ Parser A ⟶ □ Parser B ⟶ Parser (A × B) ]
+\end{code}
+%</conjunction>
+\begin{code}
   A <&> B = A &>>= const B
 
   _<&_ : [ Parser A ⟶ □ Parser B ⟶ Parser A ]
@@ -128,15 +165,39 @@ module _ where
   _&>_ : [ Parser A ⟶ □ Parser B ⟶ Parser B ]
   A &> B = proj₂ <$> (A <&> B)
 
+ module arf {A : Set} where
+\end{code}
+%<*badsome>
+\begin{code}
+  some : [ Parser A ] → [ Parser (List⁺ A) ]
+  some p =  fix _ $ λ rec →
+            uncurry _∷⁺_ <$> (p <&> rec)
+             <|> (_∷ []) <$> p
+\end{code}
+%</badsome>
+\begin{code}
+
  module _ {A B : Set} where
 
   infixl 4 _<*>_
+\end{code}
+%<*apply>
+\begin{code}
   _<*>_ : [ Parser (A → B) ⟶ □ Parser A ⟶ Parser B ]
   F <*> A = uncurry _$_ <$> (F <&> A)
+\end{code}
+%</apply>
+\begin{code}
 
   infixl 4 _<&?>_ _<&?_ _&?>_
+\end{code}
+%<*conjunction2>
+\begin{code}
   _<&?>_ : [ Parser A ⟶ □ Parser B ⟶ Parser (A × Maybe B) ]
   A <&?> B = A &?>>= const B
+\end{code}
+%</conjunction2>
+\begin{code}
 
   _<&?_ : [ Parser A ⟶ □ Parser B ⟶ Parser A ]
   A <&? B = proj₁ <$> (A <&?> B)
@@ -145,9 +206,14 @@ module _ where
   A &?> B = proj₂ <$> (A <&?> B)
 
   infixr 3 _<⊎>_
+\end{code}
+%<*disjunction2>
+\begin{code}
   _<⊎>_ : [ Parser A ⟶ Parser B ⟶ Parser (A ⊎ B) ]
+\end{code}
+%</disjunction2>
+\begin{code}
   A <⊎> B = inj₁ <$> A <|> inj₂ <$> B
-
   infixl 4 _<?&>_ _<?&_ _?&>_
   _<?&>_ : [ Parser A ⟶ Parser B ⟶ Parser (Maybe A × B) ]
   runParser (A <?&> B) m≤n s =
@@ -163,13 +229,27 @@ module _ where
   _?&>_ : [ Parser A ⟶ Parser B ⟶ Parser B ]
   A ?&> B = proj₂ <$> (A <?&> B)
 
+ module _ {A : Set} where
+\end{code}
+%<*goodsome>
+\begin{code}
+  some : [ Parser A ] → [ Parser (List⁺ A) ]
+  some p =  fix _ $ λ rec →
+            cons <$> (p <&?> rec)
+\end{code}
+%</goodsome>
+\begin{code}
+   where
+    cons : (A × Maybe (List⁺ A)) → List⁺ A
+    cons (a , mas) = maybe (a ∷⁺_) (a ∷ []) mas
+
  module _ {A B C : Set} where
 
   between : [ Parser A ⟶ □ Parser C ⟶ □ Parser B ⟶ Parser B ]
   between A C B = A &> B <& C
 
   between? : [ Parser A ⟶ □ Parser C ⟶ Parser B ⟶ Parser B ]
-  between? A C B = between A C (return B) <|> B
+  between? A C B = between A C (box B) <|> B
 
  module _ {{eq? : Decidable {A = Char} _≡_}} where
 
@@ -184,7 +264,7 @@ module _ where
 
     go : Char → List Char → [ Parser (List⁺ Char) ]
     go x []       = NonEmpty.[_] <$> exact x
-    go x (y ∷ xs) = uncurry _∷⁺_ <$> (exact x <&> return (go y xs))
+    go x (y ∷ xs) = uncurry _∷⁺_ <$> (exact x <&> box (go y xs))
 
  module _ {A : Set} where
 
@@ -211,7 +291,7 @@ module _ where
  module _ {A : Set} where
 
   chainl1 : [ Parser A ⟶ □ Parser (A → A → A) ⟶ Parser A ]
-  chainl1 a op = hchainl a op (return a)
+  chainl1 a op = hchainl a op (box a)
 
   chainr1 : [ Parser A ⟶ □ Parser (A → A → A) ⟶ Parser A ]
   chainr1 = fix goal $ λ rec A op → mkParser λ m≤n s →
@@ -233,5 +313,5 @@ module _ where
                 <$> (iterate (NonEmpty.[_] <$> hd) (Iℕ.map (NonEmpty._∷⁺_ <$>_) tl))
 
   list⁺ : [ Parser A ⟶ Parser (List⁺ A) ]
-  list⁺ pA = head+tail pA (return pA)
+  list⁺ pA = head+tail pA (box pA)
 \end{code}

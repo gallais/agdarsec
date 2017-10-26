@@ -5,8 +5,9 @@ open import Data.Vec hiding ([_] ; map)
 open import Data.Nat.Base
 open import Data.Nat.LTE
 open import Data.Char.Base
-open import Data.List.Sized as Sized hiding (map)
+open import Data.Maybe.Base as Maybe hiding (map)
 open import Relation.Unary.Indexed
+open import Function
 
 infix 1 _^_,_
 \end{code}
@@ -32,4 +33,7 @@ module _ {A : Set} where
 
   lift : {m n : ℕ} → .(m ≤ n) → Success A m → Success A n
   lift m≤n (a ^ p<m , s) = a ^ ≤-trans p<m m≤n , s
+
+  sequence : [ Success (Maybe A) ⟶ Maybe ∘ Success A ]
+  sequence (ma ^ p<m , s) = Maybe.map (_^ p<m , s) ma
 \end{code}

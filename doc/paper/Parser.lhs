@@ -102,6 +102,12 @@ many :: Parser a -> Parser [a]
 many p = some p <|> pure []
 \end{code}
 %</many>
+%<*some2>
+\begin{code}
+some :: Parser a -> Parser [a]
+some p = (:) <$> p <*> (some p <|> pure [])
+\end{code}
+%</some2>
 %<*Expr>
 \begin{code}
 data Expr = Literal Int | Plus Expr Expr
@@ -138,3 +144,16 @@ expr' :: Parser Expr
 expr' = base <|> Plus <$> base <* char '+' <*> expr'
 \end{code}
 %</expr2>
+
+%<*hchainl>
+\begin{code}
+hchainl :: Parser a -> Parser (a -> b -> a) -> Parser b -> Parser a
+hchainl seed con arg  = seed >>= rest where
+
+  rest :: a -> Parser a
+  rest a =  do { f <- con; b <- arg; rest (f a b) }
+            <|> return a
+\end{code}
+%</hchainl>
+
+

@@ -29,6 +29,12 @@ module _ {I : Set} where
  (A ⊗ B) n = A n × B n
 \end{code}
 %</product>
+%<*constant>
+\begin{code}
+ κ : Set → (I → Set)
+ κ A n = A
+\end{code}
+%</constant>
 %<*forall>
 \begin{code}
  [_] : (I → Set) → Set
