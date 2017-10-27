@@ -1,4 +1,4 @@
-PAPER=main
+PAPER=easychairstyle
 
 main: all
 
