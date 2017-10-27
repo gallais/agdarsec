@@ -66,8 +66,8 @@ guardM f p = Parser  $ catMaybes . fmap (traverse f)
 %</guard2>
 %<*digit2>
 \begin{code}
-digit' :: Parser Int
-digit' = guardM (readMaybe . (:[])) anyChar
+digit :: Parser Int
+digit = guardM (readMaybe . (:[])) anyChar
 \end{code}
 %</digit2>
 
@@ -110,7 +110,7 @@ some p = (:) <$> p <*> (some p <|> pure [])
 %</some2>
 %<*Expr>
 \begin{code}
-data Expr = Literal Int | Plus Expr Expr
+data Expr = Lit Int | Add Expr Expr
 \end{code}
 %</Expr>
 \begin{code}
@@ -120,28 +120,26 @@ char :: Char -> Parser Char
 char c = guard (c ==) anyChar
 
 int :: Parser Int
-int = convert <$> some digit' where
+int = convert <$> some digit where
   convert ds = sum $ zipWith (\ d e -> d * 10 ^ e) (reverse ds) [0..]
 \end{code}
 
 %<*expr>
 \begin{code}
 expr :: Parser Expr
-expr  =    Literal <$> int
-      <|>  Plus <$> expr <* char '+' <*> expr
+expr  = Lit <$> int <|> Add <$> expr <* char '+' <*> expr
 \end{code}
 %</expr>
 %<*base>
 \begin{code}
 base :: Parser Expr
-base  =    Literal <$> int
-      <|>  char '(' *> expr' <* char ')'
+base  = Lit <$> int <|>  char '(' *> expr' <* char ')'
 \end{code}
 %</base>
 %<*expr2>
 \begin{code}
-expr' :: Parser Expr
-expr' = base <|> Plus <$> base <* char '+' <*> expr'
+expr :: Parser Expr
+expr = base <|> Add <$> base <* char '+' <*> expr'
 \end{code}
 %</expr2>
 
@@ -151,8 +149,7 @@ hchainl :: Parser a -> Parser (a -> b -> a) -> Parser b -> Parser a
 hchainl seed con arg  = seed >>= rest where
 
   rest :: a -> Parser a
-  rest a =  do { f <- con; b <- arg; rest (f a b) }
-            <|> return a
+  rest a =  do { f <- con; b <- arg; rest (f a b) } <|> return a
 \end{code}
 %</hchainl>
 

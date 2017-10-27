@@ -48,7 +48,7 @@ module _ where
  anyChar : [ Parser Char ]
  runParser anyChar _ s with s
  ... | []      = []
- ... | t ∷ ts  = (t ^ ≤-refl , ts) ∷ []
+ ... | c ∷ cs  = (c ^ ≤-refl , cs) ∷ []
 \end{code}
 %</anyChar>
 \begin{code}
@@ -170,9 +170,8 @@ module _ where
 %<*badsome>
 \begin{code}
   some : [ Parser A ] → [ Parser (List⁺ A) ]
-  some p =  fix _ $ λ rec →
-            uncurry _∷⁺_ <$> (p <&> rec)
-             <|> (_∷ []) <$> p
+  some p =  fix _ $ λ rec →  uncurry _∷⁺_ <$> (p <&> rec)
+                             <|> (_∷ []) <$> p
 \end{code}
 %</badsome>
 \begin{code}
@@ -234,8 +233,7 @@ module _ where
 %<*goodsome>
 \begin{code}
   some : [ Parser A ] → [ Parser (List⁺ A) ]
-  some p =  fix _ $ λ rec →
-            cons <$> (p <&?> rec)
+  some p =  fix _ $ λ rec → cons <$> (p <&?> rec)
 \end{code}
 %</goodsome>
 \begin{code}

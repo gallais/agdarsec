@@ -73,7 +73,7 @@
 
 
 
-\newcommand{\parser}[1]{\texttt{#1}}
+\newcommand{\parser}[1]{\textit{#1}}
 \newcommand{\type}[1]{\texttt{#1}}
 
 \begin{document}
@@ -135,11 +135,11 @@
 Parser combinator libraries represent parsers as functions and,
 using higher-order functions, define a DSL of combinators allowing
 users to quickly put together programs capable of handling complex
-grammars. When moving to total functional languages such as Agda,
-these programs cannot be directly ported: there is nothing in the
-original definitions guaranteeing termination.
+recursive grammars. When moving to total functional languages such
+as Agda, these programs cannot be directly ported: there is nothing
+in the original definitions guaranteeing termination.
 
-In this paper, we will introduce a 'guarded' modal operator acting
+In this paper, we will introduce a `guarded' modal operator acting
 on types and show how it allows us to give more precise types to
 existing combinators thus guaranteeing totality. The resulting
 library is available online together with various usage examples
@@ -190,7 +190,7 @@ beginners to their doom: a parser never making any progress.
 
 We start with a primer on parser combinators and follow up with the
 definition of a broken parser which is silently accepted by Haskell.
-We then move on to Agda~\todo{cite} and introduce combinators to
+We then move on to Agda~\cite{norell2009dependently} and introduce combinators to
 define functions by well-founded recursion. This allows us to define
 a more informative notion of parser and give more precise types to
 the combinators commonly used. We then demonstrate that broken parsers
@@ -199,9 +199,11 @@ can be ported with minimal modifications.
 
 \section{A Primer on Parser Combinators}
 
-\paragraph{Parser Type} Let us start by reminding ourselves what
-a parser is. Although we will eventually move to a more generic
-type, Fritz Ruehr's rhyme gives us the \emph{essence} of parsers:
+\subsection{Parser Type}
+
+Let us start by reminding ourselves what a parser is. Although we
+will eventually move to a more generic type, Fritz Ruehr's rhyme
+gives us the \emph{essence} of parsers:
 
 \begin{verse}
   A Parser for Things\\
@@ -218,7 +220,7 @@ use a \textbf{newtype} wrapper to have cleaner error messages):
 It is naturally possible to run such a parser and try to extract
 a value from a successful parse. Opinions may vary on whether a
 run with leftover characters can be considered successful or not.
-We decide against it.\todo{ambiguity} This is not crucial as both styles can be
+We decide against it. This is not crucial as both styles can be
 mutually emulated by either providing an 'end of file' parser
 guaranteeing that only runs with no leftovers are successful or
 by extending a grammar with a dummy case consuming the rest of
@@ -226,7 +228,7 @@ the input string.
 
 \shgrab{parse}
 
-\paragraph{(Strongly-Typed) Combinators}
+\subsection{(Strongly-Typed) Combinators}
 
 The most basic parser is the one that accepts any character.
 It succeeds as long as the input string is non empty and
@@ -240,15 +242,17 @@ structure. As such, they need to reject invalid inputs. The
 parser only accepting decimal digit is a bare bones example.
 It can be implemented in terms of \parser{guard}, a higher
 order parser checking that the value returned by its argument
-abides by a predicate.
+abides by a predicate which can easily be implemented using
+functions from the standard library.
 
 \shgrab{guard}
 \hgrab{digit}
 
 These two definitions are only somewhat satisfactory: the
-resut of the \parser{digit} parser is still stringly-typed.
+resut of the \parser{digit} parser is still \emph{stringly-typed}.
 Instead of using a predicate to decide whether to keep the
-value, we can opt for a validation function which returns
+value, we can opt for a validation function of type
+\mbox{\textit{a → Maybe b}} which returns
 a witness whenever the check succeeds. To define this
 alternative \parser{guardM} we can once more rely on code
 already part of the standard library.
@@ -261,18 +265,18 @@ with \parser{guardM}.
 \shgrab{guard2}
 \hgrab{digit2}
 
-\paragraph{Code Reuse: Recognizing Structures}
+\subsection{Code Reuse: Recognizing Structures}
 
 We have seen how we can already rely on the standard library
 of the host language to seemlessly implement combinators.
 We can leverage even more of the existing codebase by noticing
 that the type constructor \type{Parser} is a \type{Functor},
-an \type{Applicative}~\todo{cite}, a \type{Monad} and also an \type{Alternative}.
+an \type{Applicative}~\cite{mcbride2008applicative}, a \type{Monad} and also an \type{Alternative}.
 
 % insert alternative instance
 % interesting use case? replicateM?
 
-\paragraph{Expressivity: Higher Order Parsers and Fixpoints}
+\subsection{Expressivity: Higher Order Parsers and Fixpoints}
 
 Our first example of a higher order parser was \parser{guardM}
 which takes as arguments a validation function as well as another
@@ -287,6 +291,14 @@ and \type{Alternative} structure.
 
 \shgrab{some}
 \hgrab{many}
+
+\remark{Non-Commutativity} The disjunction combinator is
+non-commutative. As such the definitions of \textit{some} and
+\textit{many} will try to produce the longest list as possible
+as opposed to a flipped version of \text{many} which would start
+by returning the empty list and slowly offer longer and longer
+matches.
+
 
 \section{The Issue with Haskell's Parser Types}\label{sec:haskellproblem}
 
@@ -334,10 +346,11 @@ expressions connected by '+'.
 
 This approach can be generalised when defining more complex
 languages by having even more tiers, one for each
-\emph{fixity level}. An extended language of arithmetic
-expressions would for instance distinguish the level at
-which addition and substraction live from the one at which
-multiplication and division do.
+\emph{fixity level}, see for instance~\ref{example:expr}.
+An extended language of arithmetic expressions would for
+instance distinguish the level at which addition and
+substraction live from the one at which multiplication and
+division do.
 
 
 Our issue with this solution is twofold. Firt, although we did
@@ -345,7 +358,7 @@ eventually managed to build a parser that worked as expected,
 the compiler was unable to warn us and guide us towards this
 correct solution. Additionnally, the blatant partiality of
 some of these definitions means that these combinators and
-these types are wholly unsuitable in a total. We could, of
+these types are wholly unsuitable in a total setting. We could, of
 course use an escape hatch and implement our parsers in Haskell
 but that would both be unsafe and mean we would not be able
 to run them at typechecking time which we may want to do if
@@ -368,21 +381,26 @@ The first kind of combinators corresponds to operations on
 sets which are lifted to indexed sets by silently propagating
 the index. We only show the ones we will use in this paper:
 the pointwise arrow and product types and the constant function.
-It may be a bit surprising to see infix notations (in Agda
-underscores correspond to positions in which arguments are to
-be inserted) for functions taking three arguments but they are
-only meant to be partially applied.
 
 \sagrab{Relation/Unary/Indexed}{arrow}
 \agrab{Relation/Unary/Indexed}{product}
 \agrab{Relation/Unary/Indexed}{constant}
 
-The second kind turns an indexed set into a set by universally
-quantifying over the index. Here we use curly braces so that
-the index we use is an \emph{implicit} argument we will never
-have to write.
+\remark{Mixfix Operators} In Agda underscores correspond to
+positions in which arguments are to be inserted. It may be a
+bit surprising to see infix notations for functions taking
+three arguments but they are only meant to be partially applied.
+\medskip{}
+
+The second kind of combinator turns an indexed set into a set
+by universally quantifying over the index.
 
 \sagrab{Relation/Unary/Indexed}{forall}
+
+\remark{Implicit Arguments} We use curly braces so that the
+index we use is an \emph{implicit} argument we will never
+have to write: Agda will fill it in for us by unification.
+\medskip{}
 
 We can already see the benefits of using these aliases. For instance
 the fairly compact expression \AF{[} (\AF{κ} \AB{P} \AF{⊗} \AB{Q}) \AF{⟶} \AB{R} \AF{]}
@@ -439,10 +457,10 @@ We can use this fact to write the following \AF{extract} function:
 \sagrab{Induction/Nat/Strong}{extract}
 
 \remark{Counit} The careful reader will have noticed
-that this is not quite the extract we would expect from a comonad:
-for a counit, we would need a natural transformation between
-\BOX{} \AB{A} and \AB{A} i.e. a function of type
-\AF{[} \BOX{} \AB{A} \AF{⟶} \AB{A} \AF{]}. We will not be able
+that this is not quite the \textit{extract} we would expect from a
+comonad: for a counit, we would need a natural transformation
+between \BOX{} \AB{A} and \AB{A} i.e. a function of type
+\mbox{\AF{[} \BOX{} \AB{A} \AF{⟶} \AB{A} \AF{]}}. We will not be able
 to define such a function: \BOX{} \AB{A} \AN{0} is isomorphic to
 the unit type so we would have to generate an \AB{A} \AN{0} out
 of thin air. The types \AB{A} for which \BOX{} has a counit are
@@ -458,14 +476,15 @@ a comultiplication thanks to the fact that \AF{\_<\_} is transitive.
 
 \remark{Identifiers in Agda} Any space-free string which
 is not a reserved keyword is a valid identifier. As a consequence
-we can pick suggestive names such as \AB{m<n} for a proof that $m < n$.
+we can pick suggestive names such as \AB{m<n} for a proof that $m < n$
+(notice the extra spaces around the infix operator $(<)$).
 
 \medskip{}
 
 Exploring further the structure of the functor \BOX{}, we can observe
 that just like it is not quite a comonad, it is not quite an applicative
 functor. Indeed we can only define \AB{pure}, a natural transformation
-of type \AF{[} \AB{A} \AF{⟶} \BOX{} \AB{A} \AF{]}, for the types \AB{A}
+of type \mbox{\AF{[} \AB{A} \AF{⟶} \AR{\BOX{}} \AB{A} \AF{]}}, for the types \AB{A}
 that are downwards closed. Providing the user with \AB{app} is however
 possible:
 
@@ -478,9 +497,14 @@ guarded.
 
 \sagrab{Induction/Nat/Strong}{fix}
 
-\remark{Generalisation} If we were to unfold all the type-level
-combinators and record wrappers, the type of \AF{fix} would correspond
-exactly to strong induction for the natural numbers. A similar \BOX{}
+If we were to unfold all the type-level combinators and record wrappers,
+the type of \AF{fix} would correspond exactly to strong induction for
+the natural numbers. Hence its implementation also follows the one of strong
+induction: it is a combination of a call to \AF{extract} and an auxiliary
+definition \AF{fix\BOX{}} of type \mbox{\AF{[} \AR{\BOX{}} \AB{A} \AF{⟶}
+\AB{A} \AF{]} \AS{→} \AF{[} \AR{\BOX} \AB{A} \AF{]}}.
+
+\remark{Generalisation}  A similar \BOX{}
 type constructor can be defined for any induction principle relying
 on an accessibility predicate. Which means that a library's types
 can be cleaned up by using these combinators in any situation where
@@ -524,7 +548,7 @@ the head of the input string and its tail as leftovers.
 Unsurprisingly \AF{guardM} is still a valid higher-order combinator:
 filtering out results which do not agree with a predicate is absolutely
 compatible with the consumption constraint we have drawn. To implement
-\AF{guardM} we can once more reuse existing library functions such
+\AF{guardM} we can once more reuse existing library functions such as
 \AF{gfilter} which turns a \mbox{\AD{List} \AB{A}} into a \mbox{\AD{List} \AB{B}}
 provided a predicate \mbox{\AB{A} \AS{→} \AD{Maybe} \AB{B}}.
 
@@ -540,7 +564,8 @@ implemented using concatenation.
 \agrab{Text/Parser/Combinators}{fail}\vspace*{-2em}
 \agrab{Text/Parser/Combinators}{disjunction}
 
-So far the types we have ascribed to our combinators are exactly the
+So far the types we have ascribed to our combinators are, if we ignore
+the $\mathbb{N}$ indices, exactly the
 same as the ones one would find in any other parsec library. In none
 of the previous combinators do we run a second parser on the leftovers
 of a first one. All we do is either manipulate or combine the results
@@ -559,13 +584,13 @@ power she can very easily bypass the \BOX{} annotations by using \AF{box}:
 
 The most basic example we can give of such an annotation is probably the
 definition of a conjunction combinator \AF{\_<\&>\_} taking two parsers,
-running sequentially and returning a pair of their results. The second
+running them sequentially and returning a pair of their results. The second
 parser is given the type \mbox{\BOX{} \AR{Parser} \AB{B}} instead of
 \mbox{\AR{Parser} \AB{B}} which we would expect to find in other parsec libraries.
 
 \agrab{Text/Parser/Combinators}{conjunction}
 
-We can immediately use all of these newly-defined combinator to give
+We can immediately use all of these newly-defined combinators to give
 a safe, total definition of \AF{some} which takes a parser for \AB{A}
 and returns a parser for non-empty lists of \AB{A}s. It is defined as
 a fixpoint and proceeds as follows: it either combines a head and a
@@ -576,8 +601,10 @@ non-empty tail using \AF{$\_::^{+}\_$} or returns a singleton list.
 \remark{Inefficiency} Unfortunately this definition is inefficient.
 Indeed, in the base case \mbox{\AF{some} \AB{p}} is going to run the parser
 \AB{p} twice: once in the first branch before realising that \AB{rec}
-fails and once again in the second branch. Compare this to the Haskell
-version (after inlining \AB{many}):
+fails and once again in the second branch. Compare this definition to
+the Haskell version (after inlining \AB{many}) where \AB{p} is run once
+and then its result is either combined with a list obtained by recursion
+or returned as a singleton:
 
 \shgrab{some2}
 
@@ -605,7 +632,7 @@ As the previous code snippet shows, \AF{\_<\&?>\_} is defined in
 terms of a more fundamental notion \AF{\_\&?>>=\_} which is a
 combinator analogous to a monad's \textit{bind}. On top of running
 two parsers sequentially (with the second one being chosen based on
-the result of running the first), it allows the second one to fail
+the result obtained by running the first), it allows the second one to fail
 and returns both results.
 
 \agrab{Text/Parser/Combinators}{mbind}
@@ -617,7 +644,7 @@ the optimised version of \AF{some} showed.
 
 \subsection{Left and Right Chains}
 
-The pattern used in the solution presented in section~\ref{sec:haskellproblem}
+The pattern used in the solution presented in Section~\ref{sec:haskellproblem}
 can be abstracted with the notion of an (heterogeneous) left chain which takes
 a parser for a seed, one for a constructor, and one for and argument. The crucial
 thing is to make sure \emph{not} to use the parser one is currently defining as
@@ -630,6 +657,10 @@ library. However this definition relies on the ability to simply use
 \textit{return} in case it's not possible to parse an constructor
 additional constructor and argument and that is something we simply
 don't have access to.
+
+\subsection{Examples}
+
+\todo{expr}\label{example:expr}
 
 %% Acknowledgments
 %\begin{acks}                            %% acks environment is optional
