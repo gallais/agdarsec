@@ -620,7 +620,7 @@ failed.
 \agrab{Text/Parser/Combinators}{conjunction2}
 \agrab{Text/Parser/Combinators}{goodsome}
 
-\remark{Non-compositionality} The higher-order parser \AF{some}
+\remark{Non-compositionality}\label{parser:some} The higher-order parser \AF{some}
 expects a \emph{fully} defined parser as an argument. This makes
 it impossible to use it as one of the building blocks of a larger,
 recursive parser. Ideally we would rather have a combinator of
@@ -654,9 +654,29 @@ the seed.
 
 We naturally want to include a safe variant of this combinator in our
 library. However this definition relies on the ability to simply use
-\textit{return} in case it's not possible to parse an constructor
-additional constructor and argument and that is something we simply
-don't have access to.
+\textit{return} in case it's not possible to parse an additional
+constructor and argument and that is something we simply don't have
+access to. This forces us to find the essence of \parser{rest}, the
+auxiliary definition used in \parser{hchainl}: its first argument is
+not just a value, it is a \AR{Success} upon which it builds until it
+can't anymore and simply returns.
+
+We define \parser{schainl} as the fixpoint of either \parser{rest}
+(whose definition we omit here) or the \AR{Success} that was passed
+as an input (the function \AF{\_::$^{r}$} appends a single element
+at the end of a list).
+
+\agrab{Text/Parser/Combinators}{schainl}
+
+The type of \AF{rest} may look intimidating but it has this shape because
+we build a list of \AR{Success}es at the \emph{same} index as the input
+\AR{Success} and \AR{Parser} which will make this combinator compositional
+(as opposed to \parser{some} defined in Section~\ref{parser:some}). Ultimately
+all of this complexity only shows up in the implementation of our library:
+the end user can happily ignore these details.
+
+
+
 
 \subsection{Examples}
 

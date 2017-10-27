@@ -7,7 +7,7 @@ open import Induction.Nat.Strong as Iℕ hiding (lower)
 open import Data.Nat.Base
 open import Data.Nat.LTE
 
-open import Data.Vec hiding ([_] ; map ; _>>=_)
+open import Data.Vec hiding ([_] ; _∷ʳ_ ; map ; _>>=_)
 open import Data.Sum as S
 open import Data.Product as P hiding (,_)
 open import Data.Maybe.Base
@@ -265,13 +265,18 @@ module _ where
     go x (y ∷ xs) = uncurry _∷⁺_ <$> (exact x <&> box (go y xs))
 
  module _ {A : Set} where
-
+\end{code}
+%<*schainl>
+\begin{code}
   schainl : [ Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A ]
-  schainl = fix goal $ λ rec sA op → rest rec sA op List.∣ List.return sA where
+  schainl = fix _ $ λ rec sA op → rest rec sA op ∷ʳ sA where
 
-    goal = Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A
+    rest :  [ □ (Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A)
+            ⟶ Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A ]
+\end{code}
+%</schainl>
+\begin{code}
 
-    rest : [ □ goal ⟶ goal ]
     rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s List.>>= λ sOp →
           call rec p<m (Success.map (_$ a) sOp) (Iℕ.lower (<⇒≤ p<m) op) List.>>=
           List.return ∘ lift (<⇒≤ p<m)
