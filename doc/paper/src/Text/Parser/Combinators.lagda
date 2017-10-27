@@ -280,15 +280,26 @@ module _ where
     rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s List.>>= λ sOp →
           call rec p<m (Success.map (_$ a) sOp) (Iℕ.lower (<⇒≤ p<m) op) List.>>=
           List.return ∘ lift (<⇒≤ p<m)
-
+\end{code}
+%<*iterate>
+\begin{code}
   iterate : [ Parser A ⟶ □ Parser (A → A) ⟶ Parser A ]
+\end{code}
+%</iterate>
+\begin{code}
   runParser (iterate {n} a op) m≤n s =
     runParser a m≤n s List.>>= λ sA → schainl sA $ Iℕ.lower m≤n op
 
  module _ {A B : Set} where
 
-  hchainl : [ Parser A ⟶ □ Parser (A → B → A) ⟶ □ Parser B ⟶
-              Parser A ]
+
+\end{code}
+%<*hchainl>
+\begin{code}
+  hchainl : [ Parser A ⟶ □ Parser (A → B → A) ⟶ □ Parser B ⟶ Parser A ]
+\end{code}
+%</hchainl>
+\begin{code}
   hchainl A op B = iterate A (map2 _<*>_ (Iℕ.map (flip <$>_) op) (duplicate B))
 
  module _ {A : Set} where
