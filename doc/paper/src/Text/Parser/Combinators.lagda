@@ -124,8 +124,7 @@ module _ where
 \end{code}
 %<*mbind>
 \begin{code}
-  _&?>>=_ : [  Parser A ⟶ (κ A ⟶ □ Parser B) ⟶
-               Parser (A × Maybe B) ]
+  _&?>>=_ : [  Parser A ⟶ (κ A ⟶ □ Parser B) ⟶ Parser (A × Maybe B) ]
 \end{code}
 %</mbind>
 \begin{code}

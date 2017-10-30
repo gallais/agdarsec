@@ -79,7 +79,7 @@ functions from the standard library.
 \hgrab{digit}
 
 These two definitions are only somewhat satisfactory: the
-resut of the \parser{digit} parser is still \emph{stringly-typed}.
+result of the \parser{digit} parser is still \emph{stringly-typed}.
 Instead of using a predicate to decide whether to keep the
 value, we can opt for a validation function of type
 \mbox{\textit{a → Maybe b}} which returns
@@ -95,10 +95,13 @@ with \parser{guardM}.
 \shgrab{guard2}
 \hgrab{digit2}
 
-\subsection{Code Reuse: Recognizing Structures}
+
+\subsection{Expressivity: Structures, Higher Order Parsers and Fixpoints}
+
+%\subsection{Code Reuse: Recognizing Structures}
 
 We have seen how we can already rely on the standard library
-of the host language to seemlessly implement combinators.
+of the host language to seamlessly implement combinators.
 We can leverage even more of the existing codebase by noticing
 that the type constructor \type{Parser} is a \type{Functor},
 an \type{Applicative}~\cite{mcbride2008applicative}, a \type{Monad} and also an \type{Alternative}.
@@ -106,7 +109,7 @@ an \type{Applicative}~\cite{mcbride2008applicative}, a \type{Monad} and also an 
 % insert alternative instance
 % interesting use case? replicateM?
 
-\subsection{Expressivity: Higher Order Parsers and Fixpoints}
+%\subsection{Expressivity: Higher Order Parsers and Fixpoints}
 
 Our first example of a higher order parser was \parser{guardM}
 which takes as arguments a validation function as well as another
@@ -119,10 +122,16 @@ respectively. They concisely showcase the power of mutual recursion,
 higher-order functions and the \type{Functor}, \type{Applicative},
 and \type{Alternative} structure.
 
-\shgrab{some}
-\hgrab{many}
+\medskip{}
 
-\remark{Non-Commutativity} The disjunction combinator is
+\begin{minipage}{0.45\textwidth}
+\hgrab{some}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+\hgrab{many}
+\end{minipage}
+
+\remark{Non-Commutative} The disjunction combinator is
 non-commutative. As such the definitions of \textit{some} and
 \textit{many} will try to produce the longest list as possible
 as opposed to a flipped version of \text{many} which would start
@@ -176,17 +185,17 @@ expressions connected by '+'.\label{parser:expr}
 
 This approach can be generalised when defining more complex
 languages by having even more tiers, one for each
-\emph{fixity level}, see for instance~\ref{example:expr}.
+\emph{fixity level}\label{fixity}, see for instance~\ref{example:expr}.
 An extended language of arithmetic expressions would for
 instance distinguish the level at which addition and
 substraction live from the one at which multiplication and
 division do.
 
 
-Our issue with this solution is twofold. Firt, although we did
+Our issue with this solution is twofold. First, although we did
 eventually managed to build a parser that worked as expected,
 the compiler was unable to warn us and guide us towards this
-correct solution. Additionnally, the blatant partiality of
+correct solution. Additionally, the blatant partiality of
 some of these definitions means that these combinators and
 these types are wholly unsuitable in a total setting. We could, of
 course use an escape hatch and implement our parsers in Haskell
@@ -213,8 +222,13 @@ the index. We only show the ones we will use in this paper:
 the pointwise arrow and product types and the constant function.
 
 \sagrab{Relation/Unary/Indexed}{arrow}
-\agrab{Relation/Unary/Indexed}{product}
+
+\begin{minipage}{0.55\textwidth}
+  \agrab{Relation/Unary/Indexed}{product}
+\end{minipage}
+\begin{minipage}{0.30\textwidth}
 \agrab{Relation/Unary/Indexed}{constant}
+\end{minipage}
 
 \remark{Mixfix Operators} In Agda underscores correspond to
 positions in which arguments are to be inserted. It may be a
@@ -390,9 +404,13 @@ we can prove that it is an \AF{Alternative}: failing corresponds
 to returning the empty list no matter what whilst disjunction is
 implemented using concatenation.
 
-\agrab{Text/Parser/Combinators}{fmap}\vspace*{-2em}
-\agrab{Text/Parser/Combinators}{fail}\vspace*{-2em}
-\agrab{Text/Parser/Combinators}{disjunction}
+\agrab{Text/Parser/Combinators}{fmap}
+\begin{minipage}{0.30\textwidth}
+  \agrab{Text/Parser/Combinators}{fail}
+\end{minipage}
+\begin{minipage}{0.55\textwidth}
+  \agrab{Text/Parser/Combinators}{disjunction}
+\end{minipage}
 
 So far the types we have ascribed to our combinators are, if we ignore
 the $\mathbb{N}$ indices, exactly the
@@ -450,12 +468,12 @@ failed.
 \agrab{Text/Parser/Combinators}{conjunction2}
 \agrab{Text/Parser/Combinators}{goodsome}
 
-\remark{Non-compositionality}\label{parser:some} The higher-order parser \AF{some}
+\remark{Non-Compositional}\label{parser:some} The higher-order parser \AF{some}
 expects a \emph{fully} defined parser as an argument. This makes
 it impossible to use it as one of the building blocks of a larger,
 recursive parser. Ideally we would rather have a combinator of
 type \mbox{\AF{[} \AF{Parser} \AB{A} \AF{⟶} \AF{Parser} (\AF{List$^+$} \AB{A}) \AF{]}}.
-This will be adressed in the next subsection.
+This will be addressed in the next subsection.
 \medskip{}
 
 As the previous code snippet shows, \AF{\_<\&?>\_} is defined in
@@ -472,7 +490,7 @@ definitions where one would use a parser which does not use any of its
 input. And this is possible without incurring any additional cost as
 the optimised version of \AF{some} showed.
 
-\section{Left and Right Chains}
+\section{Left Chains}
 
 The pattern used in the solution presented in Section~\ref{sec:haskellproblem}
 can be abstracted with the notion of an (heterogeneous) left chain which takes
@@ -526,8 +544,154 @@ error. But it still possible to have some on the right or after having consumed
 at least one character (typically an opening parenthesis, cf. the \type{Expr}
 example in Section~\ref{parser:expr}).
 
+\section{Fully Worked-Out Example}
 
+From \AF{hchainl}, one can derive \AF{chainl1} which is not heterogeneous
+and uses the same parser for the seed and the constructors' arguments.
+This combinator together with the idea of fixity mentioned in Section~\ref{fixity}
+is typically used to implement left-recursive grammars. Looking up the
+documentation of the \texttt{parsec} library on hackage~\cite{doc:parsec}
+we can find a fine example: an extension of our early arithmetic language.
 
-\subsection{Examples}
+\shgrab{example}
 
-\todo{expr}\label{example:expr}
+One important thing to note here is that in the end we not only get a
+parser for the \type{expr}essions but also each one of the intermediate
+categories \type{term} and \type{factor}. Luckily, our library lets us
+take fixpoints of any sized types we may fancy. As such, we can define
+a sized record of parsers for each one of the syntactic categories:
+
+\agrab{Text/Parser/Examples/Expr}{language}
+
+Here, unlike the Haskell example, we decide to be painfully explicit
+about the syntactic categories we are considering: we mutually define
+three inductive types representing \emph{left-associated} arithmetic
+expressions.
+
+\begin{minipage}{0.33\textwidth}
+  \agrab{Text/Parser/Examples/Expr}{expr}
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+  \agrab{Text/Parser/Examples/Expr}{term}
+\end{minipage}
+\begin{minipage}{0.20\textwidth}
+  \agrab{Text/Parser/Examples/Expr}{factor}
+\end{minipage}
+
+The definition of the parser itself is then basically the same as the
+Haskell one. Contrary to a somewhat popular belief, working in a
+dependently-typed language does not force us to add any type annotation
+except for the top-level one.
+
+\agrab{Text/Parser/Examples/Expr}{parser}
+
+We can notice four minor changes with respect to the Haskell version. Firstly,
+the intermediate parsers need to be declared before being used which effectively
+reverses the order in which they are spelt out. Secondly, the recursive calls
+are now explicit: in the definition of \type{factor}, \AF{expr} is \AF{map}ped
+under the \BOX{} to project the recursive call to the \AD{Expr} \AR{Parser} out
+of \AR{Language}. Thirdly, we use \AF{hchainl} instead of \AF{chainl1} because
+breaking the grammar into three distinct categories leads us to parsing
+\emph{h}eterogeneous left chains. Fourthly, we have to insert calls to \AF{box}
+to lift \AR{Parser}s into boxed ones whenever the added guarantee that the call
+will be guarded is of no use to us.
+
+\section{More Power: Switching to other Representations}
+
+We have effectively managed to take Haskell's successful approach to defining
+a Domain Specific Language of parser combinators and impose type constraints
+which make it safe to use in a total setting. All of which we have done whilst
+keeping the concision and expressivity of the original libraries. A natural
+next question would be the speed and efficiency of such a library.
+
+Although we have been using a concrete type for \AR{Parser} throughout
+this article, our library actually implements a more general one. It uses
+Agda's instance arguments throughout thus letting the user pick the
+representation they like best.
+
+Firstly, there is nothing special about vectors of characters as an input
+type: any sized input off of which one can peel characters one at a time
+would do. Users may instead use Haskell's \type{Text} packaged together
+with an irrelevant proof that the given text has the right length and a
+binding for \textit{uncons}. This should lead to a more efficient memory
+representation of the text being analysed.
+
+Similarly, there is no reason to force the user to get back a \emph{list}
+of successes: any alternative monad will do. This means in particular that
+a user may for instance instrument a parser with a logging ability to be
+able to return good error messages, have a (re)configurable grammar using
+a \type{Reader} transformer or use a \type{Maybe} type if they want to make
+explicit the fact that their grammar is unambiguous.
+
+\section{Related Work}
+
+This work is based on Hutton and Meijer's influential functional pearl~\citeyear{hutton1998monadic}
+which builds on Walder's insight that exception handling and backtracking can be
+realised using a list of successes~\citeyear{wadler1985replace}. Similar Domain
+Specific Languages have been implemented in various functional languages such as
+Scala~\cite{moors2008parser} or, perhaps more interestingly for us, Rust~\cite{couprie2015nom}
+where the added type-level information about ownership can help implement a
+guaranteed zero-copy parser.
+
+\subsection{Total Parser Combinators}
+
+When it comes to total programming languages, Danielsson's library~\citeyear{danielsson2010total}
+is to our knowledge the only attempt so far at defining a library of total
+parser combinators in a dependently-typed host language. He reifies recursive
+grammars as values of a mixed inductive-coinductive type and tracks at the
+type level whether a sub-grammar accepts the empty word and, as a consequence,
+whether one can meaningfully take its fixpoint.
+
+The reified approach allows him to define a grammar's semantics in terms
+of bags of words and prove sound a variant of Brzozowski derivatives~\citeyear{brzozowski1964derivatives}
+as well as study the equational theory of parsers. The current
+implementation, based on the Brzozowski derivatives, is however of complexity
+at least exponential in the size of the input.
+
+Our approach, although not as successful as Danielsson's when it comes
+to certification, is however more lightweight. Using only strong induction
+on the natural numbers, it is compatible with languages a lot less powerful
+than Agda. Indeed there is no need for good support for mixed induction and
+coinduction in the host language. And although we do rely on enforcing invariants
+at the type-level, one could mimic these in languages with even weaker type
+systems by defining an \emph{abstract} \BOX{} and only providing the user with
+our set of combinators which is guaranteed to be safe.
+
+\subsection{Certified Parsing}
+
+Ambitious projects such as CompCert~\cite{leroy2012compcert} providing
+the user with an ever more certified toolchain tend to bring to light
+the lack of proven-correct options for very practical concerns such as
+parsing. Jourdan, Pottier and Leroy's work~\cite{jourdan2012validating}
+fills that gap by certifying the output of an untrusted parser generator
+for LR(1) grammars. This approach serves a different purpose than ours:
+parser combinators libraries are great for rapid prototyping and small,
+re-configurable parsers for non-critical applications.
+
+Bernardy and Jansson have implemented in Agda a fully-certified generalisation
+of Valiant's algorithm~\cite{bernardy2016certified} by deriving it from
+its specification. This algorithm gives the best asymptotic bounds on
+context-free grammar, that is the \type{Applicative} subset tackled by
+parser combinators.
+
+\section{Conclusion and Future Work}
+
+Starting from the definition of ``parsers for things as functions from
+strings to lists of strings and things'' common in Haskell, we have been
+able to (re)define versatile combinators. However the type system was
+completely unable to root out some badly-behaved programs, namely the
+ones taking the fixpoint of a grammar accepting the empty word or non
+well-founded left recursive grammars. Wanting to use a total programming
+language, this led us to a radical solution: rejecting all the parsers
+accepting the empty word. Luckily, it was still possible to recover a
+notion of ``potentially failing'' sub-parses via a \textit{bind}-like
+combinator as well as defining combinators for left chains. Finally we
+saw that this yielded a perfectly safe and only barely more verbose set
+of total parser combinators.
+
+In the process of describing our library we have introduced a set of
+type-level combinators for manipulating indexed types and defining
+values by strong induction. If we want to provide our users with the
+tools to modularly prove some of the properties of their grammars, we
+need to come up with proof combinators corresponding to the value ones.
+As far as we know this is still an open problem.

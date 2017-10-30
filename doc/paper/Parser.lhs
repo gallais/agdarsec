@@ -153,4 +153,16 @@ hchainl seed con arg  = seed >>= rest where
 \end{code}
 %</hchainl>
 
+%<*example>
+\begin{code}
+expr    = term   `chainl1` addop
+term    = factor `chainl1` mulop
+factor  = parens expr <|> integer
 
+mulop   =   do{ symbol "*"; return (*)   }
+        <|> do{ symbol "/"; return (div) }
+
+addop   =   do{ symbol "+"; return (+) }
+        <|> do{ symbol "-"; return (-) }
+\end{code}
+%</example>
