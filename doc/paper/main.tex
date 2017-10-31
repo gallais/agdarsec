@@ -616,7 +616,14 @@ with an irrelevant proof that the given text has the right length and a
 binding for \textit{uncons}. This should lead to a more efficient memory
 representation of the text being analysed.
 
-Similarly, there is no reason to force the user to get back a \emph{list}
+Secondly, there is no reason to limit ourselves to \type{Char} as the
+unit of information to be processed. Near all of our combinators are
+fully polymorphic over the kind of tokens they can deal with. To run
+the parser, the user will have to declare an instance of the \AR{Tokenizer}
+class corresponding to their use case. The library provides a trivial
+one for \AD{Char}.
+
+Thirdly, there is no reason to force the user to get back a \emph{list}
 of successes: any alternative monad will do. This means in particular that
 a user may for instance instrument a parser with a logging ability to be
 able to return good error messages, have a (re)configurable grammar using
