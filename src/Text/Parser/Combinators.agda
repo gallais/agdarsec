@@ -2,8 +2,7 @@ module Text.Parser.Combinators where
 
 open import Relation.Unary.Indexed
 open import Induction.Nat.Strong as Iℕ hiding (lower)
-open import Data.Nat.Base
-open import Data.Nat.LTE
+open import Data.Nat.Base hiding (_^_)
 
 open import Data.Sum as S
 open import Data.Product as P hiding (,_)
