@@ -83,18 +83,18 @@ module _ {TOKS : ℕ → Set} {{𝕊 : Sized TOK TOKS}} where
 
  range : [ Parser TOK TOKS Maybe Range ]
  range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
-         <$> (maybeTok isCHAR <&?> (return $ exact DOTS &> return (maybeTok isCHAR)))
+         <$> (maybeTok isCHAR <&?> (box $ exact DOTS &> box (maybeTok isCHAR)))
 
  regexp : [ Parser TOK TOKS Maybe RegExp ]
  regexp = fix (Parser TOK TOKS Maybe RegExp) $ λ rec →
-          let parens   = between (exact LPAR) (return (exact RPAR))
-              parens?  = between? (exact LPAR) (return (exact RPAR))
+          let parens   = between (exact LPAR) (box (exact RPAR))
+              parens?  = between? (exact LPAR) (box (exact RPAR))
               ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
-                         <*> return (list⁺ range <& return (exact CLOSE))
+                         <*> box (list⁺ range <& box (exact CLOSE))
               literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
               base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
-              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> return (exact STAR))
-              disj     = chainr1 star (return $ _∥_ <$ exact OR)
+              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> box (exact STAR))
+              disj     = chainr1 star (box $ _∥_ <$ exact OR)
           in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
 
 -- test

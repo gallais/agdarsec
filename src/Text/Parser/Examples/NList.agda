@@ -23,8 +23,8 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
  NList′ : {A : Set} → [ Parser Char Chars Maybe A ] →
           (n : ℕ)   → [ Parser Char Chars Maybe (NList A n) ]
  NList′ A zero    = A
- NList′ A (suc n) = parens $ return $ DList.toList <$>
-                    chainl1 (DList.[_] <$> NList′ A n) (return $ DList._++_ <$ char ',')
+ NList′ A (suc n) = parens $ box $ DList.toList <$>
+                    chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
 
 -- tests
 

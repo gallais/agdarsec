@@ -22,7 +22,7 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
 
  Type′ : [ Parser Char Chars Maybe Type ]
  Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimal <|> parens rec)
-                                 (return $ _`→_ <$ withSpaces (char '→'))
+                                 (box $ _`→_ <$ withSpaces (char '→'))
 
 _ : "1 → (2 → 3) → 4" ∈ Type′
 _ = `κ 1 `→ ((`κ 2 `→ `κ 3) `→ `κ 4) !
@@ -49,12 +49,12 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
  language = fix Language $ λ rec →
              let □val = INS.map pVal rec
                  cut  = uncurry Cut <$> (char '(' &> □val
-                               <& return (withSpaces (char ':'))
-                               <&> return Type′
-                               <& return (char ')'))
-                 neu  = hchainl (var <|> cut) (return (App <$ space)) □val
-                 val  = uncurry Lam <$> (char 'λ' &> return (withSpaces identifier)
-                                    <&> return ((char '.')
+                               <& box (withSpaces (char ':'))
+                               <&> box Type′
+                               <& box (char ')'))
+                 neu  = hchainl (var <|> cut) (box (App <$ space)) □val
+                 val  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
+                                    <&> box ((char '.')
                                      &> □val))
                         <|> Emb <$> neu
              in record { pVal = val ; pNeu = neu }

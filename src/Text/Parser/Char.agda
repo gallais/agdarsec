@@ -36,10 +36,10 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}}
  module _ {A : Set} where
 
   parens : [ □ Parser Char Chars M A ⟶ Parser Char Chars M A ]
-  parens = between (char '(') (return (char ')'))
+  parens = between (char '(') (box (char ')'))
 
   parens? : [ Parser Char Chars M A ⟶ Parser Char Chars M A ]
-  parens? = between? (char '(') (return (char ')'))
+  parens? = between? (char '(') (box (char ')'))
 
   withSpaces : [ Parser Char Chars M A ⟶ Parser Char Chars M A ]
-  withSpaces A = spaces ?&> A <&? return spaces
+  withSpaces A = spaces ?&> A <&? box spaces

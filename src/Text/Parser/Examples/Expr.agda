@@ -35,8 +35,8 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
  pExpr : [ PExpr ]
  pExpr = fix PExpr $ λ rec →
          let factor = parens (INS.map pexp rec) <|> var <|> lit
-             term   = chainl1 factor $ return mulop
-             expr   = chainl1 term   $ return addop
+             term   = chainl1 factor $ box mulop
+             expr   = chainl1 term   $ box addop
          in record { pvar = var
                    ; plit = lit
                    ; pfac = factor

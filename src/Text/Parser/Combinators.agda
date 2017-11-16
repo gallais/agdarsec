@@ -1,7 +1,7 @@
 module Text.Parser.Combinators where
 
 open import Relation.Unary.Indexed
-open import Induction.Nat.Strong as Iℕ hiding (lower)
+open import Induction.Nat.Strong as Box hiding (≤-lower ; <-lower)
 open import Data.Nat.Base
 open import Data.Nat.LTE
 
@@ -53,11 +53,14 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
   maybeTok : (Tok → Maybe A) → [ Parser Tok Toks M A ]
   maybeTok p = guardM p anyTok
 
-  return : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M A ]
-  runParser (call (return A) m<n) p≤m = runParser A (≤-trans p≤m (<⇒≤ m<n))
+  ≤-lower : {m n : ℕ} → .(m ≤ n) → Parser Tok Toks M A n → Parser Tok Toks M A m
+  runParser (≤-lower m≤n A) p≤m = runParser A (≤-trans p≤m m≤n)
 
-  lower : {m n : ℕ} → .(m ≤ n) → Parser Tok Toks M A n → Parser Tok Toks M A m
-  runParser (lower m≤n A) p≤m = runParser A (≤-trans p≤m m≤n)
+  <-lower : {m n : ℕ} → .(m < n) → Parser Tok Toks M A n → Parser Tok Toks M A m
+  <-lower m<n = ≤-lower (<⇒≤ m<n)
+
+  box : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M A ]
+  box = ≤-close ≤-lower
 
   fail : [ Parser Tok Toks M A ]
   runParser fail _ _ = 𝕄.∅
@@ -148,7 +151,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
   between A C B = A &> B <& C
 
   between? : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M C ⟶ Parser Tok Toks M B ⟶ Parser Tok Toks M B ]
-  between? A C B = between A C (return B) <|> B
+  between? A C B = between A C (box B) <|> B
 
  module _ {{eq? : Decidable {A = Tok} _≡_}} where
 
@@ -163,7 +166,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
 
     go : Tok → List Tok → [ Parser Tok Toks M (List⁺ Tok) ]
     go x []       = NonEmpty.[_] <$> exact x
-    go x (y ∷ xs) = uncurry _∷⁺_ <$> (exact x <&> return (go y xs))
+    go x (y ∷ xs) = uncurry _∷⁺_ <$> (exact x <&> box (go y xs))
 
  module _ {A : Set} where
 
@@ -174,28 +177,28 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
 
     rest : [ □ goal ⟶ goal ]
     rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s 𝕄.>>= λ sOp →
-          call rec p<m (Success.map (_$ a) sOp) (Iℕ.lower (<⇒≤ p<m) op) 𝕄.>>=
+          call rec p<m (Success.map (_$ a) sOp) (Box.<-lower p<m op) 𝕄.>>=
           𝕄.return ∘ lift (<⇒≤ p<m)
 
   iterate : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M (A → A) ⟶ Parser Tok Toks M A ]
   runParser (iterate {n} a op) m≤n s =
-    runParser a m≤n s 𝕄.>>= λ sA → schainl sA $ Iℕ.lower m≤n op
+    runParser a m≤n s 𝕄.>>= λ sA → schainl sA $ Box.≤-lower m≤n op
 
  module _ {A B : Set} where
 
   hchainl : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M (A → B → A) ⟶ □ Parser Tok Toks M B ⟶
               Parser Tok Toks M A ]
-  hchainl A op B = iterate A (map2 _<*>_ (Iℕ.map (flip <$>_) op) (duplicate B))
+  hchainl A op B = iterate A (map2 _<*>_ (Box.map (flip <$>_) op) (duplicate B))
 
  module _ {A : Set} where
 
   chainl1 : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M (A → A → A) ⟶ Parser Tok Toks M A ]
-  chainl1 a op = hchainl a op (return a)
+  chainl1 a op = hchainl a op (box a)
 
   chainr1 : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M (A → A → A) ⟶ Parser Tok Toks M A ]
   chainr1 = fix goal $ λ rec A op → mkParser λ m≤n s →
-            runParser A m≤n s 𝕄.>>= λ sA → 
-            rest (Iℕ.lower m≤n rec) (lower m≤n A) (Iℕ.lower m≤n op) sA
+            runParser A m≤n s 𝕄.>>= λ sA →
+            rest (Box.≤-lower m≤n rec) (≤-lower m≤n A) (Box.≤-lower m≤n op) sA
             𝕄.∣  𝕄.return sA where
 
     goal = Parser Tok Toks M A ⟶ □ Parser Tok Toks M (A → A → A) ⟶ Parser Tok Toks M A
@@ -204,12 +207,14 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
              Success Tok Toks A ⟶ M ∘ Success Tok Toks A ]
     rest rec A op sA@(a ^ m<n , s) = runParser (call op m<n) ≤-refl s 𝕄.>>=
           λ sOp → let (f ^ p<m , s′) = sOp ; .p<n : _ < _; p<n = <-trans p<m m<n in
-          let rec′ = call rec p<n (lower (<⇒≤ p<n) A) (Iℕ.lower (<⇒≤ p<n) op) in
+          let rec′ = call rec p<n (<-lower p<n A) (Box.<-lower p<n op) in
           lift (<⇒≤ p<n) ∘ Success.map (f a $_) 𝕄.<$> runParser rec′ ≤-refl s′
 
   head+tail : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A) ]
   head+tail hd tl = NonEmpty.reverse
-                <$> (iterate (NonEmpty.[_] <$> hd) (Iℕ.map (NonEmpty._∷⁺_ <$>_) tl))
+                <$> (iterate (NonEmpty.[_] <$> hd) (Box.map (NonEmpty._∷⁺_ <$>_) tl))
 
   list⁺ : [ Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A) ]
-  list⁺ pA = head+tail pA (return pA)
+  list⁺ = fix (Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A)) $ λ rec pA →
+          uncurry (λ hd → (hd ∷_) ∘ maybe NonEmpty.toList [])
+          <$> (pA &?>>= (λ _ → app rec (box pA)))
