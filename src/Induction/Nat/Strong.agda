@@ -33,9 +33,7 @@ module _ {A : ℕ → Set} where
 
  fix□ : [ □ A ⟶ A ] → [ □ A ]
  call (fix□ f {zero})  ()
- call (fix□ f {suc n}) m<sn =
-  f $ mkBox $ λ p<m →
-  call (fix□ f {n}) (≤-trans p<m (<⇒≤pred m<sn))
+ call (fix□ f {suc n}) m<sn = f (≤-lower (≤-pred m<sn) (fix□ f))
 
 module _ {A B : ℕ → Set} where
 
