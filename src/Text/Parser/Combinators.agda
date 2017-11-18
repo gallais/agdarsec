@@ -21,7 +21,7 @@ open String using () renaming (String to Text)
 
 open import Category.Monad
 open import Data.List.Sized.Interface
-open import Text.Parser.Success as Success
+open import Text.Parser.Success as Success hiding (guardM)
 open import Function
 
 record Parser (Tok : Set) (Toks : ℕ → Set) (M : Set → Set) (A : Set) (n : ℕ) : Set where
@@ -42,8 +42,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
 
   guardM : (A → Maybe B) → [ Parser Tok Toks M A ⟶ Parser Tok Toks M B ]
   runParser (guardM p A) m≤n s =
-    runParser A m≤n s 𝕄.>>= λ rA → let (a ^ p<m , s′) = rA in
-    maybe (λ b → 𝕄.return (b ^ p<m , s′)) 𝕄.∅ (p a)
+    runParser A m≤n s 𝕄.>>= maybe 𝕄.return 𝕄.∅ ∘ Success.guardM p
 
  module _ {A : Set} where
 
@@ -85,7 +84,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (<-lift p<m (Success.map ((a ,_) ∘ just) rB)))
+     𝕄.return (Success.and rA (Success.map just rB)))
     𝕄.∣ 𝕄.return (a , nothing ^ p<m , s′)
 
   _&>>=_ : [ Parser Tok Toks M A ⟶ (const A ⟶ □ Parser Tok Toks M B) ⟶ Parser Tok Toks M (A × B) ]
@@ -93,7 +92,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (<-lift p<m (Success.map (a ,_) rB)))
+     𝕄.return (Success.and rA rB))
 
  module _ {A B : Set} where
 
