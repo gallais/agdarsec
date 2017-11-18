@@ -85,7 +85,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (lift (<⇒≤ p<m) (Success.map ((a ,_) ∘ just) rB)))
+     𝕄.return (<-lift p<m (Success.map ((a ,_) ∘ just) rB)))
     𝕄.∣ 𝕄.return (a , nothing ^ p<m , s′)
 
   _&>>=_ : [ Parser Tok Toks M A ⟶ (const A ⟶ □ Parser Tok Toks M B) ⟶ Parser Tok Toks M (A × B) ]
@@ -93,7 +93,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (lift (<⇒≤ p<m) (Success.map (a ,_) rB)))
+     𝕄.return (<-lift p<m (Success.map (a ,_) rB)))
 
  module _ {A B : Set} where
 
@@ -137,7 +137,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     case a⊎b of λ where
       (inj₂ b) → 𝕄.return (nothing , b ^ p<m , s′)
       (inj₁ a) → let r = runParser ((just a ,_) <$> B) (≤-trans (<⇒≤ p<m) m≤n) s′
-                 in lift (<⇒≤ p<m) 𝕄.<$> r
+                 in <-lift p<m 𝕄.<$> r
 
   _<?&_ : [ Parser Tok Toks M A ⟶ Parser Tok Toks M B ⟶ Parser Tok Toks M (Maybe A) ]
   A <?& B = proj₁ <$> (A <?&> B)
@@ -178,7 +178,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     rest : [ □ goal ⟶ goal ]
     rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s 𝕄.>>= λ sOp →
           call rec p<m (Success.map (_$ a) sOp) (Box.<-lower p<m op) 𝕄.>>=
-          𝕄.return ∘ lift (<⇒≤ p<m)
+          𝕄.return ∘ <-lift p<m
 
   iterate : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M (A → A) ⟶ Parser Tok Toks M A ]
   runParser (iterate {n} a op) m≤n s =
@@ -208,7 +208,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
     rest rec A op sA@(a ^ m<n , s) = runParser (call op m<n) ≤-refl s 𝕄.>>=
           λ sOp → let (f ^ p<m , s′) = sOp ; .p<n : _ < _; p<n = <-trans p<m m<n in
           let rec′ = call rec p<n (<-lower p<n A) (Box.<-lower p<n op) in
-          lift (<⇒≤ p<n) ∘ Success.map (f a $_) 𝕄.<$> runParser rec′ ≤-refl s′
+          <-lift p<n ∘ Success.map (f a $_) 𝕄.<$> runParser rec′ ≤-refl s′
 
   head+tail : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A) ]
   head+tail hd tl = NonEmpty.reverse

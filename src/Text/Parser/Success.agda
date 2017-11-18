@@ -26,8 +26,11 @@ module _ {Tok A B : Set} {Toks : ℕ → Set} where
 
 module _ {Tok A : Set} {Toks : ℕ → Set} where
 
-  lift : {m n : ℕ} → .(m ≤ n) → Success Tok Toks A m → Success Tok Toks A n
-  lift m≤n (a ^ p<m , s) = a ^ ≤-trans p<m m≤n , s
+  ≤-lift : {m n : ℕ} → .(m ≤ n) → Success Tok Toks A m → Success Tok Toks A n
+  ≤-lift m≤n (a ^ p<m , s) = a ^ ≤-trans p<m m≤n , s
+
+  <-lift : {m n : ℕ} → .(m < n) → Success Tok Toks A m → Success Tok Toks A n
+  <-lift m<n = ≤-lift (<⇒≤ m<n)
 
 module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}} where
 
