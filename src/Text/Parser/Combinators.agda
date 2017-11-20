@@ -213,4 +213,4 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
   list⁺ : [ Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A) ]
   list⁺ = fix (Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A)) $ λ rec pA →
           uncurry (λ hd → (hd ∷_) ∘ maybe NonEmpty.toList [])
-          <$> (pA &?>>= (λ _ → app rec (box pA)))
+          <$> (pA <&?> (app rec (box pA)))
