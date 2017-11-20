@@ -109,6 +109,12 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
   _&>_ : [ Parser Tok Toks M A ⟶ □ Parser Tok Toks M B ⟶ Parser Tok Toks M B ]
   A &> B = proj₂ <$> (A <&> B)
 
+ module _ {A : Set} where
+
+  ands : [ List⁺ ⊚ Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A) ]
+  ands ps = NonEmpty.foldr₁ (λ p ps → uncurry NonEmpty._⁺++⁺_ <$> (p <&> box ps))
+            (NonEmpty.map (NonEmpty.[_] <$>_) ps)
+
  module _ {A B : Set} where
 
   infixl 4 _<*>_
@@ -131,12 +137,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
 
   infixl 4 _<?&>_ _<?&_ _?&>_
   _<?&>_ : [ Parser Tok Toks M A ⟶ Parser Tok Toks M B ⟶ Parser Tok Toks M (Maybe A × B) ]
-  runParser (A <?&> B) m≤n s =
-    (runParser (A <⊎> B) m≤n s) 𝕄.>>= λ rA⊎B → let (a⊎b ^ p<m , s′) = rA⊎B in
-    case a⊎b of λ where
-      (inj₂ b) → 𝕄.return (nothing , b ^ p<m , s′)
-      (inj₁ a) → let r = runParser ((just a ,_) <$> B) (≤-trans (<⇒≤ p<m) m≤n) s′
-                 in <-lift p<m 𝕄.<$> r
+  A <?&> B = just <$> A <&> box B <|> (nothing ,_) <$> B
 
   _<?&_ : [ Parser Tok Toks M A ⟶ Parser Tok Toks M B ⟶ Parser Tok Toks M (Maybe A) ]
   A <?& B = proj₁ <$> (A <?&> B)
@@ -161,11 +162,7 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
   exact = anyOf ∘ List.[_]
 
   exacts : List⁺ Tok → [ Parser Tok Toks M (List⁺ Tok) ]
-  exacts (x ∷ xs) = go x xs where
-
-    go : Tok → List Tok → [ Parser Tok Toks M (List⁺ Tok) ]
-    go x []       = NonEmpty.[_] <$> exact x
-    go x (y ∷ xs) = uncurry _∷⁺_ <$> (exact x <&> box (go y xs))
+  exacts ts = ands (NonEmpty.map (λ t → exact t) ts)
 
  module _ {A : Set} where
 
