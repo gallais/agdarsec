@@ -12,7 +12,7 @@ open import Function
 
 open import Text.Parser.Examples.Base
 open import Text.Parser.Examples.Identifier
-open import Text.Parser.Examples.Decimal
+open import Text.Parser.Numbers
 
 data Type : Set where
   `κ   : ℕ → Type
@@ -21,7 +21,7 @@ data Type : Set where
 module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
 
  Type′ : [ Parser Char Chars Maybe Type ]
- Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimal <|> parens rec)
+ Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimalℕ <|> parens rec)
                                  (box $ _`→_ <$ withSpaces (char '→'))
 
 _ : "1 → (2 → 3) → 4" ∈ Type′

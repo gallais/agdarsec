@@ -15,7 +15,7 @@ import Induction.Nat.Strong as INS
 
 open import Text.Parser.Examples.Base
 open import Text.Parser.Examples.Identifier
-open import Text.Parser.Examples.Decimal
+open import Text.Parser.Numbers
 
 data Expr : Set where
   Var     : Char → Expr
@@ -49,7 +49,7 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
     lit : [ Parser Char Chars Maybe Expr ]
 
     var = Var <$> alpha
-    lit = Lit <$> decimal
+    lit = Lit <$> decimalℕ
 
     addop : [ Parser Char Chars Maybe (Expr → Expr → Expr) ]
     mulop : [ Parser Char Chars Maybe (Expr → Expr → Expr) ]

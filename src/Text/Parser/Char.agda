@@ -1,6 +1,7 @@
 module Text.Parser.Char where
 
 open import Data.Nat.Base
+open import Data.Sum
 open import Data.Bool.Base
 open import Data.Char
 open import Data.String as String
@@ -13,8 +14,7 @@ open import Relation.Unary.Indexed
 open import Induction.Nat.Strong
 open import Data.List.Sized.Interface
 open import Text.Parser.Combinators
-
-instance eqChar = Data.Char._≟_
+open import Text.Parser.Numbers
 
 module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}}
          {M : Set → Set} {{𝕄 : RawMonadPlus M}} where
@@ -43,3 +43,12 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}}
 
   withSpaces : [ Parser Char Chars M A ⟶ Parser Char Chars M A ]
   withSpaces A = spaces ?&> A <&? box spaces
+
+ alpha : [ Parser Char Chars M Char ]
+ alpha = anyOf (String.toList "abcdefghijklmnopqrstuvwxyz")
+
+ num : [ Parser Char Chars M ℕ ]
+ num = decimalDigit
+
+ alphanum : [ Parser Char Chars M (Char ⊎ ℕ) ]
+ alphanum = alpha <⊎> num

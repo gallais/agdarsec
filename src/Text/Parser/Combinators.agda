@@ -111,6 +111,9 @@ module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}}
 
  module _ {A : Set} where
 
+  alts : [ List ⊚ Parser Tok Toks M A ⟶ Parser Tok Toks M A ]
+  alts = List.foldr _<|>_ fail
+
   ands : [ List⁺ ⊚ Parser Tok Toks M A ⟶ Parser Tok Toks M (List⁺ A) ]
   ands ps = NonEmpty.foldr₁ (λ p ps → uncurry NonEmpty._⁺++⁺_ <$> (p <&> box ps))
             (NonEmpty.map (NonEmpty.[_] <$>_) ps)

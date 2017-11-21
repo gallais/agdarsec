@@ -17,13 +17,10 @@ record Identifier : Set where
 
 module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
 
- alpha : [ Parser Char Chars Maybe Char ]
- alpha = anyOf $ String.toList "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
  identifier : [ Parser Char Chars Maybe Identifier ]
  identifier = mkIdentifier <$> list⁺ alpha
 
 -- tests
 
-_ : "Hi" ∈ identifier
-_ = mkIdentifier ('H' ∷ 'i' ∷ []) !
+_ : "hi" ∈ identifier
+_ = mkIdentifier ('h' ∷ 'i' ∷ []) !
