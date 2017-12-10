@@ -143,7 +143,7 @@ module _ where
     (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ List.>>= λ rB →
      List.return (lift (<⇒≤ p<m) (Success.map (a ,_) rB)))
 
- module _ {A B : Set} where
+ module oups {A B : Set} where
 
   _>>=_ : [ Parser A ⟶ (const A ⟶ □ Parser B) ⟶ Parser B ]
   A >>= B = proj₂ <$> A &>>= B
@@ -165,6 +165,7 @@ module _ where
   A &> B = proj₂ <$> (A <&> B)
 
  module arf {A : Set} where
+  open oups
 \end{code}
 %<*badsome>
 \begin{code}
@@ -174,9 +175,9 @@ module _ where
 \end{code}
 %</badsome>
 \begin{code}
+ open oups public hiding (_<&>_)
 
  module _ {A B : Set} where
-
   infixl 4 _<*>_
 \end{code}
 %<*apply>
@@ -186,23 +187,7 @@ module _ where
 \end{code}
 %</apply>
 \begin{code}
-
-  infixl 4 _<&?>_ _<&?_ _&?>_
-\end{code}
-%<*conjunction2>
-\begin{code}
-  _<&?>_ : [ Parser A ⟶ □ Parser B ⟶ Parser (A × Maybe B) ]
-  A <&?> B = A &?>>= const B
-\end{code}
-%</conjunction2>
-\begin{code}
-
-  _<&?_ : [ Parser A ⟶ □ Parser B ⟶ Parser A ]
-  A <&? B = proj₁ <$> (A <&?> B)
-
-  _&?>_ : [ Parser A ⟶ □ Parser B ⟶ Parser (Maybe B) ]
-  A &?> B = proj₂ <$> (A <&?> B)
-
+    where open oups
   infixr 3 _<⊎>_
 \end{code}
 %<*disjunction2>
@@ -212,14 +197,36 @@ module _ where
 %</disjunction2>
 \begin{code}
   A <⊎> B = inj₁ <$> A <|> inj₂ <$> B
-  infixl 4 _<?&>_ _<?&_ _?&>_
-  _<?&>_ : [ Parser A ⟶ Parser B ⟶ Parser (Maybe A × B) ]
+
+  infixl 4 _<&?>_ _<&?_ _&?>_
+\end{code}
+%<*conjunction2>
+\begin{code}
+  _<&>_   : [ Parser A ⟶ □  Parser B ⟶ Parser (A × B)        ]
+  _<&?>_  : [ Parser A ⟶ □  Parser B ⟶ Parser (A × Maybe B)  ]
+  _<?&>_  : [ Parser A ⟶    Parser B ⟶ Parser (Maybe A × B)  ]
+\end{code}
+%</conjunction2>
+\begin{code}
+  A <&> B = A &>>= const B
+
+  A <&?> B = A &?>>= const B
+
   runParser (A <?&> B) m≤n s =
     (runParser (A <⊎> B) m≤n s) List.>>= λ rA⊎B → let (a⊎b ^ p<m , s′) = rA⊎B in
     case a⊎b of λ where
       (inj₂ b) → List.return (nothing , b ^ p<m , s′)
       (inj₁ a) → let r = runParser ((just a ,_) <$> B) (≤-trans (<⇒≤ p<m) m≤n) s′
                  in lift (<⇒≤ p<m) List.<$> r
+
+
+  _<&?_ : [ Parser A ⟶ □ Parser B ⟶ Parser A ]
+  A <&? B = proj₁ <$> (A <&?> B)
+
+  _&?>_ : [ Parser A ⟶ □ Parser B ⟶ Parser (Maybe B) ]
+  A &?> B = proj₂ <$> (A <&?> B)
+
+  infixl 4 _<?&>_ _<?&_ _?&>_
 
   _<?&_ : [ Parser A ⟶ Parser B ⟶ Parser (Maybe A) ]
   A <?& B = proj₁ <$> (A <?&> B)
@@ -232,13 +239,14 @@ module _ where
 %<*goodsome>
 \begin{code}
   some : [ Parser A ] → [ Parser (List⁺ A) ]
-  some p =  fix _ $ λ rec → cons <$> (p <&?> rec)
+  some p =  fix _ $ λ rec → cons <$> (p <&?> rec) where
+
+    cons : (A × Maybe (List⁺ A)) → List⁺ A
+    cons (a , just as)  = a ∷⁺ as
+    cons (a , nothing)  = a ∷ []
 \end{code}
 %</goodsome>
 \begin{code}
-   where
-    cons : (A × Maybe (List⁺ A)) → List⁺ A
-    cons (a , mas) = maybe (a ∷⁺_) (a ∷ []) mas
 
  module _ {A B C : Set} where
 
@@ -268,13 +276,13 @@ module _ where
 %<*schainl>
 \begin{code}
   schainl : [ Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A ]
+\end{code}
+%</schainl>
+\begin{code}
   schainl = fix _ $ λ rec sA op → rest rec sA op ∷ʳ sA where
 
     rest :  [ □ (Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A)
             ⟶ Success A ⟶ □ Parser (A → A) ⟶ List ∘ Success A ]
-\end{code}
-%</schainl>
-\begin{code}
 
     rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s List.>>= λ sOp →
           call rec p<m (Success.map (_$ a) sOp) (Iℕ.lower (<⇒≤ p<m) op) List.>>=

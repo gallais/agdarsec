@@ -3,10 +3,10 @@
 
 Parser combinators have made functional languages such as Haskell
 shine. They are a prime example of the advantages Embedded Domain
-Specific Languages provide the end user. She not only has access
-to a library of powerful and composable abstractions but she is also
+Specific Languages~\cite{hudak1996building} provide the end user. She not only has access
+to a set of powerful and composable abstractions but she is also
 able to rely on the host language's existing tooling and libraries.
-She also gets feedback from the static analyses built in the compiler
+She can get feedback from the static analyses built in the compiler
 (e.g. type and coverage checking) and can exploit the expressivity
 of the host language to write generic parsers thanks to polymorphism
 and higher order functions.
@@ -17,6 +17,8 @@ means she will not be prevented from writing parsers which will
 unexpectedly fail on some (or even all!) inputs. Handling a
 left-recursive grammar is perhaps the most iconic pitfall leading
 beginners to their doom: a parser never making any progress.
+Other issues one may want guarantees about range from unambiguity
+to complexity with respect to the input's size.
 
 We start with a primer on parser combinators and follow up with the
 definition of a broken parser which is silently accepted by Haskell.
@@ -26,6 +28,18 @@ a more informative notion of parser and give more precise types to
 the combinators commonly used. We then demonstrate that broken parsers
 such as the one presented earlier are rejected whilst typical example
 can be ported with minimal modifications.
+
+\remark{Agda-centric} Although we do use some Agda-specific techniques
+in order to have a codebase as idiomatic as possible, we do not expect
+the reader to be well-versed in them. We insert remarks similar to this
+one throughout the paper to clarify confusing points, and give pointers
+to more in-depth explanations to the interested reader.
+
+This work is however not limited to Agda: it can be ported to other
+dependently-typed languages and we have already done so for Coq~\cite{Coq:manual}
+(\url{https://github.com/gallais/parseque}) and
+Idris~\cite{brady2013idris} (\url{https://github.com/gallais/idris-tparsec}).
+
 
 \section{A Primer on Parser Combinators}
 
@@ -42,21 +56,21 @@ gives us the \emph{essence} of parsers:
   of Things and Strings!
 \end{verse}
 
-This stanza directly translates to the following Haskell type (we
-use a \textbf{newtype} wrapper to have cleaner error messages):
+This stanza translates to the following Haskell type. We use a \textbf{newtype}
+wrapper to have cleaner error messages:
 
 \shgrab{parser}
 
 It is naturally possible to run such a parser and try to extract
-a value from a successful parse. Opinions may vary on whether a
-run with leftover characters can be considered successful or not.
-We decide against it. This is not crucial as both styles can be
-mutually emulated by either providing an 'end of file' parser
-guaranteeing that only runs with no leftovers are successful or
-by extending a grammar with a dummy case consuming the rest of
-the input string.
+a value from a valid run. Opinions may vary on the exact definition
+of a successful parse: should a run with leftover characters or an
+ambiguous result be accepted? We decide against both in the following
+code snippet but it is not a crucial point.
 
 \shgrab{parse}
+
+Once we are equipped with this type of parsers and a function to run
+them, we can start providing some examples of parsers and parser combinators.
 
 \subsection{(Strongly-Typed) Combinators}
 
@@ -69,7 +83,7 @@ character it just read.
 
 However what makes parsers interesting is that they recognize
 structure. As such, they need to reject invalid inputs. The
-parser only accepting decimal digit is a bare bones example.
+parser only accepting decimal digits is a bare bones example.
 It can be implemented in terms of \parser{guard}, a higher
 order parser checking that the value returned by its argument
 abides by a predicate which can easily be implemented using
@@ -82,18 +96,28 @@ These two definitions are only somewhat satisfactory: the
 result of the \parser{digit} parser is still \emph{stringly-typed}.
 Instead of using a predicate to decide whether to keep the
 value, we can opt for a validation function of type
-\mbox{\textit{a → Maybe b}} which returns
-a witness whenever the check succeeds. To define this
-alternative \parser{guardM} we can once more rely on code
-already part of the standard library.
-
-In our concrete example of recognizing a digit, we want to
-return an \type{Int} corresponding to it. Once more the
-standard library has just the right function to use together
-with \parser{guardM}.
+\mbox{\textit{a → Maybe b}} which returns a witness whenever the
+check succeeds. To define this refined version of \parser{guard}
+called \parser{guardM} we can again rely on the standard library:
 
 \shgrab{guard2}
-\hgrab{digit2}
+
+\begin{itemize}
+  \item \textit{traverse f} of type \mbox{\textit{(String, a) → Maybe (String, b)}}
+    takes apart a pair, applies $f$ to the second component and rebuilds the pair
+    \emph{under} the \textit{Maybe} type constructor,
+  \item \textit{fmap} applies this function to all the elements in the list obtained
+    by running the parser $p$,
+  \item and \textit{catMaybes} of type \mbox{\textit{[Maybe (String, b)] → [(String, b)]}}
+    only retains the values which successfully passed the test.
+\end{itemize}
+
+In our concrete example of recognizing a digit, we want to return the
+corresponding \type{Int}. Once more the standard library has just the
+right function to use together with \parser{guardM}: \textit{readMaybe}
+of (specialised) type \mbox{\textit{String → Maybe Int}}.
+
+\shgrab{digit2}
 
 
 \subsection{Expressivity: Structures, Higher Order Parsers and Fixpoints}
@@ -104,14 +128,40 @@ We have seen how we can already rely on the standard library
 of the host language to seamlessly implement combinators.
 We can leverage even more of the existing codebase by noticing
 that the type constructor \type{Parser} is a \type{Functor},
-an \type{Applicative}~\cite{mcbride2008applicative}, a \type{Monad} and also an \type{Alternative}.
+an \type{Applicative}~\cite{mcbride2008applicative}, a \type{Monad}
+and also an \type{Alternative}.
 
-% insert alternative instance
-% interesting use case? replicateM?
+\textbf{Functor} means that given a function of the right type, we
+can alter the values returned by a parser. That is, we have a function
+(which corresponds to the infix combinators (<\$>)):
+
+\shgrab{fmap}
+
+\textbf{Applicative} means two things. First, that given a value of type
+\type{a}, we can define a parser for values of type \type{a}. Second, that
+given a parser for a function and a parser for its argument we can run both
+and apply the function to its argument. That is, we have two functions:
+
+\shgrab{applicative}
+
+\textbf{Monad} means that we are entitled to inspect the result of a
+first parser to decide which one to run next. This brings us beyond the
+realm of context-free grammars. That translates into the existence of
+one function:
+
+\shgrab{monad}
+
+\textbf{Alternative} means that for all type \type{a}, \type{Parser a}
+forms a monoid. It allows us to take the disjunction of various parsers,
+the failure of one leading to the next being used.
+
+\shgrab{alternative}
+
+
 
 %\subsection{Expressivity: Higher Order Parsers and Fixpoints}
 
-Our first example of a higher order parser was \parser{guardM}
+Our first example of a higher order parser was \parser{guard}
 which takes as arguments a validation function as well as another
 parser and produces a parser for the type of witnesses returned
 by the validation function.
@@ -121,7 +171,6 @@ into ones for non-empty and potentially empty lists of such elements
 respectively. They concisely showcase the power of mutual recursion,
 higher-order functions and the \type{Functor}, \type{Applicative},
 and \type{Alternative} structure.
-
 \medskip{}
 
 \begin{minipage}{0.45\textwidth}
@@ -131,13 +180,12 @@ and \type{Alternative} structure.
 \hgrab{many}
 \end{minipage}
 
-\remark{Non-Commutative} The disjunction combinator is
-non-commutative. As such the definitions of \textit{some} and
-\textit{many} will try to produce the longest list as possible
-as opposed to a flipped version of \text{many} which would start
-by returning the empty list and slowly offer longer and longer
-matches.
-
+\remark{Non-Commutative} The disjunction combinator is non-commutative
+as ultimately we obtain a list (and not a set) of possible results. As
+such the definitions of \textit{some} and \textit{many} will try to
+produce the longest list possible as opposed to a flipped version of
+\text{many} which would start by returning the empty list and slowly
+offer longer and longer matches.
 
 \section{The Issue with Haskell's Parser Types}\label{sec:haskellproblem}
 
@@ -145,7 +193,7 @@ The ability to parse recursive grammars by simply declaring
 them in a recursive manner is however dangerous: unlike type
 errors which are caught by the typechecker and partial covers
 in pattern matchings which are detected by the coverage checker,
-termination is not guaranteed here.
+termination is not guaranteed.
 
 The problem already shows up in the definition of \parser{some}
 which will only make progress if its argument actually uses up
@@ -177,23 +225,26 @@ though it hasn't consumed any character from the input string.
 The typical solution to this problem is to introduce two 'tiers'
 of expressions: the \parser{base} ones which can only be whole
 expressions if we consume an opening parenthesis first and the
-\parser{expr'} ones which are left-associated chains of \parser{base}
+\parser{expr} ones which are left-associated chains of \parser{base}
 expressions connected by '+'.\label{parser:expr}
 
 \shgrab{base}
 \hgrab{expr2}
 
+This presentation is still sub-optimal; users would traditionally
+be encouraged to used combinators such as \textit{chainl} to avoid
+this issue. We will only discuss later in Section~\ref{sec:leftchains}.
+
 This approach can be generalised when defining more complex
 languages by having even more tiers, one for each
-\emph{fixity level}\label{fixity}, see for instance~\ref{example:expr}.
+\emph{precedence level}, see for instance Section~\ref{example:expr}.
 An extended language of arithmetic expressions would for
 instance distinguish the level at which addition and
-substraction live from the one at which multiplication and
+subtraction live from the one at which multiplication and
 division do.
 
-
 Our issue with this solution is twofold. First, although we did
-eventually managed to build a parser that worked as expected,
+eventually manage to build a parser that worked as expected,
 the compiler was unable to warn us and guide us towards this
 correct solution. Additionally, the blatant partiality of
 some of these definitions means that these combinators and
@@ -202,7 +253,8 @@ course use an escape hatch and implement our parsers in Haskell
 but that would both be unsafe and mean we would not be able
 to run them at typechecking time which we may want to do if
 we embed checked examples in our software's documentation,
-or use constant values (e.g. filepaths).
+or use compilation-time configuration via e.g. dependent type
+providers~\cite{christiansen2013dependent}.
 
 \section{Indexed Sets and Course-of-Values Recursion}
 
@@ -220,51 +272,44 @@ The first kind of combinators corresponds to operations on
 sets which are lifted to indexed sets by silently propagating
 the index. We only show the ones we will use in this paper:
 the pointwise arrow and product types and the constant function.
-
-\sagrab{Relation/Unary/Indexed}{arrow}
+The second kind of combinator corresponds to universal quantification:
+it turns an indexed set into a set.
 
 \begin{minipage}{0.55\textwidth}
+  \agrab{Relation/Unary/Indexed}{arrow}
   \agrab{Relation/Unary/Indexed}{product}
 \end{minipage}
 \begin{minipage}{0.30\textwidth}
-\agrab{Relation/Unary/Indexed}{constant}
+  \agrab{Relation/Unary/Indexed}{constant}
+  \agrab{Relation/Unary/Indexed}{forall}
 \end{minipage}
 
 \remark{Mixfix Operators} In Agda underscores correspond to
 positions in which arguments are to be inserted. It may be a
 bit surprising to see infix notations for functions taking
 three arguments but they are only meant to be partially applied.
-\medskip{}
-
-The second kind of combinator turns an indexed set into a set
-by universally quantifying over the index.
-
-\sagrab{Relation/Unary/Indexed}{forall}
-
 \remark{Implicit Arguments} We use curly braces so that the
 index we use is an \emph{implicit} argument we will never
 have to write: Agda will fill it in for us by unification.
 \medskip{}
 
-We can already see the benefits of using these aliases. For instance
+We can already see the benefits of these aliases. For instance
 the fairly compact expression \AF{[} (\AF{κ} \AB{P} \AF{⊗} \AB{Q}) \AF{⟶} \AB{R} \AF{]}
 corresponds to the more verbose type
 \AS{∀} \{\AB{n}\} \AS{→} (\AB{P} \AF{×} \AB{Q} \AB{n}) \AS{→} \AB{R} \AB{n}.
 
 
-Last but not least, the \BOX{} type constructor takes a \AD{ℕ}-indexed
-set and produces the set of valid recursive calls for a function defined
-by course-of-values recursion: \BOX{} \AB{A} \AB{n} associates to each
-\AB{m} strictly smaller than \AB{n} a value of type \AB{A} \AB{m}.
-This construct, analogous to the later modality showing up in Guarded
-Type Theory~\cite{vezzosi2015guarded}, empowers the user to give precise
-types in a total language to programs commonly written in partial ones
-(see e.g. the definition of \textit{fix} below).
+Last but not least, we introduce a type constructor which takes a
+\AD{ℕ}-indexed set and produces the set of valid recursive calls
+for a function defined by course-of-values recursion. By analogy
+to modal logic we call it \BOX{} after the ``necessity'' modality
+whose interpretation in a Kripke semantics is eerily similar to
+our type constructor.
 
 \sagrab{Induction/Nat/Strong}{box}
 
 \remark{Record Wrapper} Instead of defining \BOX{} as a
-function like the other combinators, we wrap the corresponding
+function like the other combinators, we wrap the
 function space in a record type. This prevents normalisation from
 unfolding the combinator too eagerly and makes types more readable
 during interactive development.
@@ -274,10 +319,12 @@ smaller than \AB{n} is preceded by a dot. In Agda, it means that
 this value is irrelevant and can be erased by the compiler.
 In Coq, we would define the relation \AF{\_<\_} in \type{Prop} to
 achieve the same.
-
 \medskip{}
 
-This \BOX{} type combinator has some useful value combinators.
+This construct can also be understood as analogous to the later modality
+showing up in Guarded Type Theory~\cite{vezzosi2015guarded}. It empowers
+the user to give precise types in a total language to programs commonly
+written in partial ones (see e.g. the definition of \textit{fix} below).
 The first thing we can notice is the fact that \textbf{\BOX{} is a
 functor}; that is to say that given a natural transformation from
 \AB{A} to \AB{B}, we can define a natural transformation from
@@ -290,13 +337,13 @@ the \BOX{} field named \ARF{call} on the \emph{left hand side}.
 This is a copattern~\cite{abel2013copatterns}, meaning that we
 explain how the definition is \emph{observed} (via \ARF{call})
 rather than \emph{constructed} (via \AIC{mkBox}).
-
 \medskip{}
 
-Because \AF{\_<\_} is defined in terms of \AD{\_≤\_}, \AF{≤-refl}
-which is the proof that \AD{\_≤\_} is reflexive is also a proof
-that any \AB{n} is strictly smaller than \AN{1} \AF{+} \AB{n}.
-We can use this fact to write the following \AF{extract} function:
+Because less than (\AF{\_<\_}) is defined in terms of less than
+or equal (\AD{\_≤\_}), \AF{≤-refl} which is the proof that \AD{\_≤\_}
+is reflexive is also a proof that any \AB{n} is strictly smaller than
+\AN{1} \AF{+} \AB{n}. We can use this fact to write the following
+\AF{extract} function:
 
 \sagrab{Induction/Nat/Strong}{extract}
 
@@ -360,7 +407,9 @@ As already highlighted in Section~\ref{sec:haskellproblem}, \AB{some}
 and \AB{many} can yield diverging computations if the parser they are
 given as an argument succeeds on the empty string. To avoid any such
 issue, we adopt a radical solution: for a parser's run to be considered
-successful, it must have consumed some of its input.
+successful, it must have consumed some of its input. Some nullability
+can be recovered later (see Section~\ref{sec:failure}) when defining
+combinators where one of the sub-parses is allowed to fail.
 
 This can be made formal with the \AR{Success} record type: a \AF{Success}
 of type \AB{A} and size {n} is a value of type \AB{A} together with the
@@ -368,17 +417,18 @@ leftovers of the input string of size strictly smaller than \AB{n}.
 
 \agrab{Text/Parser/Success}{success}
 
-\remark{Implicit Field} Just like the arguments to a function can be
-implicit, so can a record's fields. The user can then leave them out
-when building a value and they will be filled in by unification.
-
+\remark{Implicit Field} Like the arguments to a function can be implicit,
+so can a record's fields. The user can leave them out when building a
+value: they will be filled in by unification.
 \medskip{}
 
 Coming back to Fritz Ruehr's rhyme, we can define our own \AR{Parser}
 type: a parser for things up to size \AB{n} is a function from strings
-of length \AB{m} less than \AB{n} to lists of \AR{Success}es of size \AB{m}.
+of length \AB{m} less or equal to \AB{n} to lists of \AR{Success}es of size \AB{m}.
 
 \agrab{Text/Parser/Combinators}{parser}
+
+\subsection{Our First Combinators}
 
 Now that we have a precise definition of \AR{Parser}s, we can start
 building our library of combinators. Our first example \AF{anyChar}
@@ -392,9 +442,13 @@ the head of the input string and its tail as leftovers.
 Unsurprisingly \AF{guardM} is still a valid higher-order combinator:
 filtering out results which do not agree with a predicate is absolutely
 compatible with the consumption constraint we have drawn. To implement
-\AF{guardM} we can once more reuse existing library functions such as
-\AF{gfilter} which turns a \mbox{\AD{List} \AB{A}} into a \mbox{\AD{List} \AB{B}}
-provided a predicate \mbox{\AB{A} \AS{→} \AD{Maybe} \AB{B}}.
+\AF{guardM} we can once more reuse existing library functions. Relying
+this time on Agda's standard library rather than Haskell's, the set of
+available function is slightly different. We use for instance \AF{gfilter}
+which turns a \mbox{\AD{List} \AB{A}} into a \mbox{\AD{List} \AB{B}}
+provided a predicate \mbox{\AB{A} \AS{→} \AD{Maybe} \AB{B}} and combine
+\AF{sequence} and \AR{Success}'s \AF{map} to obtain a function akin to
+\textit{traverse}.
 
 \agrab{Text/Parser/Combinators}{guardM}
 
@@ -440,9 +494,11 @@ parser is given the type \mbox{\BOX{} \AR{Parser} \AB{B}} instead of
 
 We can immediately use all of these newly-defined combinators to give
 a safe, total definition of \AF{some} which takes a parser for \AB{A}
-and returns a parser for non-empty lists of \AB{A}s. It is defined as
-a fixpoint and proceeds as follows: it either combines a head and a
-non-empty tail using \AF{$\_::^{+}\_$} or returns a singleton list.
+and returns a parser for \AD{List$^+$} \AB{A}, the type of non-empty
+lists of \AB{A}s. It is defined as a fixpoint and proceeds as follows:
+it either combines a head and a non-empty tail using \mbox{\AF{$\_::^{+}\_$} :
+  \AB{A} $\rightarrow$ \AD{List$^+$} \AB{A} $\rightarrow$
+  \AD{List$^+$} \AB{A}} or returns a singleton list.
 
 \agrab{Text/Parser/Combinators}{badsome}
 
@@ -456,16 +512,25 @@ or returned as a singleton:
 
 \shgrab{some2}
 
-This inefficiency can be fixed by using a notion of conjunction
-\AF{\_<\&?>\_} which allows the second parser to fail whilst still
-producing a successful run. The parser \mbox{\AF{some} \AB{p}} can then be
-defined as the conjunction of \AB{p} and a potentially failing
-recursive call. The function \AF{cons} (whose definition we omit here)
-either uses \AF{$\_::^{+}\_$} to put the head and the non-empty
-tail together or returns a singleton list if the recursive call
-failed.
+\subsection{Failure is Sometimes an Option}\label{sec:failure}
+
+This inefficiency can be fixed by introducing the notion of a potentially
+failing sub-parse. We use the convention that \AF{?} marks the argument
+of a combinator which is allowed to fail e.g. \AF{<\&?>} is the version
+of the conjunction \AF{<\&>} whose second argument is allowed to fail
+whilst \AF{<?\&>} may let its first argument do so. Which, in terms of
+types, translates to:
 
 \agrab{Text/Parser/Combinators}{conjunction2}
+
+The $\textit{some}~\textit{p} \mathbin{<\!\!|\!\!>} \textit{pure}~ [\,]$ pattern
+used in the definition of \textit{some} can be translated in our total
+setting to a recursive call which is allowed to fail. This leads to the following
+rethought definition of \mbox{\AF{some} \AB{p}}. The inefficiency of the previous
+version has disappeared: \AB{p} is run once and dependening on the success
+or failure of the recursive call it is either added to a non-empty list of
+values or returned as a singleton.
+
 \agrab{Text/Parser/Combinators}{goodsome}
 
 \remark{Non-Compositional}\label{parser:some} The higher-order parser \AF{some}
@@ -476,21 +541,24 @@ type \mbox{\AF{[} \AF{Parser} \AB{A} \AF{⟶} \AF{Parser} (\AF{List$^+$} \AB{A})
 This will be addressed in the next subsection.
 \medskip{}
 
-As the previous code snippet shows, \AF{\_<\&?>\_} is defined in
-terms of a more fundamental notion \AF{\_\&?>>=\_} which is a
+The potentially failing conjunction combinator \AF{\_<\&?>\_} can be
+generalised to a more fundamental notion \AF{\_\&?>>=\_} which is a
 combinator analogous to a monad's \textit{bind}. On top of running
 two parsers sequentially (with the second one being chosen based on
-the result obtained by running the first), it allows the second one to fail
-and returns both results.
+the result obtained by running the first), it allows the second one to
+fail and returns both results.
 
 \agrab{Text/Parser/Combinators}{mbind}
 
-This crucial definition makes it possible to port a lot of the Haskell
+These definitions make it possible to port a lot of the Haskell
 definitions where one would use a parser which does not use any of its
-input. And this is possible without incurring any additional cost as
-the optimised version of \AF{some} showed.
+input. Instead of encoding a potentially failing parse using the pattern
+$\textit{p} \mathbin{<\!\!|\!\!>} \textit{pure}~ v$, we can explicitly
+use a combinator acknowledging the authorized failure. And this is possible
+without incurring any additional cost as the optimised version of \AF{some}
+showed.
 
-\section{Left Chains}
+\subsection{Left Chains}\label{sec:leftchains}
 
 The pattern used in the solution presented in Section~\ref{sec:haskellproblem}
 can be abstracted with the notion of an (heterogeneous) left chain which takes
@@ -502,26 +570,26 @@ the seed.
 
 We naturally want to include a safe variant of this combinator in our
 library. However this definition relies on the ability to simply use
-\textit{return} in case it's not possible to parse an additional
+\textit{pure} in case it's not possible to parse an additional
 constructor and argument and that is something we simply don't have
-access to. This forces us to find the essence of \parser{rest}, the
-auxiliary definition used in \parser{hchainl}: its first argument is
-not just a value, it is a \AR{Success} upon which it builds until it
-can't anymore and simply returns.
+access to.
 
-We define \AF{schainl} as the fixpoint of either \AF{rest} (whose
-definition we omit here) or the \AR{Success} that was passed as an
-input (the function \AF{\_::$^{r}$} appends a single element at the
-end of a list).
+This forces us to find the essence of \parser{rest}, the auxiliary definition
+used in \parser{hchainl}: its first argument is not just a value, it is a
+\AR{Success} upon which it builds until it can't anymore and simply returns.
+We define \AF{schainl} according to this analysis: it is a bare bones version
+of \textit{hchainl}'s \textit{rest} where \textit{con} and \textit{arg} have
+already been replaced by a single \textit{con} function.
 
 \agrab{Text/Parser/Combinators}{schainl}
 
-The type of \AF{rest} may look intimidating but it has this shape because
-we build a list of \AR{Success}es at the \emph{same} index as the input
-\AR{Success} and \AR{Parser} which will make this combinator compositional
-(as opposed to \parser{some} defined in Section~\ref{parser:some}). Ultimately
-all of this complexity only shows up in the implementation of our library:
-the end user can happily ignore these details.
+A key thing to notice is that we build a list of \AR{Success}es at the
+\emph{same} index as the input \AR{Success} and \AR{Parser} which will make
+this combinator compositional (as opposed to \parser{some} defined in
+Section~\ref{parser:some}). This as a cost in terms of the readability of
+the definition of \AF{schainl}. But ultimately all of this complexity only
+shows up in the implementation of our library: the end user can blissfully
+ignore these details.
 
 From this definition we can derive \AF{iterate} which takes a parser for
 a seed and a parser for a function and kickstarts a call to \AF{schainl}
@@ -539,21 +607,34 @@ we have just implemented does not expect fully-defined parsers as arguments.
 As a consequence it can be used inside a fixpoint construction. Both the parser
 for the constructor and the one for its \AB{B} argument are guarded whilst the
 one for the \AB{A} seed is not. This means that trying to define a left-recursive
-grammar by immediately using a recursive substructure on the left is now a type
-error. But it still possible to have some on the right or after having consumed
+grammar by immediately using a recursive substructure on the left is now a \emph{type
+error}. But it still possible to have some on the right or after having consumed
 at least one character (typically an opening parenthesis, cf. the \type{Expr}
 example in Section~\ref{parser:expr}).
 
-\section{Fully Worked-Out Example}
+\section{Fully Worked-Out Example}\label{example:expr}
 
 From \AF{hchainl}, one can derive \AF{chainl1} which is not heterogeneous
 and uses the same parser for the seed and the constructors' arguments.
-This combinator together with the idea of fixity mentioned in Section~\ref{fixity}
+This combinator together with the idea of precedence mentioned in Section~\ref{parser:expr}
 is typically used to implement left-recursive grammars. Looking up the
 documentation of the \texttt{parsec} library on hackage~\cite{doc:parsec}
-we can find a fine example: an extension of our early arithmetic language.
+we can find a fine example: an extension of our early arithmetic language
+(corresponding grammar on the right hand side).
 
-\shgrab{example}
+\noindent
+\begin{minipage}{0.45\textwidth}
+  \shgrab{example}
+\end{minipage}
+\begin{minipage}{0.55\textwidth}
+  \begin{tabular}{lllll}
+    Expr   & := & Term   & | & Term AddOp Expr \\
+    Term   & := & Factor & | & Factor MulOp Term \\
+    Factor & := & <Int>  & | & '(' Expr ')' \\
+    AddOp  & := & '+' & | & '-' \\
+    MulOp  & := & '*' & | & '/' \\
+  \end{tabular}
+\end{minipage}
 
 One important thing to note here is that in the end we not only get a
 parser for the \type{expr}essions but also each one of the intermediate
@@ -585,16 +666,25 @@ except for the top-level one.
 
 \agrab{Text/Parser/Examples/Expr}{parser}
 
-We can notice four minor changes with respect to the Haskell version. Firstly,
-the intermediate parsers need to be declared before being used which effectively
-reverses the order in which they are spelt out. Secondly, the recursive calls
+Although quite close to the Haskell version, We can notice four minor changes:
+
+Firstly, the intermediate parsers need to be declared before being used which effectively
+reverses the order in which they are spelt out.
+
+Secondly, the recursive calls
 are now explicit: in the definition of \type{factor}, \AF{expr} is \AF{map}ped
 under the \BOX{} to project the recursive call to the \AD{Expr} \AR{Parser} out
-of \AR{Language}. Thirdly, we use \AF{hchainl} instead of \AF{chainl1} because
+of \AR{Language}.
+
+Thirdly, we use \AF{hchainl} instead of \AF{chainl1} because
 breaking the grammar into three distinct categories leads us to parsing
-\emph{h}eterogeneous left chains. Fourthly, we have to insert calls to \AF{box}
+\emph{h}eterogeneous left chains.
+
+Fourthly, we have to insert calls to \AF{box}
 to lift \AR{Parser}s into boxed ones whenever the added guarantee that the call
-will be guarded is of no use to us.
+will be guarded is of no use to us. This last point however does not stand in
+Coq nor Idris which have a mechanism to declare implicit coercions and where the
+typechecker can insert these calls to \AF{box} automatically for us.
 
 \section{More Power: Switching to other Representations}
 
@@ -619,16 +709,16 @@ representation of the text being analysed.
 Secondly, there is no reason to limit ourselves to \type{Char} as the
 unit of information to be processed. Near all of our combinators are
 fully polymorphic over the kind of tokens they can deal with. To run
-the parser, the user will have to declare an instance of the \AR{Tokenizer}
-class corresponding to their use case. The library provides a trivial
-one for \AD{Char}.
+the parser, the user will have to define an appropriate tokenizer for
+their use case. The library provides a trivial one for \AD{Char}.
 
-Thirdly, there is no reason to force the user to get back a \emph{list}
-of successes: any alternative monad will do. This means in particular that
-a user may for instance instrument a parser with a logging ability to be
-able to return good error messages, have a (re)configurable grammar using
-a \type{Reader} transformer or use a \type{Maybe} type if they want to make
-explicit the fact that their grammar is unambiguous.
+Thirdly, there is no reason to force the user to get back a \AD{List}
+of successes: any Functor which is both a Monad and an Alternative
+will do. This means in particular that a user may for instance instrument
+a parser with a logging ability to be able to return good error messages,
+have a (re)configurable grammar using a \type{Reader} transformer or use
+a \type{Maybe} type if they want to make explicit the fact that their
+grammar is unambiguous.
 
 \section{Related Work}
 
@@ -650,16 +740,16 @@ type level whether a sub-grammar accepts the empty word and, as a consequence,
 whether one can meaningfully take its fixpoint.
 
 The reified approach allows him to define a grammar's semantics in terms
-of bags of words and prove sound a variant of Brzozowski derivatives~\citeyear{brzozowski1964derivatives}
+of multisets of words and prove sound a variant of Brzozowski derivatives~\citeyear{brzozowski1964derivatives}
 as well as study the equational theory of parsers. The current
 implementation, based on the Brzozowski derivatives, is however of complexity
 at least exponential in the size of the input.
 
-Our approach, although not as successful as Danielsson's when it comes
-to certification, is however more lightweight. Using only strong induction
-on the natural numbers, it is compatible with languages a lot less powerful
-than Agda. Indeed there is no need for good support for mixed induction and
-coinduction in the host language. And although we do rely on enforcing invariants
+Our approach, although not able to tackle certification like Danielsson's,
+is however more lightweight. Using only strong induction on the natural
+numbers, it is compatible with languages a lot less powerful than Agda.
+Indeed there is no need for good support for mixed induction and coinduction
+in the host language. And although we do rely on enforcing invariants
 at the type-level, one could mimic these in languages with even weaker type
 systems by defining an \emph{abstract} \BOX{} and only providing the user with
 our set of combinators which is guaranteed to be safe.
