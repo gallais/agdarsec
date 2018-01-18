@@ -2,7 +2,7 @@ module Text.Parser.Combinators where
 
 open import Relation.Unary.Indexed
 open import Induction.Nat.Strong as Box hiding (≤-lower ; <-lower)
-open import Data.Nat.Base
+open import Data.Nat.Base hiding (_^_)
 open import Data.Nat.LTE
 
 open import Data.Sum as S
@@ -10,7 +10,7 @@ open import Data.Product as P hiding (,_)
 open import Data.Maybe.Base
 open import Data.Char
 open import Data.Bool.Base
-open import Data.Nat.Properties
+open import Data.Nat.Properties using (<-trans)
 open import Data.List.Base as List hiding ([_] ; any)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
 open import Relation.Nullary.Decidable
