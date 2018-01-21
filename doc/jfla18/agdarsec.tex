@@ -165,12 +165,6 @@ record Parser (A : Set) (n : ℕ) : Set where
 _⟶_ : (A B : I → Set) → (I → Set)
 (A ⟶ B) n = A n → B n
 
-_⊕_ : (A B : I → Set) → (I → Set)
-(A ⊕ B) n = A n ⊎ B n
-
-_⊗_ : (A B : I → Set) → (I → Set)
-(A ⊗ B) n = A n × B n
-
 [_] : (A : I → Set) → Set
 [ A ] = ∀ {n} → A n
 \end{minted}
