@@ -44,8 +44,14 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}}
   withSpaces : [ Parser Char Chars M A ⟶ Parser Char Chars M A ]
   withSpaces A = spaces ?&> A <&? box spaces
 
+ lowerAlpha : [ Parser Char Chars M Char ]
+ lowerAlpha = anyOf (String.toList "abcdefghijklmnopqrstuvwxyz")
+
+ upperAlpha : [ Parser Char Chars M Char ]
+ upperAlpha = anyOf (String.toList "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
  alpha : [ Parser Char Chars M Char ]
- alpha = anyOf (String.toList "abcdefghijklmnopqrstuvwxyz")
+ alpha = lowerAlpha <|> upperAlpha
 
  num : [ Parser Char Chars M ℕ ]
  num = decimalDigit
