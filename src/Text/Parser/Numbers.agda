@@ -29,6 +29,6 @@ module _ {M : Set → Set} {{𝕄 : RawMonadPlus M}}
   convert = NonEmpty.foldl (λ ih v → ih ℕ.* 10 ℕ.+ v) id
 
  decimalℤ : [ Parser Char Chars M ℤ ]
- decimalℤ = uncurry convert <$> (exact '-' <?&> decimalℕ) where
+ decimalℤ = uncurry convert <$> (anyOf ('-' ∷ '−' ∷ []) <?&> decimalℕ) where
    convert = λ s → maybe′ (const (-_)) id s ∘′ +_
 
