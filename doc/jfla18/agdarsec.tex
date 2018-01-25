@@ -18,21 +18,23 @@
   Radboud University Nijmegen}
 
 \begin{document}
-
 \maketitle
 
-\begin{frame}{Language Dédié Intégré (eDSL) pour Analyseurs Syntaxiques}
+\begin{frame}{Programme}
+\tableofcontents
+\end{frame}
 
+\begin{frame}{Language Dédié Intégré (eDSL) pour Analyseurs Syntaxiques}
 \begin{itemize}
   \item Accès aux librairies et outils du langage hôte
   \item Bénéficie des analyseurs statiques du compilateur hôte
   \item Possibilité de définir des combinateurs d'ordre supérieur et de point fixe
 \end{itemize}
-
 \end{frame}
 
-\begin{frame}[fragile]{Les Bases}
+\section{En Haskell}
 
+\begin{frame}[fragile]{Les Bases}
 \begin{minted}{haskell}
 type Parser a =
   String           -- texte à analyser
@@ -138,6 +140,8 @@ expr' = base
 \end{onlyenv}
 \end{frame}
 
+\section{En Théorie des Types}
+
 \begin{frame}[fragile]{Un calcul réussi}
 \begin{minted}{haskell}
 record Success (A : Set) (n : ℕ) : Set where
@@ -149,7 +153,6 @@ record Success (A : Set) (n : ℕ) : Set where
   leftovers : Vec Char size
 \end{minted}
 \end{frame}
-
 
 \begin{frame}[fragile]{Type des Parsers Totaux}
 \begin{minted}{haskell}
@@ -294,6 +297,8 @@ expr = fix (Parser Expr) $ λ rec →
  in expr
 \end{minted}
 \end{frame}
+
+\section{Extensions \& Limites}
 
 \begin{frame}{Généralisations}
 \begin{itemize}
