@@ -1,7 +1,6 @@
 module Induction.Nat.Strong where
 
 open import Data.Nat.Base
-open import Data.Nat.LTE
 open import Data.Nat.Properties
 open import Relation.Unary.Indexed
 open import Function
