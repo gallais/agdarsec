@@ -8,7 +8,7 @@ are detailled in [this paper](https://gallais.github.io/pdf/agdarsec18.pdf).
 To typecheck and compile this project you will need:
 
 * Agda version 2.5.3
-* Agda's standard library Version 0.14
+* Agda's standard library Version 0.15
 
 ## Ports
 

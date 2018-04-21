@@ -6,7 +6,8 @@ open import Data.Nat.Base as Nat
 open import Data.Nat.Properties
 open import Data.Char.Base
 open import Data.String as String
-open import Data.List as List hiding ([_])
+open import Data.List.Base hiding ([_] ; module List)
+open import Data.List.Categorical as List
 open import Data.List.Sized as Sized hiding (map) public
 open import Data.List.Any as Any
 open import Data.Bool
@@ -53,7 +54,7 @@ instance
   plusMaybe : RawMonadPlus {L.zero} Maybe
   plusMaybe = Maybe.monadPlus
 
-  plusList : RawMonadPlus {L.zero} List.List
+  plusList : RawMonadPlus {L.zero} List
   plusList = List.monadPlus
 
 module _ {Tok A : Set}
@@ -64,7 +65,7 @@ module _ {Tok A : Set}
  private module 𝕄 = RawMonadPlus 𝕄
 
  _∈_ : String → [ Parser Tok (∣List Tok ∣≡_) M A ] → Set
- s ∈ A = 
+ s ∈ A =
   let input = Sized.fromList $ Tokenizer.fromText t s
       parse = runParser A (n≤1+n _) input
       check = λ s → if ⌊ Success.size s Nat.≟ 0 ⌋
@@ -72,4 +73,3 @@ module _ {Tok A : Set}
   in case mapM Maybe.monad check $ runM parse of λ where
        (just (a ∷ _)) → Singleton a
        _              → ⊥
- 
