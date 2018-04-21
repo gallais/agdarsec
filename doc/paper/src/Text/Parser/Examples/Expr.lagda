@@ -19,24 +19,24 @@ mutual
 %<*expr>
 \begin{code}
  data Expr : Set where
-   Emb : Term → Expr
-   Add : Expr → Term → Expr
-   Sub : Expr → Term → Expr
+   Emb  : Term → Expr
+   Add  : Expr → Term → Expr
+   Sub  : Expr → Term → Expr
 \end{code}
 %</expr>
 %<*term>
 \begin{code}
  data Term : Set where
-   Emb : Factor → Term
-   Mul : Term → Factor → Term
-   Div : Term → Factor → Term
+   Emb  : Factor → Term
+   Mul  : Term → Factor → Term
+   Div  : Term → Factor → Term
 \end{code}
 %</term>
 %<*factor>
 \begin{code}
  data Factor : Set where
-   Emb : Expr → Factor
-   Lit : ℕ → Factor
+   Emb  : Expr → Factor
+   Lit  : ℕ → Factor
 \end{code}
 %</factor>
 %<*language>

@@ -48,9 +48,9 @@ module _ {PARS : ℕ → Set} {{𝕊 : Sized PAR PARS}} where
 
  PAR′ : [ Parser PAR PARS Maybe ⊤ ]
  PAR′ = fix (Parser PAR PARS Maybe ⊤) $ λ rec →
-         tt <$ ((exact LPAR <&?> rec) <& return (exact RPAR <&?> rec))
-     <|> tt <$ ((exact LCUR <&?> rec) <& return (exact RCUR <&?> rec))
-     <|> tt <$ ((exact LSQU <&?> rec) <& return (exact RSQU <&?> rec))
+         tt <$ ((exact LPAR <&?> rec) <& box (exact RPAR <&?> rec))
+     <|> tt <$ ((exact LCUR <&?> rec) <& box (exact RCUR <&?> rec))
+     <|> tt <$ ((exact LSQU <&?> rec) <& box (exact RSQU <&?> rec))
 
 
 -- tests

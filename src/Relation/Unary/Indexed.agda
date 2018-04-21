@@ -18,6 +18,9 @@ module _ {ℓ ℓ′ ℓ^I : Level} {I : Set ℓ^I} where
  _⊗_ : (I → Set ℓ) → (I → Set ℓ′) → (I → Set (ℓ′ ⊔ ℓ))
  (A ⊗ B) n = A n × B n
 
+ infixr 4 _⊚_
+ _⊚_ : (Set ℓ′ → Set ℓ) → (I → Set ℓ′) → (I → Set ℓ)
+ (T ⊚ A) n = T (A n)
 
 module _ {ℓ ℓ^I : Level} {I : Set ℓ^I} where
  infix 5 [_]

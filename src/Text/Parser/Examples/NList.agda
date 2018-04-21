@@ -12,7 +12,7 @@ import Data.DifferenceList as DList
 open import Function
 
 open import Text.Parser.Examples.Base
-open import Text.Parser.Examples.Decimal
+open import Text.Parser.Numbers
 
 NList : Set → ℕ → Set
 NList A zero    = A
@@ -23,23 +23,23 @@ module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
  NList′ : {A : Set} → [ Parser Char Chars Maybe A ] →
           (n : ℕ)   → [ Parser Char Chars Maybe (NList A n) ]
  NList′ A zero    = A
- NList′ A (suc n) = parens $ return $ DList.toList <$>
-                    chainl1 (DList.[_] <$> NList′ A n) (return $ DList._++_ <$ char ',')
+ NList′ A (suc n) = parens $ box $ DList.toList <$>
+                    chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
 
 -- tests
 
-_ : "((1,2,3),(4,5,6))" ∈ NList′ decimal 2
+_ : "((1,2,3),(4,5,6))" ∈ NList′ decimalℕ 2
 _ = (1 ∷ 2 ∷ 3 ∷ []) ∷ (4 ∷ 5 ∷ 6 ∷ []) ∷ [] !
 
-_ : "((1,2,3),(4,5,6),(7,8,9,10))" ∈ NList′ decimal 2
+_ : "((1,2,3),(4,5,6),(7,8,9,10))" ∈ NList′ decimalℕ 2
 _ = (1 ∷ 2 ∷ 3 ∷ []) ∷ (4 ∷ 5 ∷ 6 ∷ []) ∷ (7 ∷ 8 ∷ 9 ∷ 10 ∷ []) ∷ [] !
 
-_ : "((1),(2))" ∈ NList′ decimal 2
+_ : "((1),(2))" ∈ NList′ decimalℕ 2
 _ = (1 ∷ []) ∷ (2 ∷ []) ∷ [] !
 
-_ : "((1,2))" ∈ NList′ decimal 2
+_ : "((1,2))" ∈ NList′ decimalℕ 2
 _ = (1 ∷ 2 ∷ []) ∷ [] !
 
-_ : "(((1,2),(3,4)),((5,6),(7,8)))" ∈ NList′ decimal 3
+_ : "(((1,2),(3,4)),((5,6),(7,8)))" ∈ NList′ decimalℕ 3
 _ = ((1 ∷ 2 ∷ []) ∷ (3 ∷ 4 ∷ []) ∷ []) ∷
     ((5 ∷ 6 ∷ []) ∷ (7 ∷ 8 ∷ []) ∷ []) ∷ [] !

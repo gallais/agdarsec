@@ -1,0 +1,329 @@
+\documentclass{beamer}
+\usetheme{ru}
+\usepackage{minted}
+\usepackage{agda}
+\usepackage{mdframed}
+\usepackage{xcolor}
+
+
+\AtBeginEnvironment{minted}{%
+  \renewcommand{\fcolorbox}[4][]{#4}}
+
+\title{agdarsec -- Combinateurs d'Analyse Syntaxique Totaux}
+\subtitle{JFLA 2018}
+\date{25 Janvier 2018}
+\author{Guillaume Allais}
+\institute[Radboud University Nijmegen]{
+  Institute for Computing and Information Sciences -- Digital Security \\
+  Radboud University Nijmegen}
+
+\begin{document}
+\maketitle
+
+\begin{frame}{Programme}
+\tableofcontents
+\end{frame}
+
+\begin{frame}{Language Dédié Intégré (eDSL) pour Analyseurs Syntaxiques}
+\begin{itemize}
+  \item Accès aux librairies et outils du langage hôte
+  \item Bénéficie des analyseurs statiques du compilateur hôte
+  \item Possibilité de définir des combinateurs d'ordre supérieur et de point fixe
+\end{itemize}
+\end{frame}
+
+\section{En Haskell}
+
+\begin{frame}[fragile]{Les Bases}
+\begin{minted}{haskell}
+type Parser a =
+  String           -- texte à analyser
+  -> [(String, a)] -- valeurs possibles & restes
+\end{minted}
+
+\begin{minted}{haskell}
+parse :: Parser a -> String -> Maybe a
+parse p s = case filter (null . fst) (p s) of
+  [(_,a)] -> Just a
+  _        -> Nothing
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Nos premiers combinateurs}
+\begin{minted}{haskell}
+anyChar :: Parser Char
+anyChar []      = []
+anyChar (c : s) = [(s, c)]
+\end{minted}
+\begin{onlyenv}<1>
+\begin{minted}{haskell}
+guard :: (a -> Bool) -> Parser a -> Parser a
+guard f p s = filter (f . snd) (p s)
+\end{minted}
+\begin{minted}{haskell}
+digit :: Parser Char
+digit = guard (`elem` "0123456789") anyChar
+\end{minted}
+\end{onlyenv}
+\begin{onlyenv}<2>
+\begin{minted}{haskell}
+guard' :: (a -> Maybe b) -> Parser a -> Parser b
+guard' f p s = catMaybes $ traverse f <$> p s
+\end{minted}
+\begin{minted}{haskell}
+digit' :: Parser Int
+digit' = guard' (readMaybe . (:[])) anyChar
+\end{minted}
+\end{onlyenv}
+\end{frame}
+
+\begin{frame}[fragile]{Structures}
+\begin{minted}{haskell}
+instance Functor Parser where (...)
+instance Applicative Parser where (...)
+instance Monad Parser where (...)
+
+instance Alternative Parser where
+  empty :: Parser a
+  empty s = []
+
+  (<|>) :: Parser a -> Parser a -> Parser a
+  (p <|> q) s = p s ++ q s
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Et points fixes}
+\begin{minted}{haskell}
+some :: Parser a -> Parser [a]
+some p = (:) <$> p <*> many p
+
+many :: Parser a -> Parser [a]
+many p = some p <|> pure []
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Non Total}
+\begin{minted}{haskell}
+data Expr = Literal Int | Plus Expr Expr
+
+char :: Char -> Parser Char
+char c = guard (c ==) anyChar
+
+int :: Parser Int
+int = convert <$> some digit' where
+  convert ds = (...)
+\end{minted}
+\begin{onlyenv}<1>
+\begin{minted}{haskell}
+expr :: Parser Expr
+expr = Literal <$> int
+  <|> Plus <$> expr <* char '+' <*> expr
+\end{minted}
+\end{onlyenv}
+\begin{onlyenv}<2>
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{minted}{haskell}
+expr :: Parser Expr
+expr = Literal <$> int
+  <|> Plus <$> expr <* char '+' <*> expr
+\end{minted}
+\end{mdframed}
+\end{onlyenv}
+\begin{onlyenv}<3>
+\begin{minted}{haskell}
+expr' :: Parser Expr
+expr' = base
+  <|> Plus <$> base <* char '+' <*> expr'
+  where base = Literal <$> int
+           <|> char '(' *> expr' <* char ')'
+\end{minted}
+\end{onlyenv}
+\end{frame}
+
+\section{En Théorie des Types}
+
+\begin{frame}[fragile]{Un calcul réussi}
+\begin{minted}{haskell}
+record Success (A : Set) (n : ℕ) : Set where
+ constructor _^_,_
+ field
+  value     : A
+  {size}    : ℕ
+  .small    : size < n
+  leftovers : Vec Char size
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Type des Parsers Totaux}
+\begin{minted}{haskell}
+record Parser (A : Set) (n : ℕ) : Set where
+  constructor mkParser
+  field runParser : ∀ {m} → .(m ≤ n) →
+          Vec Char m → List (Success A m)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Combinateurs pour Types Indexés}
+\begin{minted}{haskell}
+_⟶_ : (A B : I → Set) → (I → Set)
+(A ⟶ B) n = A n → B n
+
+[_] : (A : I → Set) → Set
+[ A ] = ∀ {n} → A n
+\end{minted}
+\end{frame}
+
+
+\begin{frame}[fragile]{Combinateurs pour Points Fixes}
+\begin{minted}{haskell}
+record □_ (A : ℕ → Set) (n : ℕ) : Set where
+  constructor mkBox
+  field call : ∀ {m} → .(m < n) → A m
+
+map : [ A ⟶ B ] → [ □ A ⟶ □ B ]
+app : [ □ (A ⟶ B) ⟶ (□ A ⟶ □ B) ]
+
+duplicate : [ □ A ⟶ □ □ A ]
+extract   : [ □ A ] → [ A ]
+
+fix  : ∀ A → [ □ A ⟶ A ] → [ A ]
+loeb : [ □ (□ A ⟶ A) ⟶ □ A ]
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Types Précis pour les Combinateurs}
+\begin{minted}{haskell}
+anyChar : [ Parser Char ]
+guardM  : (A → Maybe B) → [ Parser A ⟶ Parser B ]
+
+_<$>_ : (A → B) → [ Parser A ⟶ Parser B ]
+_<*>_ : [ Parser (A → B) ⟶ □ Parser A ⟶ Parser B ]
+
+_<|>_ : [ Parser A ⟶ Parser A ⟶ Parser A ]
+
+
+box : [ Parser A ⟶ □ Parser A ]
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Bind, Ou pas}
+\begin{minted}{haskell}
+_&?>>=_ : [ Parser A ⟶ (const A ⟶ □ Parser B) ⟶
+          Parser (A × Maybe B) ]
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Rappel: Non Total}
+\begin{minted}{haskell}
+data Expr = Literal Int | Plus Expr Expr
+
+char :: Char -> Parser Char
+char c = guard (c ==) anyChar
+
+int :: Parser Int
+int = convert <$> some digit' where
+  convert ds = (...)
+\end{minted}
+
+\begin{onlyenv}<1>
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{minted}{haskell}
+expr :: Parser Expr
+expr = Literal <$> int
+  <|> Plus <$> expr <* char '+' <*> expr
+\end{minted}
+\end{mdframed}
+\end{onlyenv}
+\begin{onlyenv}<2>
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{minted}{haskell}
+expr :: Parser Expr
+expr = fix $ \ rec -> Literal <$> int
+  <|> Plus <$> rec <* char '+' <*> rec
+\end{minted}
+\end{mdframed}
+\end{onlyenv}
+
+\end{frame}
+
+\begin{frame}[fragile]{Ici: erreur de type!}
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{minted}{haskell}
+expr :: Parser Expr
+expr = fix $ \ rec -> Literal <$> int
+  <|> Plus <$> rec <* char '+' <*> rec
+\end{minted}
+\end{mdframed}
+
+\begin{minted}{haskell}
+fix   : ∀ A → [ □ A ⟶ A ] → [ A ]
+
+_<$>_ : (A → B) → [ Parser A ⟶ Parser B ]
+_<|>_ : [ Parser A ⟶ Parser A ⟶ Parser A ]
+
+_<*_  : [ Parser A ⟶ □ Parser B ⟶ Parser A ]
+_<*>_ : [ Parser (A → B) ⟶ □ Parser B ⟶ Parser A ]
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Formalisation de la méthode de réusinage}
+\begin{minted}{haskell}
+hchainl : [ Parser A
+          ⟶ □ Parser (A → B → A)
+          ⟶ □ Parser B ⟶ Parser A ]
+
+chain(l/r)1 : [ Parser A
+              ⟶ □ Parser (A → A → A)
+              ⟶ Parser A ]
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Et implémentation sûre d'un parser pour Expr}
+\begin{minted}{haskell}
+data Expr : Set where
+  Var             : Char → Expr
+  Lit             : ℕ → Expr
+  Add Sub Mul Div : Expr → Expr → Expr
+
+expr : [ Parser Expr ]
+expr = fix (Parser Expr) $ λ rec →
+ let var    = Var <$> alpha
+     lit    = Lit <$> decimal
+     addop  = Add <$ char '+' <|> Sub <$ char '-'
+     mulop  = Mul <$ char '*' <|> Div <$ char '/'
+     factor = parens rec <|> var <|> lit
+     term   = chainl1 factor $ box mulop
+     expr   = chainl1 term   $ box addop
+ in expr
+\end{minted}
+\end{frame}
+
+\section{Extensions \& Limites}
+
+\begin{frame}{Généralisations}
+\begin{itemize}
+  \item Pas seulement \texttt{Vec}: n'importe quelle entrée avec une notion de taille
+  \item Pas seulement \texttt{Char}: n'importe quel type de tokens
+  \item Pas seulement \texttt{List}: n'importe quelle Monad Alternative
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Limites}
+\begin{itemize}
+  \item Pas de garanties de non-ambiguité
+  \item Pas de garanties de complexité (ou de non-copie)
+  \item Pas de méta-combinateurs pour raisonner sur les parsers
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Merci de votre attention}
+
+Implémentations disponible sur: \url{https://github.com/gallais}
+\begin{itemize}
+  \item Agda: \url{(...)/agdarsec}
+  \item Coq: \url{(...)/parseque}
+  \item Idris: \url{(...)/idris-tparsec}
+\end{itemize}
+\end{frame}
+
+\end{document}

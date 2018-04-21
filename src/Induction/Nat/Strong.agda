@@ -24,14 +24,15 @@ module _ {A : ℕ → Set} where
  duplicate : [ □ A ⟶ □ □ A ]
  call (call (duplicate A) m<n) p<m = call A (<-trans p<m m<n)
 
- lower : {m n : ℕ} → .(m ≤ n) → (□ A) n → (□ A) m
- call (lower m≤n A) p<m = call A (≤-trans p<m m≤n)
+ ≤-lower : {m n : ℕ} → .(m ≤ n) → (□ A) n → (□ A) m
+ call (≤-lower m≤n A) p<m = call A (≤-trans p<m m≤n)
+
+ <-lower : {m n : ℕ} → .(m < n) → (□ A) n → (□ A) m
+ call (<-lower m<n A) p<m = call A (<-trans p<m m<n)
 
  fix□ : [ □ A ⟶ A ] → [ □ A ]
  call (fix□ f {zero})  ()
- call (fix□ f {suc n}) m<sn =
-  f $ mkBox $ λ p<m → 
-  call (fix□ f {n}) (≤-trans p<m (<⇒≤pred m<sn))
+ call (fix□ f {suc n}) m<sn = f (≤-lower (≤-pred m<sn) (fix□ f))
 
 module _ {A B : ℕ → Set} where
 
@@ -45,6 +46,12 @@ fix : ∀ A → [ □ A ⟶ A ] → [ A ]
 fix A = extract ∘ fix□
 
 module _ {A : ℕ → Set} where
+
+ <-close : (∀ {m n} → .(m < n) → A n → A m) → [ A ⟶ □ A ]
+ call (<-close down a) m<n = down m<n a
+
+ ≤-close : (∀ {m n} → .(m ≤ n) → A n → A m) → [ A ⟶ □ A ]
+ ≤-close down = <-close (λ .m<n → down (<⇒≤ m<n))
 
  loeb : [ □ (□ A ⟶ A) ⟶ □ A ]
  loeb = fix (□ (□ A ⟶ A) ⟶ □ A) $ λ rec f → mkBox λ m<n →

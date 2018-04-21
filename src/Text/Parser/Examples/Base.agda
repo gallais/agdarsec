@@ -19,7 +19,7 @@ open import Relation.Nullary
 open import Relation.Nullary.Decidable
 
 open import Relation.Unary.Indexed public
-open import Induction.Nat.Strong hiding (lower) public
+open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 open import Text.Parser.Success
 open import Text.Parser.Combinators public
 open import Text.Parser.Char public
