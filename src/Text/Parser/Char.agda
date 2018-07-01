@@ -5,7 +5,7 @@ open import Data.Sum
 open import Data.Bool.Base
 open import Data.Char
 open import Data.String as String
-open import Data.List.Base hiding ([_])
+open import Data.List.Base as List hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
 open import Category.Monad
 open import Function
@@ -13,48 +13,59 @@ open import Function
 open import Relation.Unary.Indexed
 open import Induction.Nat.Strong
 open import Data.List.Sized.Interface
+open import Data.Subset
+open import Relation.Binary.PropositionalEquality.Decidable
+
+open import Text.Parser.Types
 open import Text.Parser.Combinators
+open import Text.Parser.Instruments
 open import Text.Parser.Numbers
 
-module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}}
-         {M : Set → Set} {{𝕄 : RawMonadPlus M}} where
+module _ {P : Parameters} (open Parameters P)
+         {{𝕊 : Sized Tok Toks}}
+         {{𝕄 : RawMonadPlus M}}
+         {{𝔻 : DecidableEquality Tok}}
+         {{ℂ : Subset Char Tok}}
+         {{𝕀 : Instrumented P}} where
 
- char : Char → [ Parser Char Chars M Char ]
- char = exact
+ module ℂ = Subset ℂ
 
- space : [ Parser Char Chars M Char ]
- space = anyOf (' ' ∷ '\t' ∷ '\n' ∷ [])
+ char : Char → [ Parser P Tok ]
+ char = exact ∘ ℂ.into
 
- spaces : [ Parser Char Chars M (List⁺ Char) ]
+ space : [ Parser P Tok ]
+ space = anyOf $ List.map ℂ.into $ ' ' ∷ '\t' ∷ '\n' ∷ []
+
+ spaces : [ Parser P (List⁺ Tok) ]
  spaces = list⁺ space
 
- text : (t : String) {_ : T (not $ null $ String.toList t)} → [ Parser Char Chars M String ]
+ text : (t : String) {_ : T (not $ null $ String.toList t)} → [ Parser P (List⁺ Tok) ]
  text t {pr} with String.toList t | pr
  ... | []     | ()
- ... | x ∷ xs | _ = String.fromList ∘ NonEmpty.toList <$> exacts (x ∷ xs)
+ ... | x ∷ xs | _ = exacts $ NonEmpty.map ℂ.into $ x ∷ xs
 
  module _ {A : Set} where
 
-  parens : [ □ Parser Char Chars M A ⟶ Parser Char Chars M A ]
+  parens : [ □ Parser P A ⟶ Parser P A ]
   parens = between (char '(') (box (char ')'))
 
-  parens? : [ Parser Char Chars M A ⟶ Parser Char Chars M A ]
+  parens? : [ Parser P A ⟶ Parser P A ]
   parens? = between? (char '(') (box (char ')'))
 
-  withSpaces : [ Parser Char Chars M A ⟶ Parser Char Chars M A ]
+  withSpaces : [ Parser P A ⟶ Parser P A ]
   withSpaces A = spaces ?&> A <&? box spaces
 
- lowerAlpha : [ Parser Char Chars M Char ]
- lowerAlpha = anyOf (String.toList "abcdefghijklmnopqrstuvwxyz")
+ lowerAlpha : [ Parser P Tok ]
+ lowerAlpha = anyOf (List.map ℂ.into $ String.toList "abcdefghijklmnopqrstuvwxyz")
 
- upperAlpha : [ Parser Char Chars M Char ]
- upperAlpha = anyOf (String.toList "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ upperAlpha : [ Parser P Tok ]
+ upperAlpha = anyOf (List.map ℂ.into $ String.toList "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
- alpha : [ Parser Char Chars M Char ]
+ alpha : [ Parser P Tok ]
  alpha = lowerAlpha <|> upperAlpha
 
- num : [ Parser Char Chars M ℕ ]
+ num : [ Parser P ℕ ]
  num = decimalDigit
 
- alphanum : [ Parser Char Chars M (Char ⊎ ℕ) ]
+ alphanum : [ Parser P (Tok ⊎ ℕ) ]
  alphanum = alpha <⊎> num
