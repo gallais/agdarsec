@@ -1,7 +1,6 @@
 module Text.Parser.Examples.Base where
 
 open import Level
-open import Data.Unit
 open import Data.Nat.Base as Nat
 open import Data.Nat.Properties
 open import Data.Char.Base
@@ -22,15 +21,16 @@ open import Category.Monad.State
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 
-open import Relation.Unary.Indexed public
+open import Relation.Unary.Indexed                          public
 open import Relation.Binary.PropositionalEquality.Decidable public
 open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 
-open import Data.Subset public
-open import Text.Parser.Types
-open import Text.Parser.Position
+open import Data.Subset             public
+open import Text.Parser.Types       public
+open import Text.Parser.Position    public
+open import Text.Parser.Instruments public
 open import Text.Parser.Combinators public
-open import Text.Parser.Char public
+open import Text.Parser.Char        public
 
 infix 0 _!
 data Singleton {A : Set} : A → Set where
@@ -47,8 +47,7 @@ instance tokChar = mkTokenizer id
 
 record RawMonadRun (M : Set → Set) : Set₁ where
   field runM : ∀ {A} → M A → List A
-
-open RawMonadRun {{...}}
+open RawMonadRun
 
 instance
 
@@ -58,14 +57,26 @@ instance
   runList : RawMonadRun List
   runList = record { runM = id }
 
-  runStateT : ∀ {M} {{𝕄 : RawMonadRun M}} → RawMonadRun (StateT (Position × ⊤) M)
-  runStateT {{𝕄}} = record { runM = L.map proj₁ ∘ runM {{𝕄}} ∘ (_$ (start , tt)) }
+  runStateT : ∀ {M A} {{𝕄 : RawMonadRun M}} → RawMonadRun (StateT (Position × List A) M)
+  runStateT {{𝕄}} .RawMonadRun.runM =
+    L.map proj₁
+    ∘ runM 𝕄
+    ∘ (_$ (start , []))
+
+  monadMaybe : RawMonad {Level.zero} Maybe
+  monadMaybe = Maybe.monad
 
   plusMaybe : RawMonadPlus {Level.zero} Maybe
   plusMaybe = Maybe.monadPlus
 
+  monadList : RawMonad {Level.zero} List
+  monadList = List.monad
+
   plusList : RawMonadPlus {Level.zero} List
   plusList = List.monadPlus
+
+Chars+Maybe : Parameters
+Chars+Maybe = unInstr Char (∣List Char ∣≡_) Maybe
 
 module _ {P : Parameters} (open Parameters P)
          {{t : Tokenizer Tok}}
@@ -83,6 +94,6 @@ module _ {P : Parameters} (open Parameters P)
       parse = runParser A (n≤1+n _) (𝕃.into input)
       check = λ s → if ⌊ Success.size s Nat.≟ 0 ⌋
                     then just (Success.value s) else nothing
-  in case mapM Maybe.monad check $ runM parse of λ where
+  in case mapM Maybe.monad check $ runM ℝ parse of λ where
        (just (a ∷ _)) → Singleton a
        _              → ⊥

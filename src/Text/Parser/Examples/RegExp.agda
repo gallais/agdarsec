@@ -76,31 +76,34 @@ toTOKs (c ∷ cs)         = CHAR c ∷ toTOKs cs
 
 instance
 
-  _ = eqTOK
+  _ : DecidableEquality TOK
+  _ = record { decide = eqTOK }
   _ = mkTokenizer toTOKs
 
-module _ {TOKS : ℕ → Set} {{𝕊 : Sized TOK TOKS}} where
+P : Parameters
+P = unInstr TOK (∣List TOK ∣≡_) Maybe
 
- range : [ Parser TOK TOKS Maybe Range ]
- range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
-         <$> (maybeTok isCHAR <&?> (box $ exact DOTS &> box (maybeTok isCHAR)))
+range : [ Parser P Range ]
+range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
+        <$> (maybeTok isCHAR <&?> (box $ exact DOTS &> box (maybeTok isCHAR)))
 
- regexp : [ Parser TOK TOKS Maybe RegExp ]
- regexp = fix (Parser TOK TOKS Maybe RegExp) $ λ rec →
-          let parens   = between (exact LPAR) (box (exact RPAR))
-              parens?  = between? (exact LPAR) (box (exact RPAR))
-              ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
-                         <*> box (list⁺ range <& box (exact CLOSE))
-              literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
-              base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
-              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> box (exact STAR))
-              disj     = chainr1 star (box $ _∥_ <$ exact OR)
-          in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
+regexp : [ Parser P RegExp ]
+regexp = fix (Parser P RegExp) $ λ rec →
+         let parens   = between (exact LPAR) (box (exact RPAR))
+             parens?  = between? (exact LPAR) (box (exact RPAR))
+             ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
+                        <*> box (list⁺ range <& box (exact CLOSE))
+             literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
+             base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
+             star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> box (exact STAR))
+             disj     = chainr1 star (box $ _∥_ <$ exact OR)
+         in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
 
 -- test
 
 _ : "[a..zA..Z0..9-]*\\.agd(a|ai)" ∈ regexp
 _ = `[ interval 'a' 'z' ∷ interval 'A' 'Z' ∷ interval '0' '9' ∷ singleton '-' ∷ [] ] ⋆
-  ∙ (`[ singleton '.' ∷ [] ] ∙ `[ singleton 'a' ∷ [] ] ∙ `[ singleton 'g' ∷ [] ] ∙ `[ singleton 'd' ∷ [] ])
-  ∙ (`[ singleton 'a' ∷ [] ]
-  ∥  `[ singleton 'a' ∷ [] ] ∙ `[ singleton 'i' ∷ [] ]) !
+  ∙ (literal '.' ∙ literal  'a' ∙ literal  'g' ∙ literal 'd')
+  ∙ ((literal 'a')
+  ∥  (literal 'a' ∙ literal 'i')) !
+

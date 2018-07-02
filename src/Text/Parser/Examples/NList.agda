@@ -18,13 +18,15 @@ NList : Set → ℕ → Set
 NList A zero    = A
 NList A (suc n) = List (NList A n)
 
-module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+P : Parameters
+P = unInstr Char (∣List Char ∣≡_) Maybe
 
- NList′ : {A : Set} → [ Parser Char Chars Maybe A ] →
-          (n : ℕ)   → [ Parser Char Chars Maybe (NList A n) ]
- NList′ A zero    = A
- NList′ A (suc n) = parens $ box $ DList.toList <$>
-                    chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
+
+NList′ : {A : Set} → [ Parser P A ] →
+         (n : ℕ)   → [ Parser P (NList A n) ]
+NList′ A zero    = A
+NList′ A (suc n) = parens $ box $ DList.toList <$>
+                   chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
 
 -- tests
 

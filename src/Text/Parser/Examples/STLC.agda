@@ -18,10 +18,8 @@ data Type : Set where
   `κ   : ℕ → Type
   _`→_ : Type → Type → Type
 
-module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
-
- Type′ : [ Parser Char Chars Maybe Type ]
- Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimalℕ <|> parens rec)
+Type′ : [ Parser Chars+Maybe Type ]
+Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimalℕ <|> parens rec)
                                  (box $ _`→_ <$ withSpaces (char '→'))
 
 _ : "1 → (2 → 3) → 4" ∈ Type′
@@ -38,35 +36,33 @@ mutual
     Cut : Val → Type → Neu
     App : Neu → Val → Neu
 
-module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+record Language (n : ℕ) : Set where
+  field pVal : Parser Chars+Maybe Val n
+        pNeu : Parser Chars+Maybe Neu n
+open Language
 
- record Language (n : ℕ) : Set where
-   field pVal : Parser Char Chars Maybe Val n
-         pNeu : Parser Char Chars Maybe Neu n
- open Language
-
- language : [ Language ]
- language = fix Language $ λ rec →
-             let □val = INS.map pVal rec
-                 cut  = uncurry Cut <$> (char '(' &> □val
-                               <& box (withSpaces (char ':'))
-                               <&> box Type′
-                               <& box (char ')'))
-                 neu  = hchainl (var <|> cut) (box (App <$ space)) □val
-                 val  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
-                                    <&> box ((char '.')
-                                     &> □val))
-                        <|> Emb <$> neu
+language : [ Language ]
+language = fix Language $ λ rec →
+           let □val = INS.map pVal rec
+               cut  = uncurry Cut <$> (char '(' &> □val
+                                  <& box (withSpaces (char ':'))
+                                  <&> box Type′
+                                  <& box (char ')'))
+               neu  = hchainl (var <|> cut) (box (App <$ space)) □val
+               val  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
+                                  <&> box ((char '.')
+                                   &> □val))
+                   <|> Emb <$> neu
              in record { pVal = val ; pNeu = neu }
 
    where
 
-    var : [ Parser Char Chars Maybe Neu ]
+    var : [ Parser Chars+Maybe Neu ]
     var = Var <$> identifier
 
 
- Val′ : [ Parser Char Chars Maybe Val ]
- Val′ = pVal language
+Val′ : [ Parser Chars+Maybe Val ]
+Val′ = pVal language
 
 -- tests
 

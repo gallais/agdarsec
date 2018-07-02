@@ -23,43 +23,41 @@ data Expr : Set where
   Add Sub : Expr → Expr → Expr
   Mul Div : Expr → Expr → Expr
 
-module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+record PExpr (P : Parameters) (n : ℕ) : Set where
+  field pvar : Parser P Expr n
+        plit : Parser P Expr n
+        pfac : Parser P Expr n
+        pexp : Parser P Expr n
+open PExpr
 
- record PExpr (n : ℕ) : Set where
-   field pvar : Parser Char Chars Maybe Expr n
-         plit : Parser Char Chars Maybe Expr n
-         pfac : Parser Char Chars Maybe Expr n
-         pexp : Parser Char Chars Maybe Expr n
- open PExpr
-
- pExpr : [ PExpr ]
- pExpr = fix PExpr $ λ rec →
-         let factor = parens (INS.map pexp rec) <|> var <|> lit
-             term   = chainl1 factor $ box mulop
-             expr   = chainl1 term   $ box addop
-         in record { pvar = var
-                   ; plit = lit
-                   ; pfac = factor
-                   ; pexp = expr }
+pExpr : [ PExpr Chars+Maybe ]
+pExpr = fix (PExpr Chars+Maybe) $ λ rec →
+        let factor = parens (INS.map pexp rec) <|> var <|> lit
+            term   = chainl1 factor $ box mulop
+            expr   = chainl1 term   $ box addop
+        in record { pvar = var
+                  ; plit = lit
+                  ; pfac = factor
+                  ; pexp = expr }
 
 
-  module Details where
+ module Details where
 
-    var : [ Parser Char Chars Maybe Expr ]
-    lit : [ Parser Char Chars Maybe Expr ]
+   var : [ Parser Chars+Maybe Expr ]
+   lit : [ Parser Chars+Maybe Expr ]
 
-    var = Var <$> alpha
-    lit = Lit <$> decimalℕ
+   var = Var <$> alpha
+   lit = Lit <$> decimalℕ
 
-    addop : [ Parser Char Chars Maybe (Expr → Expr → Expr) ]
-    mulop : [ Parser Char Chars Maybe (Expr → Expr → Expr) ]
+   addop : [ Parser Chars+Maybe(Expr → Expr → Expr) ]
+   mulop : [ Parser Chars+Maybe(Expr → Expr → Expr) ]
 
-    addop = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
-    mulop = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
+   addop = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
+   mulop = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
 
 
- Expr′ : [ Parser Char Chars Maybe Expr ]
- Expr′ = pexp pExpr
+Expr′ : [ Parser Chars+Maybe Expr ]
+Expr′ = pexp pExpr
 
 -- tests
 

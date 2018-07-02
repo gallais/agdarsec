@@ -57,7 +57,7 @@ module CharInstr
 instance charInstr = CharInstr.charInstr
 
 module IgnoreInstr {Tok : Set} {Toks : ℕ → Set}
-                   {M : Set → Set} {{𝕄 : RawMonad M}} {A : Set} where
+                   {M : Set → Set} {{𝕄 : RawMonad M}} where
 
   module 𝕄 = RawMonad 𝕄
 
@@ -66,3 +66,5 @@ module IgnoreInstr {Tok : Set} {Toks : ℕ → Set}
   recordToken    ignoreInstr = λ _ → 𝕄.pure tt
   getPosition    ignoreInstr = 𝕄.pure tt
   getAnnotation  ignoreInstr = 𝕄.return nothing
+
+instance ignoreInstr = IgnoreInstr.ignoreInstr
