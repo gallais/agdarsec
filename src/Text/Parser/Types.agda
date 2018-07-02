@@ -28,19 +28,14 @@ record Parameters : Set₁ where
 
 open import Data.Empty
 open import Data.Unit using (⊤ ; tt)
-open import Data.Char
-open import Data.String
-open import Data.Vec
 open import Data.List
 open import Data.Product
-open import Data.String
 open import Category.Monad
 open import Category.Monad.State
-open import Function
 open import Text.Parser.Position
 
-vec : (Tok : Set) (Toks : ℕ → Set) (A : Set) (M : Set → Set) → Parameters
-vec T Ts A M = record
+pos-ann : (Tok : Set) (Toks : ℕ → Set) (A : Set) (M : Set → Set) → Parameters
+pos-ann T Ts A M = record
   { Tok = T        ; Toks = Ts
   ; Pos = Position ; Ann = A
   ; M = StateT (Position × List A) M
