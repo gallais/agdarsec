@@ -5,10 +5,12 @@ are detailled in [this paper](https://gallais.github.io/pdf/agdarsec18.pdf).
 
 ## Compilation
 
+[![Travis Status](https://api.travis-ci.org/gallais/agdarsec.svg?branch=master)](https://travis-ci.org/gallais/agdarsec)
+
 To typecheck and compile this project you will need:
 
-* Agda version 2.5.3
-* Agda's standard library Version 0.15
+* Agda version 2.5.4
+* Agda's standard library Version 0.16
 
 ## Ports
 
