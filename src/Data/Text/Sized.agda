@@ -4,7 +4,7 @@ open import Data.Empty
 open import Data.Unit
 open import Data.Nat.Base
 open import Data.Char.Base
-open import Data.String.Base
+open import Data.String.Base hiding (length)
 open import Data.List.Base
 open import Data.Maybe.Base
 open import Data.Pair

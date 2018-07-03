@@ -8,5 +8,5 @@ record Pair {ℓ ℓ′ : Level} (A : Set ℓ) (B : Set ℓ′) : Set (ℓ ⊔ �
          snd : B
 open Pair public
 
-{-# HASKELL type AgdaPair l1 l2 a b = (a , b) #-}
-{-# COMPILED_DATA Pair MAlonzo.Code.Data.Pair.AgdaPair (,) #-}
+{-# FOREIGN GHC type AgdaPair l1 l2 a b = (a , b) #-}
+{-# COMPILE GHC Pair = MAlonzo.Code.Data.Pair.AgdaPair ((,)) #-}
