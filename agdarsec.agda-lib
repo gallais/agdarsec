@@ -1,3 +1,0 @@
-name: agdarsec
-include: src
-depend: standard-library
