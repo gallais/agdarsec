@@ -54,9 +54,11 @@ Pars = unInstr PAR (∣List PAR ∣≡_) Maybe
 
 PAR′ : [ Parser Pars ⊤ ]
 PAR′ = fix (Parser Pars ⊤) $ λ rec →
-       tt <$ ((exact LPAR <&?> rec) <& box (exact RPAR <&?> rec))
-   <|> tt <$ ((exact LCUR <&?> rec) <& box (exact RCUR <&?> rec))
-   <|> tt <$ ((exact LSQU <&?> rec) <& box (exact RSQU <&?> rec))
+   let _R?_R? : PAR → PAR → Parser Pars ⊤ _
+       _R?_R? p q = tt <$ ((exact p <&?> rec) <& box (exact q <&?> rec))
+   in    LPAR R? RPAR R?
+     <|> LCUR R? RCUR R?
+     <|> LSQU R? RSQU R?
 
 -- tests
 
