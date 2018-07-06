@@ -64,6 +64,9 @@ module _ {P : Parameters} (open Parameters P)
  alpha : [ Parser P Tok ]
  alpha = lowerAlpha <|> upperAlpha
 
+ alphas⁺ : [ Parser P (List⁺ Tok) ]
+ alphas⁺ = list⁺ alpha
+
  num : [ Parser P ℕ ]
  num = decimalDigit
 
