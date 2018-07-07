@@ -12,7 +12,7 @@ import Data.DifferenceList as DList
 open import Function
 
 open import Text.Parser.Examples.Base
-open import Text.Parser.Numbers
+open import Text.Parser.Combinators.Numbers
 
 NList : Set → ℕ → Set
 NList A zero    = A

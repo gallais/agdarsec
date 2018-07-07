@@ -15,7 +15,7 @@ import Induction.Nat.Strong as INS
 
 open import Text.Parser.Examples.Base
 open import Text.Parser.Examples.Identifier
-open import Text.Parser.Numbers
+open import Text.Parser.Combinators.Numbers
 
 data Expr : Set where
   Var     : Char → Expr

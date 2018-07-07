@@ -12,7 +12,7 @@ open import Function
 
 open import Text.Parser.Examples.Base
 open import Text.Parser.Examples.Identifier
-open import Text.Parser.Numbers
+open import Text.Parser.Combinators.Numbers
 
 data Type : Set where
   `κ   : ℕ → Type

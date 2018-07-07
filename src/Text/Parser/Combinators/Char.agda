@@ -1,4 +1,4 @@
-module Text.Parser.Char where
+module Text.Parser.Combinators.Char where
 
 open import Data.Nat.Base
 open import Data.Sum
@@ -19,7 +19,7 @@ open import Relation.Binary.PropositionalEquality.Decidable
 open import Text.Parser.Types
 open import Text.Parser.Combinators
 open import Text.Parser.Instruments
-open import Text.Parser.Numbers
+open import Text.Parser.Combinators.Numbers
 
 module _ {P : Parameters} (open Parameters P)
          {{𝕊 : Sized Tok Toks}}

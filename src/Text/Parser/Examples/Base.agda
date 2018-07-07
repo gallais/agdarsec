@@ -25,12 +25,12 @@ open import Relation.Unary.Indexed                          public
 open import Relation.Binary.PropositionalEquality.Decidable public
 open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 
-open import Data.Subset             public
-open import Text.Parser.Types       public
-open import Text.Parser.Position    public
-open import Text.Parser.Instruments public
-open import Text.Parser.Combinators public
-open import Text.Parser.Char        public
+open import Data.Subset                  public
+open import Text.Parser.Types            public
+open import Text.Parser.Position         public
+open import Text.Parser.Instruments      public
+open import Text.Parser.Combinators      public
+open import Text.Parser.Combinators.Char public
 
 infix 0 _!
 data Singleton {A : Set} : A → Set where

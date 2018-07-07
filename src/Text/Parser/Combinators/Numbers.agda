@@ -1,4 +1,4 @@
-module Text.Parser.Numbers where
+module Text.Parser.Combinators.Numbers where
 
 open import Data.Nat.Base as ℕ
 open import Data.Integer.Base as ℤ hiding (sign)
