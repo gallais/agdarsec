@@ -126,6 +126,18 @@ module _ {P : Parameters} {{𝕊 : Sized (Parameters.Tok P) (Parameters.Toks P)}
   _<*>_ : [ Parser P (A → B) ⟶ □ Parser P A ⟶ Parser P B ]
   F <*> A = uncurry _$_ <$> (F <&> A)
 
+  infixl 4 _<&M>_ _<&M_ _&M>_
+  _<&M>_ : [ Parser P A ⟶ κ P.M B ⟶ Parser P (A × B) ]
+  runParser (A <&M> B) m≤n s =
+    runParser A m≤n s 𝕄.>>= λ rA → B 𝕄.>>= λ b →
+    𝕄.return (S.map (_, b) rA)
+
+  _<&M_ : [ Parser P A ⟶ κ P.M B ⟶ Parser P A ]
+  A <&M B = proj₁ <$> (A <&M> B)
+
+  _&M>_ : [ Parser P A ⟶ κ P.M B ⟶ Parser P B ]
+  A &M> B = proj₂ <$> (A <&M> B)
+
   infixl 4 _<&?>_ _<&?_ _&?>_
   _<&?>_ : [ Parser P A ⟶ □ Parser P B ⟶ Parser P (A × Maybe B) ]
   A <&?> B = A &?>>= const B
@@ -149,6 +161,17 @@ module _ {P : Parameters} {{𝕊 : Sized (Parameters.Tok P) (Parameters.Toks P)}
 
   _?&>_ : [ Parser P A ⟶ Parser P B ⟶ Parser P B ]
   A ?&> B = proj₂ <$> (A <?&> B)
+
+  infixl 4 _<M&>_ _<M&_ _M&>_
+  _<M&>_ : [ κ P.M A ⟶ Parser P B ⟶ Parser P (A × B) ]
+  runParser (A <M&> B) m≤n s =
+    A 𝕄.>>= λ a → S.map (a ,_) 𝕄.<$> runParser B m≤n s
+
+  _<M&_ : [ κ P.M A ⟶ Parser P B ⟶ Parser P A ]
+  A <M& B = proj₁ <$> (A <M&> B)
+
+  _M&>_ : [ κ P.M A ⟶ Parser P B ⟶ Parser P B ]
+  A M&> B = proj₂ <$> (A <M&> B)
 
  module _ {A B C : Set} where
 

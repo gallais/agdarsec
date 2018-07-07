@@ -23,6 +23,11 @@ module _ {ℓ ℓ′ ℓ^I : Level} {I : Set ℓ^I} where
  (T ⊚ A) n = T (A n)
 
 module _ {ℓ ℓ^I : Level} {I : Set ℓ^I} where
+
+ infixr 5 κ_
+ κ_ : Set ℓ → (I → Set ℓ)
+ (κ A) i = A
+
  infix 5 [_]
  [_] : (A : I → Set ℓ) → Set (ℓ^I ⊔ ℓ)
  [ A ] = ∀ {n} → A n
