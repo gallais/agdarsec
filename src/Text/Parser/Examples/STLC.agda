@@ -43,17 +43,17 @@ open Language
 
 language : [ Language ]
 language = fix Language $ λ rec →
-           let □val = INS.map pVal rec
-               cut  = uncurry Cut <$> (char '(' &> □val
-                                  <& box (withSpaces (char ':'))
-                                  <&> box Type′
-                                  <& box (char ')'))
-               neu  = hchainl (var <|> cut) (box (App <$ space)) □val
-               val  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
-                                  <&> box ((char '.')
-                                   &> □val))
-                   <|> Emb <$> neu
-             in record { pVal = val ; pNeu = neu }
+  let □val = INS.map pVal rec
+      cut  = uncurry Cut <$> (char '(' &> □val
+                         <& box (withSpaces (char ':'))
+                         <&> box Type′
+                         <& box (char ')'))
+      neu  = hchainl (var <|> cut) (box (App <$ space)) □val
+      val  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
+                         <&> box ((char '.')
+                          &> □val))
+           <|> Emb <$> neu
+  in record { pVal = val ; pNeu = neu }
 
    where
 
