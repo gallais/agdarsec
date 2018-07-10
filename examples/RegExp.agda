@@ -1,4 +1,4 @@
-module Text.Parser.Examples.RegExp where
+module RegExp where
 
 open import Data.Nat.Base
 open import Data.Bool.Base
@@ -13,7 +13,7 @@ open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
-open import Text.Parser.Examples.Base
+open import Base
 
 infixr 5 _∥_
 infixr 6 _∙_

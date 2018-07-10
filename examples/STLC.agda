@@ -1,4 +1,4 @@
-module Text.Parser.Examples.STLC where
+module STLC where
 
 open import Data.Nat.Base
 open import Data.Char.Base
@@ -10,8 +10,8 @@ open import Data.Product
 import Induction.Nat.Strong as INS
 open import Function
 
-open import Text.Parser.Examples.Base
-open import Text.Parser.Examples.Identifier
+open import Base
+open import Identifier
 open import Text.Parser.Combinators.Numbers
 
 data Type : Set where

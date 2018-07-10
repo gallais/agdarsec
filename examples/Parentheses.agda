@@ -1,4 +1,4 @@
-module Text.Parser.Examples.Parentheses where
+module Parentheses where
 
 open import Data.Unit
 open import Data.Maybe
@@ -12,7 +12,7 @@ open import Relation.Binary
 open import Agda.Builtin.Equality
 open import Function
 
-open import Text.Parser.Examples.Base
+open import Base
 
 -- Well-parenthesised string
 data PAR : Set where

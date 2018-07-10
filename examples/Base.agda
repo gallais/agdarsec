@@ -1,4 +1,4 @@
-module Text.Parser.Examples.Base where
+module Base where
 
 open import Level
 open import Data.Nat.Base as Nat

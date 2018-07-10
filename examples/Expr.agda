@@ -1,7 +1,7 @@
 -- Example taken from parsec's documentation
 -- https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Combinator.html#v:chainl1
 
-module Text.Parser.Examples.Expr where
+module Expr where
 
 open import Data.Nat.Base
 open import Data.Char.Base
@@ -13,8 +13,8 @@ open import Data.Product
 open import Function
 import Induction.Nat.Strong as INS
 
-open import Text.Parser.Examples.Base
-open import Text.Parser.Examples.Identifier
+open import Base
+open import Identifier
 open import Text.Parser.Combinators.Numbers
 
 data Expr : Set where

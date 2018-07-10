@@ -1,7 +1,7 @@
 -- Challenge taken from stackoverflow:
 -- http://stackoverflow.com/questions/12380239/agda-parsing-nested-lists
 
-module Text.Parser.Examples.NList where
+module NList where
 
 open import Data.Nat.Base
 open import Data.Char.Base
@@ -11,7 +11,7 @@ open import Data.Maybe
 import Data.DifferenceList as DList
 open import Function
 
-open import Text.Parser.Examples.Base
+open import Base
 open import Text.Parser.Combinators.Numbers
 
 NList : Set → ℕ → Set

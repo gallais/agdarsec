@@ -1,4 +1,4 @@
-module Text.Parser.Examples.Identifier where
+module Identifier where
 
 import Level
 open import Data.Empty
@@ -13,7 +13,7 @@ open import Data.String as String
 open import Category.Monad
 open import Function
 
-open import Text.Parser.Examples.Base
+open import Base
 
 record Identifier : Set where
   constructor mkIdentifier
