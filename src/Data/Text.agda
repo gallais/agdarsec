@@ -9,8 +9,8 @@ open import Relation.Binary.PropositionalEquality
 
 postulate uncons : String → Maybe (Pair Char String)
 
-{-# HASKELL import qualified Data.Text #-}
-{-# COMPILED uncons Data.Text.uncons #-}
+{-# FOREIGN GHC import qualified Data.Text #-}
+{-# COMPILE GHC uncons = Data.Text.uncons #-}
 
 
 postulate
