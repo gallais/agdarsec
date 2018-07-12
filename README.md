@@ -1,7 +1,7 @@
 # agdarsec - Total Parser Combinators in Agda
 
 The motivation and design decisions behind agdarsec
-are detailled in [this paper](https://gallais.github.io/pdf/agdarsec18.pdf).
+are detailed in [this paper](https://gallais.github.io/pdf/agdarsec18.pdf).
 
 ## Compilation
 

@@ -26,8 +26,6 @@ install:
 
 script:
   - cd ..
-  - echo -e "module index where\nimport README\n" > index.agda
-  - find src/ -name "*.agda" | sed "s|src/|import |g" | sed "s|/|.|g" | sed "s|\.agda||g" | sort >> index.agda
   - agda -i. -iexamples -isrc --html index.agda
   - mv html/* .
 
