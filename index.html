@@ -1,21 +1,35 @@
 <!DOCTYPE HTML>
 <html><head><meta charset="utf-8"><title>index</title><link rel="stylesheet" href="Agda.css"></head><body><pre><a id="1" class="Keyword">module</a> <a id="8" href="index.html" class="Module">index</a> <a id="14" class="Keyword">where</a>
-<a id="20" class="Keyword">import</a> <a id="27" href="README.html" class="Module">README</a>
 
-<a id="35" class="Keyword">import</a> <a id="42" href="Data.List.Sized.html" class="Module">Data.List.Sized</a>
-<a id="58" class="Keyword">import</a> <a id="65" href="Data.List.Sized.Interface.html" class="Module">Data.List.Sized.Interface</a>
-<a id="91" class="Keyword">import</a> <a id="98" href="Data.Pair.html" class="Module">Data.Pair</a>
-<a id="108" class="Keyword">import</a> <a id="115" href="Data.Subset.html" class="Module">Data.Subset</a>
-<a id="127" class="Keyword">import</a> <a id="134" href="Data.Text.html" class="Module">Data.Text</a>
-<a id="144" class="Keyword">import</a> <a id="151" href="Data.Text.Sized.html" class="Module">Data.Text.Sized</a>
-<a id="167" class="Keyword">import</a> <a id="174" href="Induction.Nat.Strong.html" class="Module">Induction.Nat.Strong</a>
-<a id="195" class="Keyword">import</a> <a id="202" href="Relation.Binary.PropositionalEquality.Decidable.html" class="Module">Relation.Binary.PropositionalEquality.Decidable</a>
-<a id="250" class="Keyword">import</a> <a id="257" href="Relation.Unary.Indexed.html" class="Module">Relation.Unary.Indexed</a>
-<a id="280" class="Keyword">import</a> <a id="287" href="Text.Parser.Combinators.html" class="Module">Text.Parser.Combinators</a>
-<a id="311" class="Keyword">import</a> <a id="318" href="Text.Parser.Combinators.Char.html" class="Module">Text.Parser.Combinators.Char</a>
-<a id="347" class="Keyword">import</a> <a id="354" href="Text.Parser.Combinators.Numbers.html" class="Module">Text.Parser.Combinators.Numbers</a>
-<a id="386" class="Keyword">import</a> <a id="393" href="Text.Parser.Monad.html" class="Module">Text.Parser.Monad</a>
-<a id="411" class="Keyword">import</a> <a id="418" href="Text.Parser.Position.html" class="Module">Text.Parser.Position</a>
-<a id="439" class="Keyword">import</a> <a id="446" href="Text.Parser.Success.html" class="Module">Text.Parser.Success</a>
-<a id="466" class="Keyword">import</a> <a id="473" href="Text.Parser.Types.html" class="Module">Text.Parser.Types</a>
+<a id="21" class="Comment">-- The core design decisions behind agdarsec are detailed in</a>
+<a id="82" class="Comment">-- https://gallais.github.io/pdf/agdarsec18.pdf</a>
+
+<a id="131" class="Comment">-- You probably want to start with the main types:</a>
+
+<a id="183" class="Keyword">import</a> <a id="190" href="Text.Parser.Types.html" class="Module">Text.Parser.Types</a>
+
+<a id="209" class="Comment">-- You can see the parser combinators themselves in:</a>
+
+<a id="263" class="Keyword">import</a> <a id="270" href="Text.Parser.Combinators.html" class="Module">Text.Parser.Combinators</a>
+<a id="294" class="Keyword">import</a> <a id="301" href="Text.Parser.Combinators.Numbers.html" class="Module">Text.Parser.Combinators.Numbers</a>
+<a id="333" class="Keyword">import</a> <a id="340" href="Text.Parser.Combinators.Char.html" class="Module">Text.Parser.Combinators.Char</a>
+
+<a id="370" class="Comment">-- We have some ready-to-use monads for parsing in:</a>
+
+<a id="423" class="Keyword">import</a> <a id="430" href="Text.Parser.Monad.html" class="Module">Text.Parser.Monad</a>
+
+<a id="449" class="Comment">-- We have some fully worked-out in:</a>
+
+<a id="487" class="Keyword">import</a> <a id="494" href="Expr.html" class="Module">Expr</a>
+<a id="499" class="Keyword">import</a> <a id="506" href="STLC.html" class="Module">STLC</a>
+<a id="511" class="Keyword">import</a> <a id="518" href="Parentheses.html" class="Module">Parentheses</a>
+<a id="530" class="Keyword">import</a> <a id="537" href="RegExp.html" class="Module">RegExp</a>
+<a id="544" class="Keyword">import</a> <a id="551" href="NList.html" class="Module">NList</a>
+
+
+<a id="559" class="Comment">-- The key ideas behind the implementation details are largely contained in</a>
+
+<a id="636" class="Keyword">import</a> <a id="643" href="Induction.Nat.Strong.html" class="Module">Induction.Nat.Strong</a>
+<a id="664" class="Keyword">import</a> <a id="671" href="Text.Parser.Success.html" class="Module">Text.Parser.Success</a>
+
 </pre></body></html>
