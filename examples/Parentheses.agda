@@ -4,7 +4,7 @@ open import Data.Unit
 open import Data.Maybe
 open import Data.Char
 open import Data.List.Base as List hiding ([_])
-open import Data.List.Sized.Interface
+import Data.List.Sized.Interface
 open import Data.Bool
 open import Relation.Nullary
 open import Relation.Binary
@@ -50,7 +50,7 @@ instance
 
 
 Pars : Parameters
-Pars = unInstr PAR (∣List PAR ∣≡_) Maybe
+Pars = vec PAR
 
 PAR′ : [ Parser Pars ⊤ ]
 PAR′ = fix (Parser Pars ⊤) $ λ rec →

@@ -4,6 +4,7 @@ import Level
 open import Data.Empty
 open import Data.Nat.Base
 open import Data.Char.Base
+open import Data.Vec hiding ([_] ; _∈_)
 open import Data.Maybe as Maybe
 open import Data.List as List hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
@@ -19,7 +20,7 @@ record Identifier : Set where
   constructor mkIdentifier
   field getIdentifier : List⁺ Char
 
-identifier : [ Parser Chars+Maybe Identifier ]
+identifier : [ Parser chars Identifier ]
 identifier = mkIdentifier <$> list⁺ alpha
 
 -- tests

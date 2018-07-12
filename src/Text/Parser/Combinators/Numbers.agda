@@ -18,7 +18,6 @@ open import Relation.Unary.Indexed
 
 open import Text.Parser.Types
 open import Text.Parser.Combinators
-open import Text.Parser.Instruments
 
 instance eqChar = Data.Char._≟_
 
@@ -26,7 +25,6 @@ module _ {P : Parameters} (open Parameters P)
          {{𝕄 : RawMonadPlus M}}
          {{𝕊 : Sized Tok Toks}}
          {{𝔻 : DecidableEquality Tok}}
-         {{𝕀 : Instrumented P}}
          {{ℂ : Subset Char Tok}} where
 
  private module ℂ = Subset ℂ

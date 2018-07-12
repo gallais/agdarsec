@@ -30,8 +30,8 @@ record PExpr (P : Parameters) (n : ℕ) : Set where
         pexp : Parser P Expr n
 open PExpr
 
-pExpr : [ PExpr Chars+Maybe ]
-pExpr = fix (PExpr Chars+Maybe) $ λ rec →
+pExpr : [ PExpr chars ]
+pExpr = fix (PExpr chars) $ λ rec →
         let factor = parens (INS.map pexp rec) <|> var <|> lit
             term   = chainl1 factor $ box mulop
             expr   = chainl1 term   $ box addop
@@ -43,20 +43,20 @@ pExpr = fix (PExpr Chars+Maybe) $ λ rec →
 
  module Details where
 
-   var : [ Parser Chars+Maybe Expr ]
-   lit : [ Parser Chars+Maybe Expr ]
+   var : [ Parser chars Expr ]
+   lit : [ Parser chars Expr ]
 
    var = Var <$> alpha
    lit = Lit <$> decimalℕ
 
-   addop : [ Parser Chars+Maybe(Expr → Expr → Expr) ]
-   mulop : [ Parser Chars+Maybe(Expr → Expr → Expr) ]
+   addop : [ Parser chars (Expr → Expr → Expr) ]
+   mulop : [ Parser chars (Expr → Expr → Expr) ]
 
    addop = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
    mulop = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
 
 
-Expr′ : [ Parser Chars+Maybe Expr ]
+Expr′ : [ Parser chars Expr ]
 Expr′ = pexp pExpr
 
 -- tests

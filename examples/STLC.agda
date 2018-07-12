@@ -18,7 +18,7 @@ data Type : Set where
   `κ   : ℕ → Type
   _`→_ : Type → Type → Type
 
-Type′ : [ Parser Chars+Maybe Type ]
+Type′ : [ Parser chars Type ]
 Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimalℕ <|> parens rec)
                                  (box $ _`→_ <$ withSpaces (char '→'))
 
@@ -37,8 +37,8 @@ mutual
     App : Neu → Val → Neu
 
 record Language (n : ℕ) : Set where
-  field pVal : Parser Chars+Maybe Val n
-        pNeu : Parser Chars+Maybe Neu n
+  field pVal : Parser chars Val n
+        pNeu : Parser chars Neu n
 open Language
 
 language : [ Language ]
@@ -57,11 +57,11 @@ language = fix Language $ λ rec →
 
    where
 
-    var : [ Parser Chars+Maybe Neu ]
+    var : [ Parser chars Neu ]
     var = Var <$> identifier
 
 
-Val′ : [ Parser Chars+Maybe Val ]
+Val′ : [ Parser chars Val ]
 Val′ = pVal language
 
 -- tests

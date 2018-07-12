@@ -19,7 +19,7 @@ NList A zero    = A
 NList A (suc n) = List (NList A n)
 
 P : Parameters
-P = unInstr Char (∣List Char ∣≡_) Maybe
+P = chars
 
 
 NList′ : {A : Set} → [ Parser P A ] →

@@ -8,9 +8,9 @@ open import Data.Product
 open import Data.String as String
 open import Data.List.Base as L hiding ([_] ; module List)
 open import Data.List.Categorical as List
-open import Data.List.Sized as Sized hiding (map) public
 open import Data.List.Sized.Interface
 open import Data.List.Any as Any
+open import Data.Vec as Vec hiding ([_] ; _∈_)
 open import Data.Bool
 open import Data.Maybe as Maybe
 open import Data.Sum
@@ -28,9 +28,10 @@ open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 open import Data.Subset                  public
 open import Text.Parser.Types            public
 open import Text.Parser.Position         public
-open import Text.Parser.Instruments      public
 open import Text.Parser.Combinators      public
 open import Text.Parser.Combinators.Char public
+open import Text.Parser.Monad
+open Agdarsec′ public
 
 infix 0 _!
 data Singleton {A : Set} : A → Set where
@@ -51,11 +52,18 @@ open RawMonadRun
 
 instance
 
+  Agdarsec′M  = Agdarsec′.monad
+  Agdarsec′M0 = Agdarsec′.monadZero
+  Agdarsec′M+ = Agdarsec′.monadPlus
+
   runMaybe : RawMonadRun Maybe
   runMaybe = record { runM = maybe (_∷ []) [] }
 
   runList : RawMonadRun List
   runList = record { runM = id }
+
+  runResult : ∀ {E} → RawMonadRun (Result E)
+  runResult = record { runM = result (const []) (const []) (_∷ []) }
 
   runStateT : ∀ {M A} {{𝕄 : RawMonadRun M}} → RawMonadRun (StateT (Position × List A) M)
   runStateT {{𝕄}} .RawMonadRun.runM =
@@ -75,14 +83,11 @@ instance
   plusList : RawMonadPlus {Level.zero} List
   plusList = List.monadPlus
 
-Chars+Maybe : Parameters
-Chars+Maybe = unInstr Char (∣List Char ∣≡_) Maybe
-
 module _ {P : Parameters} (open Parameters P)
          {{t : Tokenizer Tok}}
          {{𝕄 : RawMonadPlus M}}
          {{𝕊 : Sized Tok Toks}}
-         {{𝕃 : ∀ n → Subset (∣List Tok ∣≡ n) (Toks n)}}
+         {{𝕃 : ∀ n → Subset (Vec Tok n) (Toks n)}}
          {{ℝ  : RawMonadRun M}} where
 
  private module 𝕄 = RawMonadPlus 𝕄
@@ -90,7 +95,7 @@ module _ {P : Parameters} (open Parameters P)
 
  _∈_ : {A : Set} → String → [ Parser P A ] → Set
  s ∈ A =
-  let input = Sized.fromList $ Tokenizer.fromText t s
+  let input = Vec.fromList $ Tokenizer.fromText t s
       parse = runParser A (n≤1+n _) (𝕃.into input)
       check = λ s → if ⌊ Success.size s Nat.≟ 0 ⌋
                     then just (Success.value s) else nothing

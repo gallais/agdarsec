@@ -25,20 +25,19 @@ open import Function
 
 open import Text.Parser.Types
 open import Text.Parser.Success as S hiding (guardM)
-open import Text.Parser.Instruments as Instruments
 
-module _ {P : Parameters} {{𝕊 : Sized (Parameters.Tok P) (Parameters.Toks P)}}
+module _ {P : Parameters}
+         {{𝕊 : Sized (Parameters.Tok P) (Parameters.Toks P)}}
          {{𝕄 : RawMonadPlus (Parameters.M P)}}
-         {{𝕀 : Instrumented P}} where
+         where
 
  private module 𝕄 = RawMonadPlus 𝕄
- private module 𝕀 = Instrumented 𝕀
  private module P = Parameters P
 
  anyTok : [ Parser P P.Tok ]
  runParser anyTok m≤n s = case view s of λ where
    nothing  → 𝕄.∅
-   (just t) → 𝕀.recordToken (Success.value t) 𝕄.>> 𝕄.return t
+   (just t) → P.recordToken (Success.value t) 𝕄.>> 𝕄.return t
 
  module _ {A B : Set} where
 

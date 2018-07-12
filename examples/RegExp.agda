@@ -3,9 +3,10 @@ module RegExp where
 open import Data.Nat.Base
 open import Data.Bool.Base
 open import Data.Char as Char
+open import Data.Vec using (Vec)
 open import Data.List.Base     as List     hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
-open import Data.List.Sized.Interface
+import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
 open import Function
@@ -81,7 +82,7 @@ instance
   _ = mkTokenizer toTOKs
 
 P : Parameters
-P = unInstr TOK (∣List TOK ∣≡_) Maybe
+P = vec TOK
 
 range : [ Parser P Range ]
 range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)

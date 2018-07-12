@@ -1,5 +1,6 @@
 module Text.Parser.Types where
 
+open import Data.Unit using (⊤)
 open import Data.Nat
 open import Induction.Nat.Strong
 
@@ -13,45 +14,12 @@ record Parameters : Set₁ where
 -- Token-related parameters:
 -- * Tok: tokens
 -- * Toks: sized input (~ Vec Tok)
-     Tok  : Set
-     Toks : ℕ → Set
--- Documentation-related parameters (cf. Text.Parser.Instruments):
--- * Pos: positions in the source file
--- * Ann: annotations tacked onto a subcomputation
-     Pos  : Set
-     Ann  : Set
+     Tok         : Set
+     Toks        : ℕ → Set
 -- The monad stack used
-     M    : Set → Set
-
-
--- Some examples
-
-open import Data.Empty
-open import Data.Unit using (⊤ ; tt)
-open import Data.List
-open import Data.Product
-open import Category.Monad
-open import Category.Monad.State
-open import Text.Parser.Position
-
-pos-ann : (Tok : Set) (Toks : ℕ → Set) (A : Set) (M : Set → Set) → Parameters
-pos-ann T Ts A M = record
-  { Tok = T        ; Toks = Ts
-  ; Pos = Position ; Ann = A
-  ; M = StateT (Position × List A) M
-  }
-
-instance
-  rawmonadplus-vec : ∀ {S} {M : Set → Set} {{𝕄 : RawMonadPlus M}} →
-                     RawMonadPlus (StateT S M)
-  rawmonadplus-vec {{𝕄}} = StateTMonadPlus _ 𝕄
-
-unInstr : (Tok : Set) (Toks : ℕ → Set) (M : Set → Set) → Parameters
-unInstr Tok Toks M = record
-  { Tok = Tok ; Toks = Toks
-  ; Pos = ⊤   ; Ann = ⊥
-  ; M = M
-  }
+     M           : Set → Set
+-- The action allowing us to track consumed tokens
+     recordToken : Tok → M ⊤
 
 --------------------------------------------------------------------------------
 -- SUCCESS
