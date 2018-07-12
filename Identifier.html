@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Identifier</title><link rel="stylesheet" href="Agda.css"></head><body><pre><a id="1" class="Keyword">module</a> <a id="8" href="Identifier.html" class="Module">Identifier</a> <a id="19" class="Keyword">where</a>
+
+<a id="26" class="Keyword">import</a> <a id="33" href="Level.html" class="Module">Level</a>
+<a id="39" class="Keyword">open</a> <a id="44" class="Keyword">import</a> <a id="51" href="Data.Empty.html" class="Module">Data.Empty</a>
+<a id="62" class="Keyword">open</a> <a id="67" class="Keyword">import</a> <a id="74" href="Data.Nat.Base.html" class="Module">Data.Nat.Base</a>
+<a id="88" class="Keyword">open</a> <a id="93" class="Keyword">import</a> <a id="100" href="Data.Char.Base.html" class="Module">Data.Char.Base</a>
+<a id="115" class="Keyword">open</a> <a id="120" class="Keyword">import</a> <a id="127" href="Data.Vec.html" class="Module">Data.Vec</a> <a id="136" class="Keyword">hiding</a> <a id="143" class="Symbol">(</a><a id="144" href="Data.Vec.html#4706" class="Function Operator">[_]</a> <a id="148" class="Symbol">;</a> <a id="150" href="Data.Vec.html#801" class="Datatype Operator">_∈_</a><a id="153" class="Symbol">)</a>
+<a id="155" class="Keyword">open</a> <a id="160" class="Keyword">import</a> <a id="167" href="Data.Maybe.html" class="Module">Data.Maybe</a> <a id="178" class="Symbol">as</a> <a id="181" class="Module">Maybe</a>
+<a id="187" class="Keyword">open</a> <a id="192" class="Keyword">import</a> <a id="199" href="Data.List.html" class="Module">Data.List</a> <a id="209" class="Symbol">as</a> <a id="212" class="Module">List</a> <a id="217" class="Keyword">hiding</a> <a id="224" class="Symbol">(</a><a id="225" href="Data.List.Base.html#3423" class="Function Operator">[_]</a><a id="228" class="Symbol">)</a>
+<a id="230" class="Keyword">open</a> <a id="235" class="Keyword">import</a> <a id="242" href="Data.List.NonEmpty.html" class="Module">Data.List.NonEmpty</a> <a id="261" class="Symbol">as</a> <a id="264" class="Module">NonEmpty</a> <a id="273" class="Keyword">hiding</a> <a id="280" class="Symbol">(</a><a id="281" href="Data.List.NonEmpty.html#1169" class="Function Operator">[_]</a><a id="284" class="Symbol">)</a>
+<a id="286" class="Keyword">open</a> <a id="291" class="Keyword">import</a> <a id="298" href="Data.List.Sized.Interface.html" class="Module">Data.List.Sized.Interface</a> <a id="324" class="Keyword">using</a> <a id="330" class="Symbol">(</a><a id="331" href="Data.List.Sized.Interface.html#323" class="Record">Sized</a><a id="336" class="Symbol">)</a>
+<a id="338" class="Keyword">open</a> <a id="343" class="Keyword">import</a> <a id="350" href="Data.List.Sized.html" class="Module">Data.List.Sized</a>
+<a id="366" class="Keyword">open</a> <a id="371" class="Keyword">import</a> <a id="378" href="Data.String.html" class="Module">Data.String</a> <a id="390" class="Symbol">as</a> <a id="393" class="Module">String</a>
+<a id="400" class="Keyword">open</a> <a id="405" class="Keyword">import</a> <a id="412" href="Category.Monad.html" class="Module">Category.Monad</a>
+<a id="427" class="Keyword">open</a> <a id="432" class="Keyword">import</a> <a id="439" href="Function.html" class="Module">Function</a>
+
+<a id="449" class="Keyword">open</a> <a id="454" class="Keyword">import</a> <a id="461" href="Base.html" class="Module">Base</a>
+
+<a id="467" class="Keyword">record</a> <a id="Identifier"></a><a id="474" href="Identifier.html#474" class="Record">Identifier</a> <a id="485" class="Symbol">:</a> <a id="487" class="PrimitiveType">Set</a> <a id="491" class="Keyword">where</a>
+  <a id="499" class="Keyword">constructor</a> <a id="Identifier.mkIdentifier"></a><a id="511" href="Identifier.html#511" class="InductiveConstructor">mkIdentifier</a>
+  <a id="526" class="Keyword">field</a> <a id="Identifier.getIdentifier"></a><a id="532" href="Identifier.html#532" class="Field">getIdentifier</a> <a id="546" class="Symbol">:</a> <a id="548" href="Data.List.NonEmpty.html#1056" class="Record">List⁺</a> <a id="554" href="Agda.Builtin.Char.html#132" class="Postulate">Char</a>
+
+<a id="identifier"></a><a id="560" href="Identifier.html#560" class="Function">identifier</a> <a id="571" class="Symbol">:</a> <a id="573" href="Relation.Unary.Indexed.html#633" class="Function Operator">[</a> <a id="575" href="Text.Parser.Types.html#1177" class="Record">Parser</a> <a id="582" href="Text.Parser.Monad.html#3446" class="Function">chars</a> <a id="588" href="Identifier.html#474" class="Record">Identifier</a> <a id="599" href="Relation.Unary.Indexed.html#633" class="Function Operator">]</a>
+<a id="601" href="Identifier.html#560" class="Function">identifier</a> <a id="612" class="Symbol">=</a> <a id="614" href="Identifier.html#511" class="InductiveConstructor">mkIdentifier</a> <a id="627" href="Text.Parser.Combinators.html#2170" class="Function Operator">&lt;$&gt;</a> <a id="631" href="Text.Parser.Combinators.html#7780" class="Function">list⁺</a> <a id="637" href="Text.Parser.Combinators.Char.html#1778" class="Function">alpha</a>
+
+<a id="644" class="Comment">-- tests</a>
+
+<a id="654" href="Identifier.html#654" class="Function">_</a> <a id="656" class="Symbol">:</a> <a id="658" class="String">&quot;hi&quot;</a> <a id="663" href="Base.html#2689" class="Function Operator">∈</a> <a id="665" href="Identifier.html#560" class="Function">identifier</a>
+<a id="676" class="Symbol">_</a> <a id="678" class="Symbol">=</a>  <a id="681" href="Identifier.html#511" class="InductiveConstructor">mkIdentifier</a> <a id="694" class="Symbol">(</a><a id="695" class="String">&#39;h&#39;</a> <a id="699" href="Data.List.NonEmpty.html#1106" class="InductiveConstructor Operator">∷</a> <a id="701" class="String">&#39;i&#39;</a> <a id="705" href="Agda.Builtin.List.html#132" class="InductiveConstructor Operator">∷</a> <a id="707" href="Agda.Builtin.List.html#117" class="InductiveConstructor">[]</a><a id="709" class="Symbol">)</a> <a id="711" href="Base.html#1205" class="InductiveConstructor Operator">!</a>
+</pre></body></html>
