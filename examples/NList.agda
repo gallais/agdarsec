@@ -1,7 +1,7 @@
 -- Challenge taken from stackoverflow:
 -- http://stackoverflow.com/questions/12380239/agda-parsing-nested-lists
 
-module Text.Parser.Examples.NList where
+module NList where
 
 open import Data.Nat.Base
 open import Data.Char.Base
@@ -11,20 +11,22 @@ open import Data.Maybe
 import Data.DifferenceList as DList
 open import Function
 
-open import Text.Parser.Examples.Base
-open import Text.Parser.Numbers
+open import Base
+open import Text.Parser.Combinators.Numbers
 
 NList : Set → ℕ → Set
 NList A zero    = A
 NList A (suc n) = List (NList A n)
 
-module _ {Chars : ℕ → Set} {{𝕊 : Sized Char Chars}} where
+P : Parameters
+P = chars
 
- NList′ : {A : Set} → [ Parser Char Chars Maybe A ] →
-          (n : ℕ)   → [ Parser Char Chars Maybe (NList A n) ]
- NList′ A zero    = A
- NList′ A (suc n) = parens $ box $ DList.toList <$>
-                    chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
+
+NList′ : {A : Set} → [ Parser P A ] →
+         (n : ℕ)   → [ Parser P (NList A n) ]
+NList′ A zero    = A
+NList′ A (suc n) = parens $ box $ DList.toList <$>
+                   chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
 
 -- tests
 

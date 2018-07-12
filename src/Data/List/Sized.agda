@@ -62,17 +62,3 @@ instance
   Sized.view sized xs with view xs
   ... | []      = Level.lift tt
   ... | a ∷ as  = a , as
-
-open import Data.Vec
-open import Data.Product.N-ary
-
-instance
-
-  sized-vec : ∀ {ℓ} {A : Set ℓ} → Sized A (Vec A)
-  Sized.view sized-vec Vec.[]   = Level.lift tt
-  Sized.view sized-vec (x ∷ xs) = x , xs
-
-  sized-nary : ∀ {ℓ} {A : Set ℓ} → Sized A (A ^_)
-  Sized.view sized-nary {0}    xs = Level.lift tt
-  Sized.view sized-nary {1}    x  = x , Level.lift tt
-  Sized.view sized-nary {2+ n} xs = xs
