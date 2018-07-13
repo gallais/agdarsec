@@ -2,12 +2,11 @@ module Text.Parser.Types where
 
 open import Data.Unit using (⊤)
 open import Data.Nat
-open import Induction.Nat.Strong
 
 --------------------------------------------------------------------------------
 -- PARAMETERS
 
--- A parser is parametrised by some types an type constructors.
+-- A parser is parametrised by some types, type constructors and one function.
 
 record Parameters : Set₁ where
    field
