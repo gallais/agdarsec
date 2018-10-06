@@ -3,7 +3,7 @@ module Text.Parser.Monad where
 open import Data.Empty
 open import Data.Unit
 open import Data.Char
-open import Data.Product as Prod hiding (,_)
+open import Data.Product hiding (,_)
 open import Data.List hiding (fromMaybe ; [_])
 open import Data.Vec using (Vec)
 open import Data.Maybe hiding (monad ; monadT ; monadZero ; monadPlus)
@@ -96,14 +96,14 @@ module AgdarsecT
   getAnnotations = proj₂ ST.<$> ST.get
 
   withAnnotation : ∀ {A} → C → AgdarsecT E C M A → AgdarsecT E C M A
-  withAnnotation c ma = let open ST in
-    ST.modify (Prod.map id (c ∷_)) >>
-    ma >>= λ a →
-    ST.modify (Prod.map id (drop 1)) >>
+  withAnnotation c ma = let open ST in do
+    ST.modify (map₂ (c ∷_))
+    a ← ma
+    ST.modify (map₂ (drop 1))
     ST.pure a
 
   recordChar : Char → AgdarsecT E C M ⊤
-  recordChar c = tt ST.<$ ST.modify (Prod.map (next c) id)
+  recordChar c = tt ST.<$ ST.modify (map₁ (next c))
 
   -- Commiting to a branch makes all the failures in that branch hard failures
   -- that we cannot recover from

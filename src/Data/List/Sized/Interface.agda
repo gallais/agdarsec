@@ -28,6 +28,6 @@ open import Data.Product.N-ary
 instance
 
   sized-nary : ∀ {ℓ} {A : Set ℓ} → Sized A (A ^_)
-  Sized.view sized-nary {0}           xs = Level.lift tt
-  Sized.view sized-nary {1}           x  = x , Level.lift tt
-  Sized.view sized-nary {suc (suc n)} xs = xs
+  Sized.view sized-nary {0}    xs = Level.lift tt
+  Sized.view sized-nary {1}    x  = x , Level.lift tt
+  Sized.view sized-nary {2+ n} xs = xs
