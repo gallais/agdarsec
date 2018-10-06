@@ -6,7 +6,7 @@ open import Data.Empty
 open import Data.Product using (_,_)
 open import Data.Nat.Base hiding (_^_)
 open import Data.List.Base as List hiding ([_] ; map)
-open import Relation.Unary.Indexed
+open import Relation.Unary
 
 module _ {ℓ : Level} {A : Set ℓ} where
 
@@ -45,13 +45,13 @@ module _ {ℓ : Level} {A : Set ℓ} where
 
 module _ {ℓ ℓ′ : Level} {A : Set ℓ} {B : Set ℓ′} where
 
- size-map : (f : A → B) (xs : List A) → [ ∣ xs ∣≡_ ⟶ ∣ List.map f xs ∣≡_ ]
+ size-map : (f : A → B) (xs : List A) → ∀[ ∣ xs ∣≡_ ⇒ ∣ List.map f xs ∣≡_ ]
  size-map f []       {zero}  prf = tt
  size-map f (x ∷ xs) {suc n} prf = size-map f xs prf
  size-map f []       {suc n} ()
  size-map f (x ∷ xs) {zero}  ()
 
- map : (A → B) → [ ∣List A ∣≡_ ⟶ ∣List B ∣≡_ ]
+ map : (A → B) → ∀[ ∣List A ∣≡_ ⇒ ∣List B ∣≡_ ]
  map f (mkSizedList xs prf) = mkSizedList (List.map f xs) (size-map f xs prf)
 
 open import Data.List.Sized.Interface

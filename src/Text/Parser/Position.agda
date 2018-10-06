@@ -3,7 +3,8 @@ module Text.Parser.Position where
 open import Data.Bool
 open import Data.Nat
 import Data.Nat.Show as NShow
-open import Data.Char using (Char ; _==_)
+open import Data.Char using (Char)
+open import Data.Char.Unsafe using (_==_)
 open import Data.String using (String ; _++_)
 
 record Position : Set where

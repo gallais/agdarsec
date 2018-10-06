@@ -4,16 +4,16 @@ open import Level
 open import Agda.Builtin.Nat renaming (Nat to ℕ)
 open import Data.Unit
 open import Data.Product
-open import Relation.Unary.Indexed
+open import Relation.Unary
 
 module _ {a : Level} (A : Set a) (As : ℕ → Set a) where
 
  View : ℕ → Set a
- View zero    = Lift ⊤
+ View zero    = Lift a ⊤
  View (suc n) = A × As n
 
  record Sized : Set a where
-   field view : [ As ⟶ View ]
+   field view : ∀[ As ⇒ View ]
 
 open import Data.Vec
 

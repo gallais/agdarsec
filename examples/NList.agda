@@ -22,8 +22,8 @@ P : Parameters
 P = chars
 
 
-NList′ : {A : Set} → [ Parser P A ] →
-         (n : ℕ)   → [ Parser P (NList A n) ]
+NList′ : {A : Set} → ∀[ Parser P A ] →
+         (n : ℕ)   → ∀[ Parser P (NList A n) ]
 NList′ A zero    = A
 NList′ A (suc n) = parens $ box $ DList.toList <$>
                    chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')

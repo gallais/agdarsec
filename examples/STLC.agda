@@ -2,10 +2,9 @@ module STLC where
 
 open import Data.Nat.Base
 open import Data.Char.Base
-open import Data.List.Base as List hiding ([_])
-open import Data.List.NonEmpty as NonEmpty hiding ([_])
+open import Data.List.Base
+open import Data.List.NonEmpty
 open import Data.List.Sized.Interface
-open import Data.Maybe
 open import Data.Product
 import Induction.Nat.Strong as INS
 open import Function
@@ -18,7 +17,7 @@ data Type : Set where
   `κ   : ℕ → Type
   _`→_ : Type → Type → Type
 
-Type′ : [ Parser chars Type ]
+Type′ : ∀[ Parser chars Type ]
 Type′ = fix _ $ λ rec → chainr1 (`κ <$> decimalℕ <|> parens rec)
                                  (box $ _`→_ <$ withSpaces (char '→'))
 
@@ -41,7 +40,7 @@ record Language (n : ℕ) : Set where
         pNeu : Parser chars Neu n
 open Language
 
-language : [ Language ]
+language : ∀[ Language ]
 language = fix Language $ λ rec →
   let □val = INS.map pVal rec
       cut  = uncurry Cut <$> (char '(' &> □val
@@ -57,11 +56,11 @@ language = fix Language $ λ rec →
 
    where
 
-    var : [ Parser chars Neu ]
+    var : ∀[ Parser chars Neu ]
     var = Var <$> identifier
 
 
-Val′ : [ Parser chars Val ]
+Val′ : ∀[ Parser chars Val ]
 Val′ = pVal language
 
 -- tests

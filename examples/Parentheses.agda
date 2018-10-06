@@ -3,7 +3,8 @@ module Parentheses where
 open import Data.Unit
 open import Data.Maybe
 open import Data.Char
-open import Data.List.Base as List hiding ([_])
+open import Data.Char.Unsafe using (_==_)
+open import Data.List.Base as List
 import Data.List.Sized.Interface
 open import Data.Bool
 open import Relation.Nullary
@@ -52,7 +53,7 @@ instance
 Pars : Parameters
 Pars = vec PAR
 
-PAR′ : [ Parser Pars ⊤ ]
+PAR′ : ∀[ Parser Pars ⊤ ]
 PAR′ = fix (Parser Pars ⊤) $ λ rec →
    let _R?_R? : PAR → PAR → Parser Pars ⊤ _
        _R?_R? p q = tt <$ ((exact p <&?> rec) <& box (exact q <&?> rec))

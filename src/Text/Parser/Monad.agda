@@ -3,18 +3,18 @@ module Text.Parser.Monad where
 open import Data.Empty
 open import Data.Unit
 open import Data.Char
-open import Data.Product hiding (,_)
+open import Data.Product
 open import Data.List hiding (fromMaybe ; [_])
 open import Data.Vec using (Vec)
-open import Data.Maybe hiding (monad ; monadT ; monadZero ; monadPlus)
+open import Data.Maybe hiding (fromMaybe)
 open import Data.Subset
 open import Function
 open import Category.Functor
 open import Category.Monad
-open import Category.Monad.Identity
+open import Function.Identity.Categorical as Id using (Identity)
 open import Category.Monad.State
 
-open import Relation.Unary.Indexed
+open import Relation.Unary
 open import Text.Parser.Types
 open import Text.Parser.Position
 
@@ -45,7 +45,7 @@ Result-monadT E M = record
   } where module M = RawMonad M
 
 Result-monad : ∀ E → RawMonad (Result E)
-Result-monad E = Result-monadT E IdentityMonad
+Result-monad E = Result-monadT E Id.monad
 
 --------------------------------------------------------------------------------
 -- AGDARSECT
@@ -123,13 +123,13 @@ module AgdarsecT
 
 module Agdarsec E C (𝕊 : Subset (Position × List C) E) where
 
-  private module M = AgdarsecT E C IdentityMonad 𝕊
+  private module M = AgdarsecT E C Id.monad 𝕊
   open M public renaming (monadT to monad) hiding (commit)
 
   module _ {Tok Toks recTok} where
 
     private P = param Tok Toks recTok
-    commit : ∀ {A} → [ Parser P A ⟶ Parser P A ]
+    commit : ∀ {A} → ∀[ Parser P A ⇒ Parser P A ]
     runParser (commit p) m≤n s = M.commit (runParser p m≤n s)
 
 

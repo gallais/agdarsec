@@ -10,9 +10,10 @@ open import Data.List.Base as L hiding ([_] ; module List)
 open import Data.List.Categorical as List
 open import Data.List.Sized.Interface
 open import Data.List.Any as Any
-open import Data.Vec as Vec hiding ([_] ; _∈_)
+open import Data.Vec as Vec hiding ([_])
 open import Data.Bool
-open import Data.Maybe as Maybe
+open import Data.Maybe
+open import Data.Maybe.Categorical as MaybeCat
 open import Data.Sum
 open import Data.Empty
 open import Function
@@ -21,7 +22,7 @@ open import Category.Monad.State
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 
-open import Relation.Unary.Indexed                          public
+open import Relation.Unary using (IUniversal; _⇒_) public
 open import Relation.Binary.PropositionalEquality.Decidable public
 open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 
@@ -72,10 +73,10 @@ instance
     ∘ (_$ (start , []))
 
   monadMaybe : RawMonad {Level.zero} Maybe
-  monadMaybe = Maybe.monad
+  monadMaybe = MaybeCat.monad
 
   plusMaybe : RawMonadPlus {Level.zero} Maybe
-  plusMaybe = Maybe.monadPlus
+  plusMaybe = MaybeCat.monadPlus
 
   monadList : RawMonad {Level.zero} List
   monadList = List.monad
@@ -93,12 +94,12 @@ module _ {P : Parameters} (open Parameters P)
  private module 𝕄 = RawMonadPlus 𝕄
  private module 𝕃 {n} = Subset (𝕃 n)
 
- _∈_ : {A : Set} → String → [ Parser P A ] → Set
+ _∈_ : {A : Set} → String → ∀[ Parser P A ] → Set
  s ∈ A =
   let input = Vec.fromList $ Tokenizer.fromText t s
       parse = runParser A (n≤1+n _) (𝕃.into input)
       check = λ s → if ⌊ Success.size s Nat.≟ 0 ⌋
                     then just (Success.value s) else nothing
-  in case mapM Maybe.monad check $ runM ℝ parse of λ where
+  in case List.mapM MaybeCat.monad check $ runM ℝ parse of λ where
        (just (a ∷ _)) → Singleton a
        _              → ⊥

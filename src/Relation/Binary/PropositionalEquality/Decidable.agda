@@ -9,8 +9,10 @@ open DecidableEquality public
 
 open import Data.Unit as U using (⊤)
 open import Data.Nat as ℕ using (ℕ)
-open import Data.Char as C using (Char)
-open import Data.String as S using (String)
+open import Data.Char using (Char)
+import Data.Char.Unsafe as C using (_≟_)
+open import Data.String using (String)
+import Data.String.Unsafe as S using (_≟_)
 
 instance
 

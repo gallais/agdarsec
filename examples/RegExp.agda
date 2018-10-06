@@ -2,17 +2,18 @@ module RegExp where
 
 open import Data.Nat.Base
 open import Data.Bool.Base
-open import Data.Char as Char
+open import Data.Char
+open import Data.Char.Unsafe as C using (_≟_)
 open import Data.Vec using (Vec)
-open import Data.List.Base     as List     hiding ([_])
-open import Data.List.NonEmpty as NonEmpty hiding ([_])
+open import Data.List.Base     as List
+open import Data.List.NonEmpty as NonEmpty
 import Data.List.Sized.Interface
 open import Data.Maybe
 open import Data.Product
 open import Function
 open import Relation.Nullary
 open import Relation.Binary
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality
 
 open import Base
 
@@ -55,7 +56,7 @@ eqTOK DOTS     DOTS     = yes refl
 eqTOK OR       OR       = yes refl
 eqTOK LPAR     LPAR     = yes refl
 eqTOK RPAR     RPAR     = yes refl
-eqTOK (CHAR c) (CHAR d) with c Char.≟ d
+eqTOK (CHAR c) (CHAR d) with c C.≟ d
 ... | yes eq = yes (cong CHAR eq)
 ... | no ¬eq = no (¬eq ∘ cong (λ { (CHAR c) → c; _ → 'a' }))
 eqTOK _ _ = no whatever where
@@ -84,11 +85,11 @@ instance
 P : Parameters
 P = vec TOK
 
-range : [ Parser P Range ]
+range : ∀[ Parser P Range ]
 range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
         <$> (maybeTok isCHAR <&?> (box $ exact DOTS &> box (maybeTok isCHAR)))
 
-regexp : [ Parser P RegExp ]
+regexp : ∀[ Parser P RegExp ]
 regexp = fix (Parser P RegExp) $ λ rec →
          let parens   = between (exact LPAR) (box (exact RPAR))
              parens?  = between? (exact LPAR) (box (exact RPAR))

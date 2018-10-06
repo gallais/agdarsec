@@ -10,7 +10,7 @@ open import Data.List.NonEmpty as NonEmpty hiding ([_])
 open import Category.Monad
 open import Function
 
-open import Relation.Unary.Indexed
+open import Relation.Unary
 open import Induction.Nat.Strong
 open import Data.List.Sized.Interface
 open import Data.Subset
@@ -29,45 +29,50 @@ module _ {P : Parameters} (open Parameters P)
 
  module ℂ = Subset ℂ
 
- char : Char → [ Parser P Tok ]
+ char : Char → ∀[ Parser P Tok ]
  char = exact ∘ ℂ.into
 
- space : [ Parser P Tok ]
+ space : ∀[ Parser P Tok ]
  space = anyOf $ List.map ℂ.into $ ' ' ∷ '\t' ∷ '\n' ∷ []
 
- spaces : [ Parser P (List⁺ Tok) ]
+ spaces : ∀[ Parser P (List⁺ Tok) ]
  spaces = list⁺ space
 
- text : (t : String) {_ : T (not $ null $ String.toList t)} → [ Parser P (List⁺ Tok) ]
+ text : (t : String) {_ : T (not $ null $ String.toList t)} →
+        ∀[ Parser P (List⁺ Tok) ]
  text t {pr} with String.toList t | pr
  ... | []     | ()
  ... | x ∷ xs | _ = exacts $ NonEmpty.map ℂ.into $ x ∷ xs
 
  module _ {A : Set} where
 
-  parens : [ □ Parser P A ⟶ Parser P A ]
+  parens : ∀[ □ Parser P A ⇒ Parser P A ]
   parens = between (char '(') (box (char ')'))
 
-  parens? : [ Parser P A ⟶ Parser P A ]
+  parens? : ∀[ Parser P A ⇒ Parser P A ]
   parens? = between? (char '(') (box (char ')'))
 
-  withSpaces : [ Parser P A ⟶ Parser P A ]
+  withSpaces : ∀[ Parser P A ⇒ Parser P A ]
   withSpaces A = spaces ?&> A <&? box spaces
 
- lowerAlpha : [ Parser P Tok ]
- lowerAlpha = anyOf (List.map ℂ.into $ String.toList "abcdefghijklmnopqrstuvwxyz")
+ lowerAlpha : ∀[ Parser P Tok ]
+ lowerAlpha = anyOf
+            $′ List.map ℂ.into
+            $′ String.toList "abcdefghijklmnopqrstuvwxyz"
 
- upperAlpha : [ Parser P Tok ]
- upperAlpha = anyOf (List.map ℂ.into $ String.toList "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ upperAlpha : ∀[ Parser P Tok ]
+ upperAlpha = anyOf
+            $′ List.map ℂ.into
+            $′ String.toList "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
- alpha : [ Parser P Tok ]
+ alpha : ∀[ Parser P Tok ]
  alpha = lowerAlpha <|> upperAlpha
 
- alphas⁺ : [ Parser P (List⁺ Tok) ]
+ alphas⁺ : ∀[ Parser P (List⁺ Tok) ]
  alphas⁺ = list⁺ alpha
 
- num : [ Parser P ℕ ]
+ num : ∀[ Parser P ℕ ]
  num = decimalDigit
 
- alphanum : [ Parser P (Tok ⊎ ℕ) ]
+ alphanum : ∀[ Parser P (Tok ⊎ ℕ) ]
  alphanum = alpha <⊎> num
