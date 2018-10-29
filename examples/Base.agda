@@ -1,7 +1,7 @@
 module Base where
 
 open import Level
-open import Data.Nat.Base as Nat
+open import Data.Nat as Nat
 open import Data.Nat.Properties
 open import Data.Char.Base
 open import Data.Product

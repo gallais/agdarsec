@@ -1,5 +1,3 @@
-{-# OPTIONS --irrelevant-projections #-}
-
 module Text.Parser.Success where
 
 open import Data.Nat.Base hiding (_^_)
