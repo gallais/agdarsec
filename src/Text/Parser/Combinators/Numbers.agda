@@ -7,6 +7,7 @@ import Data.Char.Unsafe as C using (_≟_)
 open import Data.List.Base as List
 open import Data.List.NonEmpty as NonEmpty
 open import Data.List.Sized.Interface
+open import Data.Sum using ([_,_]′)
 open import Data.Maybe
 open import Data.Product
 open import Function
@@ -41,5 +42,5 @@ module _ {P : Parameters} (open Parameters P)
 
  decimalℤ : ∀[ Parser P ℤ ]
  decimalℤ = uncurry convert <$> (sign <?&> decimalℕ) where
-   sign    = anyOf (List.map ℂ.into $ '-' ∷ '−' ∷ [])
-   convert = λ s → maybe′ (const (-_)) id s ∘′ +_
+   sign    = anyOf (List.map ℂ.into $ '-' ∷ '−' ∷ []) <⊎> exact (ℂ.into '+')
+   convert = λ s → maybe′ [ const (-_) , const id ]′ id s ∘′ +_
