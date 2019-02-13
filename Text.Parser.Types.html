@@ -1,50 +1,52 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="utf-8"><title>Text.Parser.Types</title><link rel="stylesheet" href="Agda.css"></head><body><pre><a id="1" class="Keyword">module</a> <a id="8" href="Text.Parser.Types.html" class="Module">Text.Parser.Types</a> <a id="26" class="Keyword">where</a>
+<html><head><meta charset="utf-8"><title>Text.Parser.Types</title><link rel="stylesheet" href="Agda.css"></head><body><pre><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Option">--without-K</a> <a id="25" class="Option">--safe</a> <a id="32" class="Symbol">#-}</a>
 
-<a id="33" class="Keyword">open</a> <a id="38" class="Keyword">import</a> <a id="45" href="Data.Unit.html" class="Module">Data.Unit</a> <a id="55" class="Keyword">using</a> <a id="61" class="Symbol">(</a><a id="62" href="Agda.Builtin.Unit.html#69" class="Record">⊤</a><a id="63" class="Symbol">)</a>
-<a id="65" class="Keyword">open</a> <a id="70" class="Keyword">import</a> <a id="77" href="Data.Nat.html" class="Module">Data.Nat</a>
+<a id="37" class="Keyword">module</a> <a id="44" href="Text.Parser.Types.html" class="Module">Text.Parser.Types</a> <a id="62" class="Keyword">where</a>
 
-<a id="87" class="Comment">--------------------------------------------------------------------------------</a>
-<a id="168" class="Comment">-- PARAMETERS</a>
+<a id="69" class="Keyword">open</a> <a id="74" class="Keyword">import</a> <a id="81" href="Data.Unit.html" class="Module">Data.Unit</a> <a id="91" class="Keyword">using</a> <a id="97" class="Symbol">(</a><a id="98" href="Agda.Builtin.Unit.html#69" class="Record">⊤</a><a id="99" class="Symbol">)</a>
+<a id="101" class="Keyword">open</a> <a id="106" class="Keyword">import</a> <a id="113" href="Data.Nat.html" class="Module">Data.Nat</a>
 
-<a id="183" class="Comment">-- A parser is parametrised by some types, type constructors and one function.</a>
+<a id="123" class="Comment">--------------------------------------------------------------------------------</a>
+<a id="204" class="Comment">-- PARAMETERS</a>
 
-<a id="263" class="Keyword">record</a> <a id="Parameters"></a><a id="270" href="Text.Parser.Types.html#270" class="Record">Parameters</a> <a id="281" class="Symbol">:</a> <a id="283" class="PrimitiveType">Set₁</a> <a id="288" class="Keyword">where</a>
-   <a id="297" class="Keyword">field</a>
-<a id="303" class="Comment">-- Token-related parameters:</a>
-<a id="332" class="Comment">-- * Tok: tokens</a>
-<a id="349" class="Comment">-- * Toks: sized input (~ Vec Tok)</a>
-     <a id="Parameters.Tok"></a><a id="389" href="Text.Parser.Types.html#389" class="Field">Tok</a>         <a id="401" class="Symbol">:</a> <a id="403" class="PrimitiveType">Set</a>
-     <a id="Parameters.Toks"></a><a id="412" href="Text.Parser.Types.html#412" class="Field">Toks</a>        <a id="424" class="Symbol">:</a> <a id="426" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="428" class="Symbol">→</a> <a id="430" class="PrimitiveType">Set</a>
-<a id="434" class="Comment">-- The monad stack used</a>
-     <a id="Parameters.M"></a><a id="463" href="Text.Parser.Types.html#463" class="Field">M</a>           <a id="475" class="Symbol">:</a> <a id="477" class="PrimitiveType">Set</a> <a id="481" class="Symbol">→</a> <a id="483" class="PrimitiveType">Set</a>
-<a id="487" class="Comment">-- The action allowing us to track consumed tokens</a>
-     <a id="Parameters.recordToken"></a><a id="543" href="Text.Parser.Types.html#543" class="Field">recordToken</a> <a id="555" class="Symbol">:</a> <a id="557" href="Text.Parser.Types.html#389" class="Field">Tok</a> <a id="561" class="Symbol">→</a> <a id="563" href="Text.Parser.Types.html#463" class="Field">M</a> <a id="565" href="Agda.Builtin.Unit.html#69" class="Record">⊤</a>
+<a id="219" class="Comment">-- A parser is parametrised by some types, type constructors and one function.</a>
 
-<a id="568" class="Comment">--------------------------------------------------------------------------------</a>
-<a id="649" class="Comment">-- SUCCESS</a>
+<a id="299" class="Keyword">record</a> <a id="Parameters"></a><a id="306" href="Text.Parser.Types.html#306" class="Record">Parameters</a> <a id="317" class="Symbol">:</a> <a id="319" class="PrimitiveType">Set₁</a> <a id="324" class="Keyword">where</a>
+   <a id="333" class="Keyword">field</a>
+<a id="339" class="Comment">-- Token-related parameters:</a>
+<a id="368" class="Comment">-- * Tok: tokens</a>
+<a id="385" class="Comment">-- * Toks: sized input (~ Vec Tok)</a>
+     <a id="Parameters.Tok"></a><a id="425" href="Text.Parser.Types.html#425" class="Field">Tok</a>         <a id="437" class="Symbol">:</a> <a id="439" class="PrimitiveType">Set</a>
+     <a id="Parameters.Toks"></a><a id="448" href="Text.Parser.Types.html#448" class="Field">Toks</a>        <a id="460" class="Symbol">:</a> <a id="462" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="464" class="Symbol">→</a> <a id="466" class="PrimitiveType">Set</a>
+<a id="470" class="Comment">-- The monad stack used</a>
+     <a id="Parameters.M"></a><a id="499" href="Text.Parser.Types.html#499" class="Field">M</a>           <a id="511" class="Symbol">:</a> <a id="513" class="PrimitiveType">Set</a> <a id="517" class="Symbol">→</a> <a id="519" class="PrimitiveType">Set</a>
+<a id="523" class="Comment">-- The action allowing us to track consumed tokens</a>
+     <a id="Parameters.recordToken"></a><a id="579" href="Text.Parser.Types.html#579" class="Field">recordToken</a> <a id="591" class="Symbol">:</a> <a id="593" href="Text.Parser.Types.html#425" class="Field">Tok</a> <a id="597" class="Symbol">→</a> <a id="599" href="Text.Parser.Types.html#499" class="Field">M</a> <a id="601" href="Agda.Builtin.Unit.html#69" class="Record">⊤</a>
 
-<a id="661" class="Comment">-- A successful partial parse of an A is a value A together leftovers</a>
-<a id="731" class="Comment">-- which are proven to be smaller than the input</a>
+<a id="604" class="Comment">--------------------------------------------------------------------------------</a>
+<a id="685" class="Comment">-- SUCCESS</a>
 
-<a id="781" class="Keyword">infix</a> <a id="787" class="Number">1</a> <a id="789" href="Text.Parser.Types.html#871" class="InductiveConstructor Operator">_^_,_</a>
-<a id="795" class="Keyword">record</a> <a id="Success"></a><a id="802" href="Text.Parser.Types.html#802" class="Record">Success</a> <a id="810" class="Symbol">(</a><a id="811" href="Text.Parser.Types.html#811" class="Bound">Toks</a> <a id="816" class="Symbol">:</a> <a id="818" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="820" class="Symbol">→</a> <a id="822" class="PrimitiveType">Set</a><a id="825" class="Symbol">)</a> <a id="827" class="Symbol">(</a><a id="828" href="Text.Parser.Types.html#828" class="Bound">A</a> <a id="830" class="Symbol">:</a> <a id="832" class="PrimitiveType">Set</a><a id="835" class="Symbol">)</a> <a id="837" class="Symbol">(</a><a id="838" href="Text.Parser.Types.html#838" class="Bound">n</a> <a id="840" class="Symbol">:</a> <a id="842" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="843" class="Symbol">)</a> <a id="845" class="Symbol">:</a> <a id="847" class="PrimitiveType">Set</a> <a id="851" class="Keyword">where</a>
-  <a id="859" class="Keyword">constructor</a> <a id="Success._^_,_"></a><a id="871" href="Text.Parser.Types.html#871" class="InductiveConstructor Operator">_^_,_</a>
-  <a id="879" class="Keyword">field</a>
-    <a id="Success.value"></a><a id="889" href="Text.Parser.Types.html#889" class="Field">value</a>     <a id="899" class="Symbol">:</a> <a id="901" href="Text.Parser.Types.html#828" class="Bound">A</a>
-    <a id="907" class="Symbol">{</a><a id="Success.size"></a><a id="908" href="Text.Parser.Types.html#908" class="Field">size</a><a id="912" class="Symbol">}</a>    <a id="917" class="Symbol">:</a> <a id="919" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
-    <a id="925" class="Symbol">.</a><a id="Success.small"></a><a id="926" href="Text.Parser.Types.html#926" class="Field">small</a>    <a id="935" class="Symbol">:</a> <a id="937" href="Text.Parser.Types.html#908" class="Field">size</a> <a id="942" href="Data.Nat.Base.html#955" class="Function Operator">&lt;</a> <a id="944" href="Text.Parser.Types.html#838" class="Bound">n</a>
-    <a id="Success.leftovers"></a><a id="950" href="Text.Parser.Types.html#950" class="Field">leftovers</a> <a id="960" class="Symbol">:</a> <a id="962" href="Text.Parser.Types.html#811" class="Bound">Toks</a> <a id="967" href="Text.Parser.Types.html#908" class="Field">size</a>
+<a id="697" class="Comment">-- A successful partial parse of an A is a value A together leftovers</a>
+<a id="767" class="Comment">-- which are proven to be smaller than the input</a>
 
-<a id="973" class="Comment">--------------------------------------------------------------------------------</a>
-<a id="1054" class="Comment">-- PARSER</a>
+<a id="817" class="Keyword">infix</a> <a id="823" class="Number">1</a> <a id="825" href="Text.Parser.Types.html#907" class="InductiveConstructor Operator">_^_,_</a>
+<a id="831" class="Keyword">record</a> <a id="Success"></a><a id="838" href="Text.Parser.Types.html#838" class="Record">Success</a> <a id="846" class="Symbol">(</a><a id="847" href="Text.Parser.Types.html#847" class="Bound">Toks</a> <a id="852" class="Symbol">:</a> <a id="854" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="856" class="Symbol">→</a> <a id="858" class="PrimitiveType">Set</a><a id="861" class="Symbol">)</a> <a id="863" class="Symbol">(</a><a id="864" href="Text.Parser.Types.html#864" class="Bound">A</a> <a id="866" class="Symbol">:</a> <a id="868" class="PrimitiveType">Set</a><a id="871" class="Symbol">)</a> <a id="873" class="Symbol">(</a><a id="874" href="Text.Parser.Types.html#874" class="Bound">n</a> <a id="876" class="Symbol">:</a> <a id="878" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="879" class="Symbol">)</a> <a id="881" class="Symbol">:</a> <a id="883" class="PrimitiveType">Set</a> <a id="887" class="Keyword">where</a>
+  <a id="895" class="Keyword">constructor</a> <a id="Success._^_,_"></a><a id="907" href="Text.Parser.Types.html#907" class="InductiveConstructor Operator">_^_,_</a>
+  <a id="915" class="Keyword">field</a>
+    <a id="Success.value"></a><a id="925" href="Text.Parser.Types.html#925" class="Field">value</a>     <a id="935" class="Symbol">:</a> <a id="937" href="Text.Parser.Types.html#864" class="Bound">A</a>
+    <a id="943" class="Symbol">{</a><a id="Success.size"></a><a id="944" href="Text.Parser.Types.html#944" class="Field">size</a><a id="948" class="Symbol">}</a>    <a id="953" class="Symbol">:</a> <a id="955" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
+    <a id="961" class="Symbol">.</a><a id="Success.small"></a><a id="962" href="Text.Parser.Types.html#962" class="Field">small</a>    <a id="971" class="Symbol">:</a> <a id="973" href="Text.Parser.Types.html#944" class="Field">size</a> <a id="978" href="Data.Nat.Base.html#955" class="Function Operator">&lt;</a> <a id="980" href="Text.Parser.Types.html#874" class="Bound">n</a>
+    <a id="Success.leftovers"></a><a id="986" href="Text.Parser.Types.html#986" class="Field">leftovers</a> <a id="996" class="Symbol">:</a> <a id="998" href="Text.Parser.Types.html#847" class="Bound">Toks</a> <a id="1003" href="Text.Parser.Types.html#944" class="Field">size</a>
 
-<a id="1065" class="Comment">-- A parser is the ability to, given an input, return a computation for</a>
-<a id="1137" class="Comment">-- a success.</a>
+<a id="1009" class="Comment">--------------------------------------------------------------------------------</a>
+<a id="1090" class="Comment">-- PARSER</a>
 
-<a id="1152" class="Keyword">record</a> <a id="Parser"></a><a id="1159" href="Text.Parser.Types.html#1159" class="Record">Parser</a> <a id="1166" class="Symbol">(</a><a id="1167" href="Text.Parser.Types.html#1167" class="Bound">P</a> <a id="1169" class="Symbol">:</a> <a id="1171" href="Text.Parser.Types.html#270" class="Record">Parameters</a><a id="1181" class="Symbol">)</a> <a id="1183" class="Symbol">(</a><a id="1184" href="Text.Parser.Types.html#1184" class="Bound">A</a> <a id="1186" class="Symbol">:</a> <a id="1188" class="PrimitiveType">Set</a><a id="1191" class="Symbol">)</a> <a id="1193" class="Symbol">(</a><a id="1194" href="Text.Parser.Types.html#1194" class="Bound">n</a> <a id="1196" class="Symbol">:</a> <a id="1198" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="1199" class="Symbol">)</a> <a id="1201" class="Symbol">:</a> <a id="1203" class="PrimitiveType">Set</a> <a id="1207" class="Keyword">where</a>
-  <a id="1215" class="Keyword">constructor</a> <a id="Parser.mkParser"></a><a id="1227" href="Text.Parser.Types.html#1227" class="InductiveConstructor">mkParser</a>
-  <a id="1238" class="Keyword">open</a> <a id="1243" href="Text.Parser.Types.html#270" class="Module">Parameters</a> <a id="1254" href="Text.Parser.Types.html#1167" class="Bound">P</a>
-  <a id="1258" class="Keyword">field</a> <a id="Parser.runParser"></a><a id="1264" href="Text.Parser.Types.html#1264" class="Field">runParser</a> <a id="1274" class="Symbol">:</a> <a id="1276" class="Symbol">∀</a> <a id="1278" class="Symbol">{</a><a id="1279" href="Text.Parser.Types.html#1279" class="Bound">m</a><a id="1280" class="Symbol">}</a> <a id="1282" class="Symbol">→</a> <a id="1284" class="Symbol">.(</a><a id="1286" href="Text.Parser.Types.html#1279" class="Bound">m</a> <a id="1288" href="Data.Nat.Base.html#845" class="Datatype Operator">≤</a> <a id="1290" href="Text.Parser.Types.html#1194" class="Bound">n</a><a id="1291" class="Symbol">)</a> <a id="1293" class="Symbol">→</a> <a id="1295" href="Text.Parser.Types.html#412" class="Function">Toks</a> <a id="1300" href="Text.Parser.Types.html#1279" class="Bound">m</a> <a id="1302" class="Symbol">→</a> <a id="1304" href="Text.Parser.Types.html#463" class="Function">M</a> <a id="1306" class="Symbol">(</a><a id="1307" href="Text.Parser.Types.html#802" class="Record">Success</a> <a id="1315" href="Text.Parser.Types.html#412" class="Function">Toks</a> <a id="1320" href="Text.Parser.Types.html#1184" class="Bound">A</a> <a id="1322" href="Text.Parser.Types.html#1279" class="Bound">m</a><a id="1323" class="Symbol">)</a>
-<a id="1325" class="Keyword">open</a> <a id="1330" href="Text.Parser.Types.html#1159" class="Module">Parser</a> <a id="1337" class="Keyword">public</a>
+<a id="1101" class="Comment">-- A parser is the ability to, given an input, return a computation for</a>
+<a id="1173" class="Comment">-- a success.</a>
+
+<a id="1188" class="Keyword">record</a> <a id="Parser"></a><a id="1195" href="Text.Parser.Types.html#1195" class="Record">Parser</a> <a id="1202" class="Symbol">(</a><a id="1203" href="Text.Parser.Types.html#1203" class="Bound">P</a> <a id="1205" class="Symbol">:</a> <a id="1207" href="Text.Parser.Types.html#306" class="Record">Parameters</a><a id="1217" class="Symbol">)</a> <a id="1219" class="Symbol">(</a><a id="1220" href="Text.Parser.Types.html#1220" class="Bound">A</a> <a id="1222" class="Symbol">:</a> <a id="1224" class="PrimitiveType">Set</a><a id="1227" class="Symbol">)</a> <a id="1229" class="Symbol">(</a><a id="1230" href="Text.Parser.Types.html#1230" class="Bound">n</a> <a id="1232" class="Symbol">:</a> <a id="1234" href="Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="1235" class="Symbol">)</a> <a id="1237" class="Symbol">:</a> <a id="1239" class="PrimitiveType">Set</a> <a id="1243" class="Keyword">where</a>
+  <a id="1251" class="Keyword">constructor</a> <a id="Parser.mkParser"></a><a id="1263" href="Text.Parser.Types.html#1263" class="InductiveConstructor">mkParser</a>
+  <a id="1274" class="Keyword">open</a> <a id="1279" href="Text.Parser.Types.html#306" class="Module">Parameters</a> <a id="1290" href="Text.Parser.Types.html#1203" class="Bound">P</a>
+  <a id="1294" class="Keyword">field</a> <a id="Parser.runParser"></a><a id="1300" href="Text.Parser.Types.html#1300" class="Field">runParser</a> <a id="1310" class="Symbol">:</a> <a id="1312" class="Symbol">∀</a> <a id="1314" class="Symbol">{</a><a id="1315" href="Text.Parser.Types.html#1315" class="Bound">m</a><a id="1316" class="Symbol">}</a> <a id="1318" class="Symbol">→</a> <a id="1320" class="Symbol">.(</a><a id="1322" href="Text.Parser.Types.html#1315" class="Bound">m</a> <a id="1324" href="Data.Nat.Base.html#845" class="Datatype Operator">≤</a> <a id="1326" href="Text.Parser.Types.html#1230" class="Bound">n</a><a id="1327" class="Symbol">)</a> <a id="1329" class="Symbol">→</a> <a id="1331" href="Text.Parser.Types.html#448" class="Function">Toks</a> <a id="1336" href="Text.Parser.Types.html#1315" class="Bound">m</a> <a id="1338" class="Symbol">→</a> <a id="1340" href="Text.Parser.Types.html#499" class="Function">M</a> <a id="1342" class="Symbol">(</a><a id="1343" href="Text.Parser.Types.html#838" class="Record">Success</a> <a id="1351" href="Text.Parser.Types.html#448" class="Function">Toks</a> <a id="1356" href="Text.Parser.Types.html#1220" class="Bound">A</a> <a id="1358" href="Text.Parser.Types.html#1315" class="Bound">m</a><a id="1359" class="Symbol">)</a>
+<a id="1361" class="Keyword">open</a> <a id="1366" href="Text.Parser.Types.html#1195" class="Module">Parser</a> <a id="1373" class="Keyword">public</a>
 </pre></body></html>
