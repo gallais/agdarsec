@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Text.Parser.Types where
 
 open import Data.Unit using (⊤)

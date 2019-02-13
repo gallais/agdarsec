@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Data.List.Sized.Interface where
 
 open import Level
