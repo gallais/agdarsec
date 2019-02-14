@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Text.Parser.Combinators where
 
 open import Relation.Unary
@@ -14,7 +16,7 @@ open import Data.List.Base as List hiding ([_] ; any)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
 open import Relation.Nullary.Decidable
 open import Relation.Binary hiding (_⇒_)
-open import Relation.Binary.PropositionalEquality.Decidable
+open import Relation.Binary.PropositionalEquality.Decidable.Core
 import Data.String as String
 open String using () renaming (String to Text)
 

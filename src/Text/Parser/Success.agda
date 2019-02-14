@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Text.Parser.Success where
 
 open import Data.Nat.Base hiding (_^_)
@@ -22,17 +24,17 @@ module _ {A B : Set} {Toks : ℕ → Set} where
 
 module _ {A : Set} {Toks : ℕ → Set} where
 
-  ≤-lift : {m n : ℕ} → .(m ≤ n) → Success Toks A m → Success Toks A n
+  ≤-lift : {m n : ℕ} → .(le : m ≤ n) → Success Toks A m → Success Toks A n
   ≤-lift m≤n (a ^ p<m , s) = a ^ ≤-trans p<m m≤n , s
 
-  <-lift : {m n : ℕ} → .(m < n) → Success Toks A m → Success Toks A n
+  <-lift : {m n : ℕ} → .(le : m < n) → Success Toks A m → Success Toks A n
   <-lift m<n = ≤-lift (<⇒≤ m<n)
 
 module _ {A B : Set} {Toks : ℕ → Set} where
 
   and : {n : ℕ} (p : Success Toks A n) → Success Toks B (size p) →
         Success Toks (A × B) n
-  and p q = <-lift (small p) (map (value p ,_) q)
+  and (a ^ m<n , v) q = <-lift m<n (map (a ,_) q)
 
 module _ {Tok : Set} {Toks : ℕ → Set} {{𝕊 : Sized Tok Toks}} where
 

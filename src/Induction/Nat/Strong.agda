@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Induction.Nat.Strong where
 
 open import Data.Nat.Base

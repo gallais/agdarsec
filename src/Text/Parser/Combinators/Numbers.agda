@@ -12,6 +12,7 @@ open import Data.Maybe
 open import Data.Product
 open import Function
 open import Category.Monad
+open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality.Decidable
 
@@ -20,8 +21,6 @@ open import Relation.Unary
 
 open import Text.Parser.Types
 open import Text.Parser.Combinators
-
-instance eqChar = C._≟_
 
 module _ {P : Parameters} (open Parameters P)
          {{𝕄 : RawMonadPlus M}}
