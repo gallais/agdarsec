@@ -103,7 +103,7 @@ module AgdarsecT
     ST.pure a
 
   recordChar : Char → AgdarsecT E C M ⊤
-  recordChar c = tt ST.<$ ST.modify (map₁ (next c))
+  recordChar c = tt ST.<$ ST.modify (map₁ (update c))
 
   -- Commiting to a branch makes all the failures in that branch hard failures
   -- that we cannot recover from
