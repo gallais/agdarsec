@@ -43,15 +43,17 @@ open Language
 language : ∀[ Language ]
 language = fix Language $ λ rec →
   let □val = INS.map pVal rec
+      □neu = INS.map pNeu rec
       cut  = uncurry Cut <$> (char '(' &> □val
                          <& box (withSpaces (char ':'))
                          <&> box Type′
                          <& box (char ')'))
-      neu  = hchainl (var <|> cut) (box (App <$ space)) □val
-      val  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
+      app  = (Emb <$> var) <|> (parens □val)
+      neu  = hchainl (var <|> cut <|> parens □neu) (box (App <$ space)) (box app)
+      lam  = uncurry Lam <$> (char 'λ' &> box (withSpaces identifier)
                          <&> box ((char '.')
                           &> □val))
-           <|> Emb <$> neu
+      val = lam <|> Emb <$> neu <|> parens □val
   in record { pVal = val ; pNeu = neu }
 
    where
@@ -82,3 +84,38 @@ _ = Lam (mkIdentifier ('x' ∷ []))
                         (Emb (Var (mkIdentifier ('x' ∷ [])))))
                    (`κ 1 `→ `κ 1))
               (Emb (Var (mkIdentifier ('x' ∷ [])))))) !
+
+_ : "λg.λf.λa.g a (f a)" ∈ Val′
+_ =
+  ( Lam (mkIdentifier ('g' ∷ []))
+  $ Lam (mkIdentifier ('f' ∷ []))
+  $ Lam (mkIdentifier ('a' ∷ []))
+  $ Emb $ App (App (Var (mkIdentifier ('g' ∷ [])))
+                   (Emb (Var (mkIdentifier ('a' ∷ [])))))
+              (Emb (App (Var (mkIdentifier ('f' ∷ [])))
+                        (Emb (Var (mkIdentifier ('a' ∷ []))))))
+  ) !
+
+
+_ : "λg.λf.λa.(g a) (f a)" ∈ Val′
+_ =
+  ( Lam (mkIdentifier ('g' ∷ []))
+  $ Lam (mkIdentifier ('f' ∷ []))
+  $ Lam (mkIdentifier ('a' ∷ []))
+  $ Emb $ App (App (Var (mkIdentifier ('g' ∷ [])))
+                   (Emb (Var (mkIdentifier ('a' ∷ [])))))
+              (Emb (App (Var (mkIdentifier ('f' ∷ [])))
+                        (Emb (Var (mkIdentifier ('a' ∷ []))))))
+  ) !
+
+
+_ : "(λg.(λf.λa.(g) (a) ((f) a)))" ∈ Val′
+_ =
+  ( Lam (mkIdentifier ('g' ∷ []))
+  $ Lam (mkIdentifier ('f' ∷ []))
+  $ Lam (mkIdentifier ('a' ∷ []))
+  $ Emb $ App (App (Var (mkIdentifier ('g' ∷ [])))
+                   (Emb (Var (mkIdentifier ('a' ∷ [])))))
+              (Emb (App (Var (mkIdentifier ('f' ∷ [])))
+                        (Emb (Var (mkIdentifier ('a' ∷ []))))))
+  ) !
