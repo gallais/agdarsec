@@ -175,14 +175,14 @@ language = fix Language $ λ rec →
               &> □val <&> box (theTok COL) <&> box (commit type)
               <& box (theTok RPAR))
       app  = flip App <$> ((Emb <$> var) <|> parens □val)
-      neu  = iterate (var <|> cut <|> parens (INS.map commit □neu)) (box app)
+      neu  = iterate (var <|> cut <|> parens □neu) (box app)
       lam  = uncurry Lam
              <$> ((theTok LAM &> box name)
              <&> box (theTok DOT &> INS.map commit □val))
       val = lam <|> Emb <$> neu
 
-  in record { pVal = val <|> parens (INS.map commit □val)
-            ; pNeu = neu <|> parens (INS.map commit □neu)
+  in record { pVal = val <|> parens □val
+            ; pNeu = neu <|> parens □neu
             }
 
 val : ∀[ Parser P Val ]
@@ -193,10 +193,10 @@ val = pVal language
 _ : parse val "λx.x"
 _ = Lam "x" (Emb (Var "x")) !
 
-_ : parse val "λx.λy.x y"
+_ : parse val "λx.(λy.x y)"
 _ = Lam "x" (Lam "y" (Emb (App (Var "x") (Emb (Var "y"))))) !
 
-_ : parse val "λx.(λx.x : `a → `a) x"
+_ : parse val "(λx.(λx.x : `a → `a) x)"
 _ = Lam "x"
       (Emb (App (Cut (Lam "x" (Emb (Var "x"))) (`κ "a" `→ `κ "a"))
                 (Emb (Var "x")))) !
@@ -206,12 +206,12 @@ _ = Lam "g" (Lam "f" (Lam "a"
      (Emb (App (App (Var "g") (Emb (Var "a")))
                (Emb (App (Var "f") (Emb (Var "a")))))))) !
 
-_ : parse val "λg.λf.λa.(g a) (f a)"
+_ : parse val "(λg.λf.λa.(g a) (f a))"
 _ = Lam "g" (Lam "f" (Lam "a"
      (Emb (App (App (Var "g") (Emb (Var "a")))
                (Emb (App (Var "f") (Emb (Var "a")))))))) !
 
-_ : parse val "λg.λf.λa.((g) (a)) (f a))"
+_ : parse val "(λg.(λf.(λa.(((g) ((a)))) ((f) (a))))))"
 _ = Lam "g" (Lam "f" (Lam "a"
      (Emb (App (App (Var "g") (Emb (Var "a")))
                (Emb (App (Var "f") (Emb (Var "a")))))))) !
