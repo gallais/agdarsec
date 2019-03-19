@@ -14,6 +14,8 @@ open import Data.Bool.Base
 open import Data.Nat.Properties
 open import Data.List.Base as List hiding ([_] ; any)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
+import Data.List.Any as Any
+open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable
 open import Relation.Binary hiding (_⇒_)
 open import Relation.Binary.PropositionalEquality.Decidable.Core
@@ -188,10 +190,18 @@ module _ {P : Parameters}
   anyOf ts = guard (λ c → not (null ts) ∧ List.any (⌊_⌋ ∘ decide eq? c) ts) anyTok
 
   exact : P.Tok → ∀[ Parser P P.Tok ]
-  exact = anyOf ∘ List.[_]
+  exact = anyOf ∘′ List.[_]
 
   exacts : List⁺ P.Tok → ∀[ Parser P (List⁺ P.Tok) ]
   exacts ts = ands (NonEmpty.map (λ t → exact t) ts)
+
+  noneOf : List P.Tok → ∀[ Parser P P.Tok ]
+  noneOf ts = maybeTok $ λ t → case Any.any (eq? .decide t) ts of λ where
+    (yes p) → nothing
+    (no ¬p) → just t
+
+  anyTokenBut : P.Tok → ∀[ Parser P P.Tok ]
+  anyTokenBut = noneOf ∘′ List.[_]
 
  module _ {A : Set} where
 

@@ -32,6 +32,9 @@ module _ {P : Parameters} (open Parameters P)
  char : Char → ∀[ Parser P Tok ]
  char = exact ∘ ℂ.into
 
+ anyCharBut : Char → ∀[ Parser P Tok ]
+ anyCharBut = anyTokenBut ∘′ ℂ.into
+
  space : ∀[ Parser P Tok ]
  space = anyOf $ List.map ℂ.into $ ' ' ∷ '\t' ∷ '\n' ∷ []
 

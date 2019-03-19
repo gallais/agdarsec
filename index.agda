@@ -17,6 +17,10 @@ import Text.Parser.Combinators.Char
 
 import Text.Parser.Monad
 
+-- We have a small lexer library
+
+import Text.Lexer
+
 -- And a small library to define lexers:
 
 import Text.Lexer
