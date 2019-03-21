@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Data.Subset where
 
 record Subset (A B : Set) : Set where

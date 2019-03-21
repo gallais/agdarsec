@@ -2,8 +2,7 @@ module RegExp where
 
 open import Data.Nat.Base
 open import Data.Bool.Base
-open import Data.Char
-open import Data.Char.Unsafe as C using (_≟_)
+open import Data.Char as C
 open import Data.Vec using (Vec)
 open import Data.List.Base     as List
 open import Data.List.NonEmpty as NonEmpty

@@ -4,7 +4,6 @@ open import Level
 open import Data.Unit
 open import Data.Bool
 open import Data.Char          as Char
-open import Data.Char.Unsafe
 open import Data.List          as List using (List; []; _∷_)
 open import Data.List.NonEmpty as List⁺ using (List⁺; _∷_)
 open import Data.Maybe         as Maybe

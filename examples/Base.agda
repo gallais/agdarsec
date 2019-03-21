@@ -88,11 +88,11 @@ module _ {P : Parameters} (open Parameters P)
          {{t : Tokenizer Tok}}
          {{𝕄 : RawMonadPlus M}}
          {{𝕊 : Sized Tok Toks}}
-         {{𝕃 : ∀ n → Subset (Vec Tok n) (Toks n)}}
+         {{𝕃 : ∀ {n} → Subset (Vec Tok n) (Toks n)}}
          {{ℝ  : RawMonadRun M}} where
 
  private module 𝕄 = RawMonadPlus 𝕄
- private module 𝕃 {n} = Subset (𝕃 n)
+ private module 𝕃{n} = Subset (𝕃 {n})
 
  _∈_ : {A : Set} → String → ∀[ Parser P A ] → Set
  s ∈ A =

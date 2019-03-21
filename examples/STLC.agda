@@ -7,7 +7,6 @@ open import Data.Bool.Base
 open import Data.Nat.Properties using (≤-refl)
 open import Data.Char.Base
 open import Data.String as String
-open import Data.String.Unsafe as Str
 open import Data.List.Base as List
 open import Data.List.NonEmpty
 open import Data.Vec as Vec
@@ -83,7 +82,7 @@ eqTok (ID x) DOT = no (λ ())
 eqTok (ID x) COL = no (λ ())
 eqTok (ID x) LPAR = no (λ ())
 eqTok (ID x) RPAR = no (λ ())
-eqTok (ID x) (ID y) = map′ (cong ID) (λ where refl → refl) (x Str.≟ y)
+eqTok (ID x) (ID y) = map′ (cong ID) (λ where refl → refl) (x String.≟ y)
 
 Token : Set
 Token = Position × Tok

@@ -3,7 +3,6 @@ module Parentheses where
 open import Data.Unit
 open import Data.Maybe
 open import Data.Char
-open import Data.Char.Unsafe using (_==_)
 open import Data.List.Base as List
 import Data.List.Sized.Interface
 open import Data.Bool
