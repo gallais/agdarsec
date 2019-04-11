@@ -9,8 +9,11 @@ open import Data.Vec using (Vec)
 open import Data.Maybe hiding (fromMaybe)
 open import Data.Subset
 open import Function
+
 open import Category.Functor
+open import Category.Applicative
 open import Category.Monad
+
 open import Function.Identity.Categorical as Id using (Identity)
 open import Category.Monad.State
 
@@ -70,18 +73,33 @@ module AgdarsecT
   monadT : RawMonad (AgdarsecT E C M)
   monadT = StateTMonad _ (Result-monadT E 𝕄)
 
+  applicative : RawApplicative (AgdarsecT E C M)
+  applicative = RawMonad.rawIApplicative monadT
+
+  applicativeZero : RawApplicativeZero (AgdarsecT E C M)
+  applicativeZero = record
+    { applicative = applicative
+    ; ∅           = 𝕄.pure ∘′ SoftFail ∘′ into 𝕊
+    }
+
   monadZero : RawMonadZero (AgdarsecT E C M)
   monadZero = record
-    { monad = monadT
-    ; ∅     = 𝕄.pure ∘′ SoftFail ∘′ into 𝕊
+    { monad           = monadT
+    ; applicativeZero = applicativeZero
+    }
+
+  alternative : RawAlternative (AgdarsecT E C M)
+  alternative = record
+    { applicativeZero = applicativeZero
+    ; _∣_             = λ ma₁ ma₂ s → ma₁ s 𝕄.>>= λ where
+        (SoftFail _) → ma₂ s
+        r            → 𝕄.pure r
     }
 
   monadPlus : RawMonadPlus (AgdarsecT E C M)
   monadPlus = record
-    { monadZero = monadZero
-    ; _∣_       = λ ma₁ ma₂ s → ma₁ s 𝕄.>>= λ where
-        (SoftFail _) → ma₂ s
-        r            → 𝕄.pure r
+    { monad       = monadT
+    ; alternative = alternative
     }
 
   monadState : RawMonadState (Position × List C) (AgdarsecT E C M)
