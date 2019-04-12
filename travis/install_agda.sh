@@ -1,8 +1,9 @@
 #!/bin/sh
 
 VERSION=2.6.0
+CURRENT=$(agda -V | sed "s/Agda version \([^-]*\).*/\1/")
 
-if ! type "agda" > /dev/null || [ ! `agda -V | sed "s/Agda version \([0-9.]+\)/\1/"` = "$VERSION" ]; then
+if ! type "agda" > /dev/null || [ ! "$CURRENT" = "$VERSION" ]; then
   cabal update
   cabal install alex happy cpphs
   cabal install Agda-${VERSION}
