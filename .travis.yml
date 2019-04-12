@@ -4,6 +4,7 @@ sudo: false
 branches:
   only:
     - master
+    - experimental
 
 addons:
   apt:
@@ -38,4 +39,6 @@ after_success:
   - git fetch upstream && git reset upstream/gh-pages
   - git add -f \*.html \*.css
   - git commit -m "Automatic HTML update via Travis"
-  - git push -q upstream HEAD:gh-pages &>/dev/null;
+  - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ];
+    then git push -q upstream HEAD:gh-pages &>/dev/null;
+    fi
