@@ -2,7 +2,7 @@
 
 VERSION=2.6.0
 
-if ! type "agda" > /dev/null || [ ! `agda -V | sed "s/Agda version \([0-9\.]+\)//"` = "$VERSION" ]; then
+if ! type "agda" > /dev/null || [ ! `agda -V | sed "s/Agda version \([0-9.]+\)/\1/"` = "$VERSION" ]; then
   cabal update
   cabal install alex happy cpphs
   cabal install Agda-${VERSION}
