@@ -101,6 +101,13 @@ module _ {P : Parameters}
 
  module _ {A B : Set} where
 
+  _?&>>=_ : ∀[ Parser P A ⇒ (const (Maybe A) ⇒ Parser P B) ⇒
+            Parser P (Maybe A × B) ]
+  A ?&>>= B = (Prod.map₁ just <$> A &>>= λ a → box (B (just a)))
+          <|> ((nothing ,_)   <$> B nothing)
+
+ module _ {A B : Set} where
+
   _>>=_ : ∀[ Parser P A ⇒ (const A ⇒ □ Parser P B) ⇒ Parser P B ]
   A >>= B = proj₂ <$> A &>>= B
 
