@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Text.Parser.Combinators.Char where
 
 open import Data.Nat.Base

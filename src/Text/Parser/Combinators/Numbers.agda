@@ -1,9 +1,10 @@
+{-# OPTIONS --without-K --safe #-}
+
 module Text.Parser.Combinators.Numbers where
 
 open import Data.Nat.Base as ℕ
 open import Data.Integer.Base as ℤ hiding (sign)
-open import Data.Char
-import Data.Char.Unsafe as C using (_≟_)
+open import Data.Char using (Char)
 open import Data.List.Base as List
 open import Data.List.NonEmpty as NonEmpty
 open import Data.List.Sized.Interface
