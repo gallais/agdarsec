@@ -2,15 +2,15 @@
 
 module Text.Parser.Combinators where
 
-open import Relation.Unary
+open import Relation.Unary hiding (⌊_⌋)
 open import Induction.Nat.Strong as Box hiding (≤-lower ; <-lower)
 open import Data.Nat.Base hiding (_^_)
 
 open import Data.Sum as Sum
 open import Data.Product as Prod
-open import Data.Maybe.Base
-open import Data.Char
-open import Data.Bool.Base
+open import Data.Maybe.Base hiding (_>>=_)
+open import Data.Char hiding (_<_)
+open import Data.Bool.Base hiding (_<_; _≤_)
 open import Data.Nat.Properties
 open import Data.List.Base as List hiding ([_] ; any)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)

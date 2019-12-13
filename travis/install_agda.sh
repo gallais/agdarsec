@@ -10,7 +10,7 @@ if ! type "agda" > /dev/null || [ ! "$CURRENT" = "$VERSION" ]; then
   mkdir -p $HOME/.agda
   cp libraries $HOME/.agda/
   cd $HOME/.agda/
-  wget https://github.com/agda/agda-stdlib/archive/v1.0.tar.gz
+  wget https://github.com/agda/agda-stdlib/archive/v1.2.tar.gz
   tar -xvzf v1.0.tar.gz
   cd -
 fi

@@ -2,7 +2,7 @@
 
 module Relation.Binary.PropositionalEquality.Decidable.Core where
 
-open import Relation.Binary.Core
+open import Relation.Binary
 open import Relation.Binary.PropositionalEquality.Core
 
 record DecidableEquality {a} (A : Set a) : Set a where
