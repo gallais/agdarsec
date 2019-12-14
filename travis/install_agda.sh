@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=2.6.0
+VERSION=2.6.0.1
 CURRENT=$(agda -V | sed "s/Agda version \([^-]*\).*/\1/")
 
 if ! type "agda" > /dev/null || [ ! "$CURRENT" = "$VERSION" ]; then
