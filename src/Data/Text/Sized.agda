@@ -5,7 +5,7 @@ open import Data.Unit
 open import Data.Nat.Base
 open import Data.Char.Base
 open import Data.String.Base hiding (length)
-open import Data.List.Base
+open import Data.List.Base hiding (uncons)
 open import Data.Maybe.Base
 open import Data.Pair
 open import Data.Product

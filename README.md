@@ -11,8 +11,8 @@ The motivation and design decisions behind agdarsec are detailed in:
 
 To typecheck and compile this project you will need:
 
-* Agda version 2.6.0
-* Agda's standard library Version 1.0
+* Agda version 2.6.0.1
+* Agda's standard library Version 1.2
 
 ## Ports
 

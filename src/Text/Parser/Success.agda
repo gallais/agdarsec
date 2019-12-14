@@ -4,7 +4,7 @@ module Text.Parser.Success where
 
 open import Data.Nat.Base hiding (_^_)
 open import Data.Nat.Properties
-open import Data.Char.Base
+open import Data.Char.Base hiding (_<_)
 open import Data.Maybe.Base as Maybe hiding (map)
 open import Data.Product hiding (map)
 open import Data.List.Sized.Interface

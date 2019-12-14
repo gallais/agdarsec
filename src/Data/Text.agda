@@ -3,7 +3,7 @@ module Data.Text where
 open import Data.Char.Base
 open import Data.String.Base
 open import Data.Maybe.Base
-open import Data.List.Base
+open import Data.List.Base hiding (uncons)
 open import Data.Pair
 open import Relation.Binary.PropositionalEquality
 

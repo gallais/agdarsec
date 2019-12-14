@@ -6,7 +6,7 @@ open import Data.Char
 open import Data.Product
 open import Data.List hiding (fromMaybe ; [_])
 open import Data.Vec using (Vec)
-open import Data.Maybe hiding (fromMaybe)
+open import Data.Maybe hiding (fromMaybe; _>>=_)
 open import Data.Subset
 open import Function
 

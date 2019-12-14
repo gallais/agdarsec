@@ -100,6 +100,6 @@ module _ {P : Parameters} (open Parameters P)
       parse = runParser A (n≤1+n _) (𝕃.into input)
       check = λ s → if ⌊ Success.size s Nat.≟ 0 ⌋
                     then just (Success.value s) else nothing
-  in case List.mapM MaybeCat.monad check $ runM ℝ parse of λ where
+  in case List.TraversableM.mapM MaybeCat.monad check $ runM ℝ parse of λ where
        (just (a ∷ _)) → Singleton a
        _              → ⊥

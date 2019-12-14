@@ -18,7 +18,6 @@ cache:
   directories:
     - $HOME/.cabal/
     - $HOME/.ghc/
-    - $HOME/.agda/
 
 install:
   - export PATH=$HOME/.cabal/bin:/opt/ghc/8.2.2/bin:/opt/cabal/2.0/bin:$PATH
@@ -27,7 +26,7 @@ install:
 
 script:
   - cd ..
-  - agda -i. -iexamples -isrc --html index.agda
+  - agda --ignore-interfaces -i. -iexamples -isrc --html index.agda
   - mv html/* .
 
 after_success:
