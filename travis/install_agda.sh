@@ -9,6 +9,7 @@ if ! type "agda" > /dev/null || [ ! "$CURRENT" = "$VERSION" ]; then
   cabal install Agda-${VERSION}
 fi
 
+rm -rf $HOME/.agda
 mkdir -p $HOME/.agda
 cp libraries $HOME/.agda/
 cd $HOME/.agda/
