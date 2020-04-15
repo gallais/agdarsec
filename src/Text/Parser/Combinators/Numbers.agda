@@ -14,7 +14,7 @@ open import Data.Product
 open import Function
 open import Category.Monad
 open import Relation.Nullary
-open import Relation.Binary
+open import Relation.Binary hiding (DecidableEquality)
 open import Relation.Binary.PropositionalEquality.Decidable
 
 open import Data.Subset

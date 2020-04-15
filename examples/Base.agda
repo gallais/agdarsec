@@ -9,7 +9,7 @@ open import Data.String as String
 open import Data.List.Base as L hiding ([_] ; module List)
 open import Data.List.Categorical as List
 open import Data.List.Sized.Interface
-open import Data.List.Any as Any
+open import Data.List.Relation.Unary.Any as Any
 open import Data.Vec as Vec hiding ([_])
 open import Data.Bool
 open import Data.Maybe

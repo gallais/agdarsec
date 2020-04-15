@@ -7,7 +7,7 @@ open import Data.List.Base as List
 import Data.List.Sized.Interface
 open import Data.Bool
 open import Relation.Nullary
-open import Relation.Binary
+open import Relation.Binary hiding (DecidableEquality)
 
 open import Agda.Builtin.Equality
 open import Function

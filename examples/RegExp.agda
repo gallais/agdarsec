@@ -11,7 +11,7 @@ open import Data.Maybe
 open import Data.Product
 open import Function
 open import Relation.Nullary
-open import Relation.Binary
+open import Relation.Binary hiding (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
 
 open import Base
