@@ -6,7 +6,7 @@ open import Data.Empty
 open import Data.Bool.Base
 open import Data.Nat.Properties using (≤-refl)
 open import Data.Char.Base
-open import Data.String as String
+open import Data.String as String hiding (parens)
 open import Data.List.Base as List
 open import Data.List.NonEmpty
 open import Data.Vec as Vec
@@ -19,7 +19,7 @@ open import Function
 open import Relation.Nullary
 open import Relation.Nullary.Decidable using (map′)
 open import Relation.Unary as U renaming (_⇒_ to _⟶_)
-open import Relation.Binary as B
+open import Relation.Binary as B hiding (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
 
 open import Text.Parser.Types

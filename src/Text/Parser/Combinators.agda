@@ -14,10 +14,10 @@ open import Data.Bool.Base hiding (_<_; _≤_)
 open import Data.Nat.Properties
 open import Data.List.Base as List hiding ([_] ; any)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
-import Data.List.Any as Any
+import Data.List.Relation.Unary.Any as Any
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable
-open import Relation.Binary hiding (_⇒_)
+open import Relation.Binary hiding (_⇒_; DecidableEquality)
 open import Relation.Binary.PropositionalEquality.Decidable.Core
 import Data.String as String
 open String using () renaming (String to Text)

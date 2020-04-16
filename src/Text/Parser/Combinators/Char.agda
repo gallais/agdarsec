@@ -6,7 +6,7 @@ open import Data.Nat.Base
 open import Data.Sum
 open import Data.Bool.Base
 open import Data.Char
-open import Data.String as String
+open import Data.String as String hiding (parens)
 open import Data.List.Base as List hiding ([_])
 open import Data.List.NonEmpty as NonEmpty hiding ([_])
 open import Category.Monad

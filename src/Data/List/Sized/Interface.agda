@@ -25,7 +25,7 @@ instance
   Sized.view     vec []       = lift tt
   Sized.view     vec (x ∷ xs) = x , xs
 
-open import Data.Product.N-ary
+open import Data.Vec.Recursive
 
 instance
 
