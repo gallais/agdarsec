@@ -32,27 +32,59 @@ module _ {P : Parameters} (open Parameters P)
          where
 
   sexp : ∀[ Parser P SExp ]
-  sexp = fix (Parser P SExp) $ λ rec →
-    let atom = Atom ∘ String.fromList ∘ List⁺.toList ∘ List⁺.map (into ℂ′)
-               <$> list⁺ alpha <&? box spaces
+  sexp =
+    -- SExp is an inductive point so we build the parser as a fixpoint
+    fix (Parser P SExp) $ λ rec →
+        -- First we have atoms. Assuming we have already consumed the leading space, an
+        -- atom is just a non empty list of alphabetical characters.
 
+        -- We use `<$>` to turn that back into a string and apply the `Atom` constructor.
+    let atom = Atom ∘ String.fromList ∘ List⁺.toList ∘ List⁺.map (into ℂ′)
+               <$> list⁺ alpha
+
+        -- Then we have subexpressions. Here we have to be a bit careful: we can have both
+        -- * a sexp with additional parentheses à la `(e)`
+        -- * pairing constructs à la `(e f)`
+
+        -- In both cases they are surrounded by parentheses so we use `parens` and then we
+        -- 1. unconditionally parse a subexpression thanks to `rec` introduced by the fixpoint earlier
+        -- 2. _potentially_ consume a second subexpression (the `?`-tagged combinators are variants
+        --    that are allowed to fail on the side the question mark is on).
+
+        -- I give a bit more details about `lift` and `box` below.
+        -- As for the previous case we use `<$>` to massage the result into a `SExp`.
         sexp = (λ (a , mb) → maybe (Pair a) a mb)
-               <$> parens (lift2 (λ p q → spaces ?&> p <&?> box (spaces ?&> q))
+               <$> parens (lift2 (λ p q → (spaces ?&> p <&? box spaces) <&?> box (q <&? box spaces))
                                  rec
-                                 rec) <&? box spaces
+                                 rec)
      in
+
+     -- Finally we can put the two things together by using a simple disjunction
      atom <|> sexp
 
+
+        -- `lift`:
+        -- parens is guaranteed to consume some of its input before calling its argument so
+        -- the argument is guarded. We are however not making a direct call to `rec` in a guarded
+        -- position: we are taking a (potentially failing) pairing of two sub-parsers, potentially
+        -- eating some space, etc. So we use `lift2` as a way to distribute the proof that we are in
+        -- a guarded position to the key elements that need it.
+
+        -- `box`:
+        -- sometimes on the other hand we have a guarded call but do not actually care. We can use
+        -- `box` to discard the proof and use a normal parser in that guarded position.
 
 
 open import Base
 
+-- The full parser is obtained by disregarding spaces before & after the expression
 SEXP : ∀[ Parser chars SExp ]
-SEXP = sexp
+SEXP = spaces ?&> sexp <&? box spaces
 
-_ : "((this    is)
+-- And we can run the thing on a test (which is very convenient when refactoring grammars!..):
+_ : "((  this    is)
       ((a (  pair based))
-          (S (expression))))   " ∈ SEXP
+          ((S)(expression  ))))   " ∈ SEXP
 _ = Pair (Pair (Atom "this") (Atom "is"))
          (Pair (Pair (Atom "a")
                      (Pair (Atom "pair") (Atom "based")))
