@@ -32,10 +32,9 @@ import STLC
 import Parentheses
 import RegExp
 import NList
-
+import SExp
 
 -- The key ideas behind the implementation details are largely contained in
 
 import Induction.Nat.Strong
 import Text.Parser.Success
-

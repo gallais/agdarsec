@@ -73,6 +73,20 @@ module _ {P : Parameters}
   _<|>_ : ∀[ Parser P A ⇒ Parser P A ⇒ Parser P A ]
   runParser (A₁ <|> A₂) m≤n s = runParser A₁ m≤n s 𝕄.∣ runParser A₂ m≤n s
 
+ module _ {A B C : Set} where
+
+  lift2 : ∀[ Parser P A ⇒ Parser P B ⇒ Parser P C ] →
+          ∀[ □ (Parser P A) ⇒ □ (Parser P B) ⇒ □ (Parser P C) ]
+  lift2 = map2
+
+  lift2l : ∀[ Parser P A ⇒ Parser P B ⇒ Parser P C ] ->
+           ∀[ □ (Parser P A) ⇒ Parser P B ⇒ □ (Parser P C) ]
+  lift2l f a b = lift2 f a (box b)
+
+  lift2r : ∀[ Parser P A ⇒ Parser P B ⇒ Parser P C ] ->
+           ∀[ Parser P A ⇒ □ (Parser P B) ⇒ □ (Parser P C) ]
+  lift2r f a b = lift2 f (box a) b
+
  module _ {A B : Set} where
 
   infixr 5 _<$>_
