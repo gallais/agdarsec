@@ -33,7 +33,7 @@ module _ {P : Parameters} (open Parameters P)
 
   sexp : ∀[ Parser P SExp ]
   sexp =
-    -- SExp is an inductive point so we build the parser as a fixpoint
+    -- SExp is an inductive type so we build the parser as a fixpoint
     fix (Parser P SExp) $ λ rec →
         -- First we have atoms. Assuming we have already consumed the leading space, an
         -- atom is just a non empty list of alphabetical characters.
