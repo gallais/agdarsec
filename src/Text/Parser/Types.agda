@@ -2,25 +2,26 @@
 
 module Text.Parser.Types where
 
-open import Data.Unit using (⊤)
-open import Data.Nat
+open import Level using (Level; suc; Lift)
+open import Data.Unit.Base using (⊤)
+open import Data.Nat.Base using (ℕ; _<_; _≤_)
 
 --------------------------------------------------------------------------------
 -- PARAMETERS
 
 -- A parser is parametrised by some types, type constructors and one function.
 
-record Parameters : Set₁ where
+record Parameters (l : Level) : Set (suc l) where
    field
 -- Token-related parameters:
 -- * Tok: tokens
 -- * Toks: sized input (~ Vec Tok)
-     Tok         : Set
-     Toks        : ℕ → Set
+     Tok         : Set l
+     Toks        : ℕ → Set l
 -- The monad stack used
-     M           : Set → Set
+     M           : Set l → Set l
 -- The action allowing us to track consumed tokens
-     recordToken : Tok → M ⊤
+     recordToken : Tok → M (Lift l ⊤)
 
 --------------------------------------------------------------------------------
 -- SUCCESS
@@ -29,7 +30,7 @@ record Parameters : Set₁ where
 -- which are proven to be smaller than the input
 
 infix 1 _^_,_
-record Success (Toks : ℕ → Set) (A : Set) (n : ℕ) : Set where
+record Success {l} (Toks : ℕ → Set l) (A : Set l) (n : ℕ) : Set l where
   constructor _^_,_
   field
     value     : A
@@ -43,7 +44,7 @@ record Success (Toks : ℕ → Set) (A : Set) (n : ℕ) : Set where
 -- A parser is the ability to, given an input, return a computation for
 -- a success.
 
-record Parser (P : Parameters) (A : Set) (n : ℕ) : Set where
+record Parser {l} (P : Parameters l) (A : Set l) (n : ℕ) : Set l where
   constructor mkParser
   open Parameters P
   field runParser : ∀ {m} → .(m ≤ n) → Toks m → M (Success Toks A m)
