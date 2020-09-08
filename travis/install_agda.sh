@@ -13,6 +13,6 @@ rm -rf $HOME/.agda
 mkdir -p $HOME/.agda
 cp libraries $HOME/.agda/
 cd $HOME/.agda/
-wget https://github.com/agda/agda-stdlib/archive/v1.3.tar.gz
-tar -xvzf v1.3.tar.gz
+wget https://github.com/agda/agda-stdlib/archive/v1.4-rc1.tar.gz
+tar -xvzf v1.4-rc1.tar.gz
 cd -
