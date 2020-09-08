@@ -2,17 +2,16 @@ module RegExp where
 
 open import Data.Nat.Base
 open import Data.Bool.Base
-open import Data.Char as C
-open import Data.Vec using (Vec)
-open import Data.List.Base     as List
-open import Data.List.NonEmpty as NonEmpty
+open import Data.Char as C using (Char)
+open import Data.List.Base     as List using (List; []; _∷_)
+open import Data.List.NonEmpty as NonEmpty using (List⁺; toList; _∷_)
 import Data.List.Sized.Interface
-open import Data.Maybe
-open import Data.Product
-open import Function
-open import Relation.Nullary
+open import Data.Maybe using (Maybe; nothing; just; maybe)
+open import Data.Product using (uncurry)
+open import Function.Base using (_∘_; _$_; const; id)
+open import Relation.Nullary using (yes; no)
 open import Relation.Binary hiding (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
 open import Base
 
@@ -107,4 +106,3 @@ _ = `[ interval 'a' 'z' ∷ interval 'A' 'Z' ∷ interval '0' '9' ∷ singleton 
   ∙ (literal '.' ∙ literal  'a' ∙ literal  'g' ∙ literal 'd')
   ∙ ((literal 'a')
   ∥  (literal 'a' ∙ literal 'i')) !
-
