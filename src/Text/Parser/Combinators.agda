@@ -2,28 +2,26 @@
 
 module Text.Parser.Combinators where
 
-open import Relation.Unary hiding (⌊_⌋)
-open import Induction.Nat.Strong as Box hiding (≤-lower ; <-lower)
-open import Data.Nat.Base hiding (_^_)
+open import Relation.Unary using (IUniversal; _⇒_)
+open import Induction.Nat.Strong as Box using (□_)
+open import Data.Nat.Base using (ℕ; _≤_; _<_)
 
-open import Data.Sum as Sum
-open import Data.Product as Prod
-open import Data.Maybe.Base hiding (_>>=_)
-open import Data.Char hiding (_<_)
-open import Data.Bool.Base hiding (_<_; _≤_)
-open import Data.Nat.Properties
-open import Data.List.Base as List hiding ([_] ; any)
+open import Data.Sum as Sum using (_⊎_; inj₁; inj₂)
+open import Data.Product as Prod using (_×_; _,_; proj₁; proj₂; uncurry)
+open import Data.Maybe.Base using (Maybe; just; nothing; maybe)
+open import Data.Char as Char using (Char)
+open import Data.Bool.Base as Bool using (Bool; if_then_else_; not; _∧_)
+open import Data.Nat.Properties as Nat using (≤-refl; ≤-trans; <⇒≤; <-trans)
+open import Data.List.Base as List using (List; _∷_; []; null)
 open import Data.List.NonEmpty as NonEmpty using (List⁺ ; _∷⁺_ ; _∷_)
 import Data.List.Relation.Unary.Any as Any
-open import Relation.Nullary using (yes; no)
-open import Relation.Nullary.Decidable
-open import Relation.Binary hiding (_⇒_; DecidableEquality)
-open import Relation.Binary.PropositionalEquality.Decidable.Core
-import Data.String as String
-open String using () renaming (String to Text)
+open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary.Decidable using (⌊_⌋)
+open import Relation.Binary.PropositionalEquality.Decidable.Core using (DecidableEquality; decide)
+open import Data.String as String using () renaming (String to Text)
 
-open import Category.Monad
-open import Data.List.Sized.Interface
+open import Category.Monad using (RawMonadPlus)
+open import Data.List.Sized.Interface using (Sized)
 
 open import Function
 
@@ -64,7 +62,7 @@ module _ {P : Parameters}
   <-lower m<n = ≤-lower (<⇒≤ m<n)
 
   box : ∀[ Parser P A ⇒ □ Parser P A ]
-  box = ≤-close ≤-lower
+  box = Box.≤-close ≤-lower
 
   fail : ∀[ Parser P A ]
   runParser fail _ _ = 𝕄.∅
@@ -77,7 +75,7 @@ module _ {P : Parameters}
 
   lift2 : ∀[ Parser P A ⇒ Parser P B ⇒ Parser P C ] →
           ∀[ □ (Parser P A) ⇒ □ (Parser P B) ⇒ □ (Parser P C) ]
-  lift2 = map2
+  lift2 = Box.map2
 
   lift2l : ∀[ Parser P A ⇒ Parser P B ⇒ Parser P C ] ->
            ∀[ □ (Parser P A) ⇒ Parser P B ⇒ □ (Parser P C) ]
@@ -102,7 +100,7 @@ module _ {P : Parameters}
   runParser (A &?>>= B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
-    (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
+    (runParser (Box.call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
      𝕄.return (S.and rA (S.map just rB)))
     𝕄.∣ 𝕄.return (a , nothing ^ p<m , s′)
 
@@ -110,7 +108,7 @@ module _ {P : Parameters}
   runParser (A &>>= B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
-    (runParser (call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
+    (runParser (Box.call (B a) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
      𝕄.return (S.and rA rB))
 
  module _ {A B : Set} where
@@ -217,7 +215,7 @@ module _ {P : Parameters}
   exacts ts = ands (NonEmpty.map (λ t → exact t) ts)
 
   noneOf : List P.Tok → ∀[ Parser P P.Tok ]
-  noneOf ts = maybeTok $ λ t → case Any.any (eq? .decide t) ts of λ where
+  noneOf ts = maybeTok $ λ t → case Any.any? (eq? .decide t) ts of λ where
     (yes p) → nothing
     (no ¬p) → just t
 
@@ -227,13 +225,13 @@ module _ {P : Parameters}
  module _ {A : Set} where
 
   schainl : ∀[ Success P.Toks A ⇒ □ Parser P (A → A) ⇒ P.M ∘ Success P.Toks A ]
-  schainl = fix goal $ λ rec sA op → rest rec sA op 𝕄.∣ 𝕄.return sA where
+  schainl = Box.fix goal $ λ rec sA op → rest rec sA op 𝕄.∣ 𝕄.return sA where
 
     goal = Success P.Toks A ⇒ □ Parser P (A → A) ⇒ P.M ∘ Success P.Toks A
 
     rest : ∀[ □ goal ⇒ goal ]
-    rest rec (a ^ p<m , s) op = runParser (call op p<m) ≤-refl s 𝕄.>>= λ sOp →
-          call rec p<m (S.map (_$ a) sOp) (Box.<-lower p<m op) 𝕄.>>=
+    rest rec (a ^ p<m , s) op = runParser (Box.call op p<m) ≤-refl s 𝕄.>>= λ sOp →
+          Box.call rec p<m (S.map (_$ a) sOp) (Box.<-lower p<m op) 𝕄.>>=
           𝕄.return ∘ <-lift p<m
 
   iterate : ∀[ Parser P A ⇒ □ Parser P (A → A) ⇒ Parser P A ]
@@ -244,7 +242,7 @@ module _ {P : Parameters}
 
   hchainl : ∀[ Parser P A ⇒ □ Parser P (A → B → A) ⇒ □ Parser P B ⇒
               Parser P A ]
-  hchainl A op B = iterate A (map2 _<*>_ (Box.map (flip <$>_) op) (duplicate B))
+  hchainl A op B = iterate A (Box.map2 _<*>_ (Box.map (flip <$>_) op) (Box.duplicate B))
 
  module _ {A : Set} where
 
@@ -252,7 +250,7 @@ module _ {P : Parameters}
   chainl1 a op = hchainl a op (box a)
 
   chainr1 : ∀[ Parser P A ⇒ □ Parser P (A → A → A) ⇒ Parser P A ]
-  chainr1 = fix goal $ λ rec A op → mkParser λ m≤n s →
+  chainr1 = Box.fix goal $ λ rec A op → mkParser λ m≤n s →
             runParser A m≤n s 𝕄.>>= λ sA →
             rest (Box.≤-lower m≤n rec) (≤-lower m≤n A) (Box.≤-lower m≤n op) sA
             𝕄.∣  𝕄.return sA where
@@ -261,9 +259,9 @@ module _ {P : Parameters}
 
     rest : ∀[ □ goal ⇒ Parser P A ⇒ □ Parser P (A → A → A) ⇒
              Success P.Toks A ⇒ P.M ∘ Success P.Toks A ]
-    rest rec A op sA@(a ^ m<n , s) = runParser (call op m<n) ≤-refl s 𝕄.>>=
+    rest rec A op sA@(a ^ m<n , s) = runParser (Box.call op m<n) ≤-refl s 𝕄.>>=
           λ sOp → let (f ^ p<m , s′) = sOp ; .p<n : _ < _; p<n = <-trans p<m m<n in
-          let rec′ = call rec p<n (<-lower p<n A) (Box.<-lower p<n op) in
+          let rec′ = Box.call rec p<n (<-lower p<n A) (Box.<-lower p<n op) in
           <-lift p<n ∘ S.map (f a $_) 𝕄.<$> runParser rec′ ≤-refl s′
 
   head+tail : ∀[ Parser P A ⇒ □ Parser P A ⇒ Parser P (List⁺ A) ]
@@ -271,6 +269,6 @@ module _ {P : Parameters}
                 <$> (iterate (NonEmpty.[_] <$> hd) (Box.map (NonEmpty._∷⁺_ <$>_) tl))
 
   list⁺ : ∀[ Parser P A ⇒ Parser P (List⁺ A) ]
-  list⁺ = fix (Parser P A ⇒ Parser P (List⁺ A)) $ λ rec pA →
+  list⁺ = Box.fix (Parser P A ⇒ Parser P (List⁺ A)) $ λ rec pA →
           uncurry (λ hd → (hd ∷_) ∘ maybe NonEmpty.toList [])
-          <$> (pA <&?> (app rec (box pA)))
+          <$> (pA <&?> (Box.app rec (box pA)))
