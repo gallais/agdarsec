@@ -6,6 +6,10 @@ open import Level using (Level; suc; Lift)
 open import Data.Unit.Base using (⊤)
 open import Data.Nat.Base using (ℕ; _<_; _≤_)
 
+private
+  variable
+    l : Level
+
 --------------------------------------------------------------------------------
 -- PARAMETERS
 
@@ -30,7 +34,7 @@ record Parameters (l : Level) : Set (suc l) where
 -- which are proven to be smaller than the input
 
 infix 1 _^_,_
-record Success {l} (Toks : ℕ → Set l) (A : Set l) (n : ℕ) : Set l where
+record Success (Toks : ℕ → Set l) (A : Set l) (n : ℕ) : Set l where
   constructor _^_,_
   field
     value     : A
@@ -44,7 +48,7 @@ record Success {l} (Toks : ℕ → Set l) (A : Set l) (n : ℕ) : Set l where
 -- A parser is the ability to, given an input, return a computation for
 -- a success.
 
-record Parser {l} (P : Parameters l) (A : Set l) (n : ℕ) : Set l where
+record Parser (P : Parameters l) (A : Set l) (n : ℕ) : Set l where
   constructor mkParser
   open Parameters P
   field runParser : ∀ {m} → .(m ≤ n) → Toks m → M (Success Toks A m)

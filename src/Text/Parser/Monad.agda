@@ -1,8 +1,9 @@
 module Text.Parser.Monad where
 
-open import Data.Empty
-open import Data.Unit
-open import Data.Char
+open import Level using (Level; _⊔_)
+open import Data.Empty using (⊥)
+open import Data.Unit.Base using (⊤)
+open import Data.Char.Base using (Char)
 open import Data.Product
 open import Data.List hiding (fromMaybe ; [_])
 open import Data.Vec using (Vec)
@@ -17,53 +18,80 @@ open import Category.Monad
 open import Function.Identity.Categorical as Id using (Identity)
 open import Category.Monad.State
 
-open import Relation.Unary
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
+
+-- open import Relation.Unary
 open import Text.Parser.Types
 open import Text.Parser.Position
+
+private
+  variable
+    a b l : Level
+    A : Set a
+    B : Set b
+    E : Set l
 
 --------------------------------------------------------------------------------
 -- RESULTT
 
-data Result (E : Set) (A : Set) : Set where
+data Result (E : Set l) (A : Set l) : Set l where
   SoftFail : E → Result E A
   HardFail : E → Result E A
   Value    : A → Result E A
 
-result : {E A B : Set} (soft hard : E → B) (val : A → B) → Result E A → B
+result : {E A B : Set l} (soft hard : E → B) (val : A → B) → Result E A → B
 result soft hard val = λ where
   (SoftFail e) → soft e
   (HardFail e) → hard e
   (Value v)    → val v
 
-fromMaybe : ∀ {E A} → E → Maybe A → Result E A
+fromMaybe : E → Maybe A → Result E A
 fromMaybe = maybe′ Value ∘′ SoftFail
 
-ResultT : Set → (Set → Set) → (Set → Set)
-ResultT E M A = M (Result E A)
+_≤l_ : Level → Level → Set
+a ≤l l = l ⊔ a ≡ l
 
-Result-monadT : ∀ E {M} → RawMonad M → RawMonad (ResultT E M)
+instance
+  trivial : ∀ {a} {A : Set a} {a : A} → a ≡ a
+  trivial = refl
+
+Lift : ∀ {a l} → a ≤l l → Set a → Set l
+Lift {a} {l} = cast where
+
+  cast : ∀ {b} → l ⊔ a ≡ b → Set a → Set b
+  cast refl = Level.Lift l
+
+ResultT : {{_ : a ≤l l}} →
+          Set l →           -- Error
+          (Set l → Set l) → -- Monad
+          (Set a → Set l)
+ResultT {{pr}} E M A = M (Result E (Lift pr A))
+
+Result-monadT : ∀ (E : Set l) {M} → RawMonad M → RawMonad (ResultT E M)
 Result-monadT E M = record
   { return = M.pure ∘′ Value
   ; _>>=_  = λ m f → m M.>>= result (M.pure ∘′ SoftFail) (M.pure ∘′ HardFail) f
   } where module M = RawMonad M
 
-Result-monad : ∀ E → RawMonad (Result E)
+Result-monad : (E : Set l) → RawMonad (Result E)
 Result-monad E = Result-monadT E Id.monad
 
+{-
 --------------------------------------------------------------------------------
 -- AGDARSECT
 
-AgdarsecT : Set →         -- Error
-            Set →         -- Annotation
-            (Set → Set) → -- Monad
-            (Set → Set)
-AgdarsecT E C M = StateT (Position × List C) (ResultT E M)
+AgdarsecT : {a : Level} {{_ : a ≤l l}} →
+            Set l →           -- Error
+            Set l →           -- Annotation
+            (Set l → Set l) → -- Monad
+            (Set a → Set l)
+AgdarsecT {{pr}} E Ann M = StateT (Position × List Ann) (Lift pr ∘ ResultT E M)
 
-Agdarsec : (E C : Set) → (Set → Set)
-Agdarsec E C = AgdarsecT E C Identity
+Agdarsec : (E : Set l) (Ann : Set l) → (Set l → Set l)
+Agdarsec E Ann = AgdarsecT E Ann Identity
 
 module AgdarsecT
-        (E C : Set) {M : Set → Set}
+        (E C : Set l) {M : Set l → Set l}
         (𝕄 : RawMonad M)
         (𝕊 : Subset (Position × List C) E)
         where
@@ -121,14 +149,14 @@ module AgdarsecT
     ST.pure a
 
   recordChar : Char → AgdarsecT E C M ⊤
-  recordChar c = tt ST.<$ ST.modify (map₁ (update c))
+  recordChar c = _ ST.<$ ST.modify (map₁ (update c))
 
   -- Commiting to a branch makes all the failures in that branch hard failures
   -- that we cannot recover from
   commit : ∀ {A} → AgdarsecT E C M A → AgdarsecT E C M A
   commit m s = result HardFail HardFail Value 𝕄.<$> m s
 
-  param : ∀ Tok Toks recTok → Parameters
+  param : ∀ Tok Toks recTok → Parameters l
   param Tok Toks recTok = record
     { Tok         = Tok
     ; Toks        = Toks
@@ -139,6 +167,7 @@ module AgdarsecT
   chars : Parameters
   chars = param Char (Vec Char) recordChar
 
+{-
 module Agdarsec E C (𝕊 : Subset (Position × List C) E) where
 
   private module M = AgdarsecT E C Id.monad 𝕊
@@ -160,5 +189,7 @@ module Agdarsec′ where
     { Tok         = Tok
     ; Toks        = Vec Tok
     ; M           = Agdarsec ⊤ ⊥
-    ; recordToken = λ _ → M.pure tt
+    ; recordToken = λ _ → M.pure _
     } where module M = RawMonad monad
+-}
+-}
