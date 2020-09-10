@@ -48,19 +48,6 @@ result soft hard val = λ where
 fromMaybe : E → Maybe A → Result E A
 fromMaybe = maybe′ Value ∘′ SoftFail
 
-_≤l_ : Level → Level → Set
-a ≤l l = l ⊔ a ≡ l
-
-instance
-  trivial : ∀ {a} {A : Set a} {a : A} → a ≡ a
-  trivial = refl
-
-Lift : ∀ {a l} → a ≤l l → Set a → Set l
-Lift {a} {l} = cast where
-
-  cast : ∀ {b} → l ⊔ a ≡ b → Set a → Set b
-  cast refl = Level.Lift l
-
 ResultT : {{_ : a ≤l l}} →
           Set l →           -- Error
           (Set l → Set l) → -- Monad

@@ -8,13 +8,13 @@ open import Data.Unit
 open import Data.Product
 open import Relation.Unary
 
-module _ {a : Level} (A : Set a) (As : ℕ → Set a) where
+module _ {a as : Level} (A : Set a) (As : ℕ → Set as) where
 
- View : ℕ → Set a
- View zero    = Lift a ⊤
+ View : ℕ → Set (a ⊔ as)
+ View zero    = Lift _ ⊤
  View (suc n) = A × As n
 
- record Sized : Set a where
+ record Sized : Set (a ⊔ as) where
    field view : ∀[ As ⇒ View ]
 
 open import Data.Vec
