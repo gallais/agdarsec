@@ -9,8 +9,9 @@ _≤l_ : (a l : Level) → Set
 a ≤l l = l Level.⊔ a ≡ l
 
 record Level≤ (l : Level) : Set where
-  field level : Level
-        bound : level ≤l l
+  constructor MkLevel≤
+  field level     : Level
+        {{bound}} : level ≤l l
 open Level≤ public
 
 record Set≤ (l : Level) : Setω where
@@ -49,6 +50,21 @@ infixr 2 _×_
 _×_ : ∀ {l} (A B : Set≤ l) → Set≤ l
 level≤ (A × B) = level≤ A ⊔ level≤ B
 theSet (A × B) = theSet A Product.× theSet B
+
+-- This type is less than optimal. However we cannot give `B` the type
+-- theSet A → Set≤ l
+-- because otherwise we would have no guarantee that the level of `B`
+-- does not depend on the value of type `theSet A` it is passed.
+-- The current definition allows us to write e.g. the following (using `Vec`
+-- defined below):
+-- List : ∀ {l} → Set≤ l → Set≤ l
+-- List A = Σ [ ℕ ] (λ n → theSet (Vec A n))
+-- which is not too far off from what we would ideally like to write:
+-- List A = Σ [ ℕ ] (Vec A)
+
+Σ : ∀ {l} (A : Set≤ l) {b : Level} {{b≤l : b ≤l l}} (B : theSet A → Set b) → Set≤ l
+level≤ (Σ A {b} {{b≤l}} B) = level≤ A ⊔ MkLevel≤ b {{b≤l}}
+theSet (Σ A B) = Product.Σ (theSet A) B
 
 import Data.Sum.Base as Sum
 
