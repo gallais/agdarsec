@@ -39,6 +39,11 @@ import Data.Unit.Base as Unit
 ⊤ : ∀ {l} → Set≤ l
 ⊤ = [ Unit.⊤ ]
 
+import Data.Empty as Empty
+
+⊥ : ∀ {l} → Set≤ l
+⊥ = [ Empty.⊥ ]
+
 infixr 0 _⟶_
 _⟶_ : ∀ {l} (A B : Set≤ l) → Set≤ l
 level≤ (A ⟶ B) = level≤ A ⊔ level≤ B
