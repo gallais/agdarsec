@@ -1,21 +1,24 @@
 module Base where
 
-open import Level
-open import Data.Nat as Nat
+import Level
+open import Level.Bounded
+
+import Data.Nat as Nat
 open import Data.Nat.Properties
-open import Data.Char.Base
-open import Data.Product
-open import Data.String as String
-open import Data.List.Base as L hiding ([_] ; module List)
+open import Data.Char.Base as Char using (Char)
+import Data.Empty as Empty
+open import Data.Product as Product using (_,_; proj₁)
+
+open import Data.List.Base as List using ([]; _∷_)
 open import Data.List.Categorical as List
 open import Data.List.Sized.Interface
-open import Data.List.Relation.Unary.Any as Any
-open import Data.Vec as Vec hiding ([_])
+
+open import Data.String as String
+open import Data.Vec as Vec using ()
 open import Data.Bool
-open import Data.Maybe
+open import Data.Maybe as Maybe using (nothing; just; maybe′)
 open import Data.Maybe.Categorical as MaybeCat
 open import Data.Sum
-open import Data.Empty
 open import Function
 open import Category.Monad
 open import Category.Monad.State
@@ -35,71 +38,78 @@ open import Text.Parser.Monad
 open Agdarsec′ public
 
 infix 0 _!
-data Singleton {A : Set} : A → Set where
+data Singleton {a} {A : Set a} : A → Set a where
   _! : (a : A) → Singleton a
 
-record Tokenizer (A : Set) : Set where
+record Tokenizer l (A : Set≤ l) : Set (level (level≤ A)) where
   constructor mkTokenizer
-  field tokenize : List Char → List A
+  field tokenize : List.List Char → List.List (theSet A)
 
-  fromText : String → List A
+  fromText : String → List.List (theSet A)
   fromText = tokenize ∘ String.toList
 
-instance tokChar = mkTokenizer id
+instance
+  tokChar : ∀ {l} → Tokenizer l [ Char ]
+  tokChar = mkTokenizer id
 
-record RawMonadRun (M : Set → Set) : Set₁ where
-  field runM : ∀ {A} → M A → List A
+record RawMonadRun {l} (M : Set l → Set l) : Set (Level.suc l) where
+  field runM : ∀ {A} → M A → List.List A
 open RawMonadRun
 
 instance
 
+  Agdarsec′M : ∀ {l} → RawMonad (Agdarsec {l} ⊤ ⊥)
   Agdarsec′M  = Agdarsec′.monad
+
+  Agdarsec′M0 : ∀ {l} → RawMonadZero (Agdarsec {l} ⊤ ⊥)
   Agdarsec′M0 = Agdarsec′.monadZero
+
+  Agdarsec′M+ : ∀ {l} → RawMonadPlus (Agdarsec {l} ⊤ ⊥)
   Agdarsec′M+ = Agdarsec′.monadPlus
 
-  runMaybe : RawMonadRun Maybe
-  runMaybe = record { runM = maybe (_∷ []) [] }
+  runMaybe : ∀ {l} → RawMonadRun {l} Maybe.Maybe
+  runMaybe = record { runM = maybe′ (_∷ []) [] }
 
-  runList : RawMonadRun List
+  runList : ∀ {l} → RawMonadRun {l} List.List
   runList = record { runM = id }
 
-  runResult : ∀ {E} → RawMonadRun (Result E)
+  runResult : ∀ {l} {E : Set l} → RawMonadRun {l} (Result E)
   runResult = record { runM = result (const []) (const []) (_∷ []) }
 
-  runStateT : ∀ {M A} {{𝕄 : RawMonadRun M}} → RawMonadRun (StateT (Position × List A) M)
+  runStateT : ∀ {l M A} {{𝕄 : RawMonadRun {l} M}} → RawMonadRun (StateT (Lift ([ Position ] × List A)) M)
   runStateT {{𝕄}} .RawMonadRun.runM =
-    L.map proj₁
-    ∘ runM 𝕄
-    ∘ (_$ (start , []))
+    List.map proj₁
+    ∘′ runM 𝕄
+    ∘′ (_$ lift (start , []))
 
-  monadMaybe : RawMonad {Level.zero} Maybe
+  monadMaybe : ∀ {l} → RawMonad {l} Maybe.Maybe
   monadMaybe = MaybeCat.monad
 
-  plusMaybe : RawMonadPlus {Level.zero} Maybe
+  plusMaybe : ∀ {l} → RawMonadPlus {l} Maybe.Maybe
   plusMaybe = MaybeCat.monadPlus
 
-  monadList : RawMonad {Level.zero} List
+  monadList : ∀ {l} → RawMonad {l} List.List
   monadList = List.monad
 
-  plusList : RawMonadPlus {Level.zero} List
+  plusList : ∀ {l} → RawMonadPlus {l} List.List
   plusList = List.monadPlus
 
-module _ {P : Parameters} (open Parameters P)
-         {{t : Tokenizer Tok}}
+module _ {l} {P : Parameters l} (open Parameters P)
+         {{t : Tokenizer l Tok}}
          {{𝕄 : RawMonadPlus M}}
          {{𝕊 : Sized Tok Toks}}
-         {{𝕃 : ∀ {n} → Subset (Vec Tok n) (Toks n)}}
+         {{𝕃 : ∀ {n} → Subset (theSet (Vec Tok n)) (theSet (Toks n))}}
          {{ℝ  : RawMonadRun M}} where
 
  private module 𝕄 = RawMonadPlus 𝕄
  private module 𝕃{n} = Subset (𝕃 {n})
 
- _∈_ : {A : Set} → String → ∀[ Parser P A ] → Set
+ _∈_ : ∀ {A : Set≤ l} → String → ∀[ Parser P A ] → Set (level (level≤ A))
  s ∈ A =
   let input = Vec.fromList $ Tokenizer.fromText t s
-      parse = runParser A (n≤1+n _) (𝕃.into input)
+      parse = runParser A (n≤1+n _) (lift $ 𝕃.into input)
       check = λ s → if ⌊ Success.size s Nat.≟ 0 ⌋
                     then just (Success.value s) else nothing
   in case List.TraversableM.mapM MaybeCat.monad check $ runM ℝ parse of λ where
-       (just (a ∷ _)) → Singleton a
-       _              → ⊥
+       (just (a ∷ _)) → Singleton (lower a)
+       _              → Lift ⊥

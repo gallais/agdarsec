@@ -5,6 +5,9 @@ module Level.Bounded where
 open import Level using (Level; Setω)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong₂)
 
+------------------------------------------------------------------------
+-- Bounded levels
+
 _≤l_ : (a l : Level) → Set
 a ≤l l = l Level.⊔ a ≡ l
 
@@ -14,14 +17,12 @@ record Level≤ (l : Level) : Set where
         {{bound}} : level ≤l l
 open Level≤ public
 
-record Set≤ (l : Level) : Setω where
-  field level≤ : Level≤ l
-        theSet : Set (level level≤)
-open Set≤ public
+instance
+  z≤l : ∀ {l} → Level.zero ≤l l
+  z≤l = refl
 
 zero : ∀ {l} → Level≤ l
 level zero = Level.zero
-bound zero = refl
 
 infixl 6 _⊔_
 _⊔_ : ∀ {l₁ l₂} (a : Level≤ l₁) (b : Level≤ l₂) → Level≤ (l₁ Level.⊔ l₂)
@@ -29,6 +30,17 @@ a ⊔ b = record
   { level = level a Level.⊔ level b
   ; bound = cong₂ Level._⊔_ (Level≤.bound a) (Level≤.bound b)
   }
+
+------------------------------------------------------------------------
+-- Bounded sets
+
+record Set≤ (l : Level) : Setω where
+  field level≤ : Level≤ l
+        theSet : Set (level level≤)
+open Set≤ public
+
+------------------------------------------------------------------------
+-- Type constructors
 
 [_] : Set → ∀ {l} → Set≤ l
 level≤ [ A ] = zero
@@ -78,30 +90,34 @@ _⊎_ : ∀ {l} (A B : Set≤ l) → Set≤ l
 level≤ (A ⊎ B) = level≤ A ⊔ level≤ B
 theSet (A ⊎ B) = theSet A Sum.⊎ theSet B
 
+infixr 0 _$$_
+_$$_ : (∀ {l} → Set l → Set l) → ∀ {l} → Set≤ l → Set≤ l
+level≤ (T $$ A) = level≤ A
+theSet (T $$ A) = T (theSet A)
+
 import Data.Maybe.Base as Maybe
 
 Maybe : ∀ {l} → Set≤ l → Set≤ l
-level≤ (Maybe A) = level≤ A
-theSet (Maybe A) = Maybe.Maybe (theSet A)
+Maybe = Maybe.Maybe $$_
 
 import Data.List.Base as List
 
 List : ∀ {l} → Set≤ l → Set≤ l
-level≤ (List A) = level≤ A
-theSet (List A) = List.List (theSet A)
+List = List.List $$_
 
 open import Data.Nat.Base using (ℕ)
 import Data.Vec.Base as Vec
 
 Vec : ∀ {l} → Set≤ l → ℕ → Set≤ l
-level≤ (Vec A n) = level≤ A
-theSet (Vec A n) = Vec.Vec (theSet A) n
+Vec A n = (λ A → Vec.Vec A n) $$ A
 
 import Data.List.NonEmpty as List⁺
 
 List⁺ : ∀ {l} → Set≤ l → Set≤ l
-level≤ (List⁺ A) = level≤ A
-theSet (List⁺ A) = List⁺.List⁺ (theSet A)
+List⁺ = List⁺.List⁺ $$_
+
+------------------------------------------------------------------------
+-- Going back and forth between `Set≤ l`  and `Set l`
 
 Lift : ∀ {l} → Set≤ l → Set l
 Lift {l} A = cast (bound (level≤ A)) (theSet A) module Lift where

@@ -162,7 +162,7 @@ module Agdarsec l (E Ann : Set≤ l) (𝕊 : Subset (theSet ([ Position ] × Lis
     commit : {A : Set≤ l} → ∀[ Parser P A ⇒ Parser P A ]
     runParser (commit p) m≤n s = M.commit (runParser p m≤n s)
 
-module Agdarsec′ (l : Level) where
+module Agdarsec′ {l : Level} where
 
   open Agdarsec l ⊤ ⊥ _ public
 
