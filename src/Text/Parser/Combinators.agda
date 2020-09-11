@@ -8,7 +8,6 @@ open import Relation.Unary using (IUniversal; _⇒_)
 open import Induction.Nat.Strong as Box using (□_)
 open import Data.Nat.Base using (ℕ; _≤_; _<_)
 
-
 open import Data.Bool.Base as Bool using (Bool; if_then_else_; not; _∧_)
 open import Data.List.Base as List using (_∷_; []; null)
 open import Data.List.NonEmpty as List⁺ using (_∷⁺_ ; _∷_)
@@ -16,18 +15,16 @@ open import Data.Maybe.Base using (just; nothing; maybe)
 open import Data.Product as Product using (_,_; proj₁; proj₂; uncurry)
 open import Data.Sum.Base as Sum using (inj₁; inj₂)
 
-open import Data.Char as Char using (Char)
 open import Data.Nat.Properties as Nat using (≤-refl; ≤-trans; <⇒≤; <-trans)
 import Data.List.Relation.Unary.Any as Any
-open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Relation.Binary.PropositionalEquality.Decidable.Core using (DecidableEquality; decide)
-open import Data.String as String using () renaming (String to Text)
 
 open import Category.Monad using (RawMonadPlus)
 open import Data.List.Sized.Interface using (Sized)
 
-open import Function
+open import Function.Base using (const; _$_; _∘_; _∘′_; flip; case_of_)
 
 open import Text.Parser.Types
 open import Text.Parser.Success as S hiding (guardM)
@@ -37,25 +34,24 @@ module _ {l} {P : Parameters l} (open Parameters P)
          where
 
  private module 𝕄 = RawMonadPlus 𝕄
- private module P = Parameters P
 
- anyTok : ∀[ Parser P P.Tok ]
+ anyTok : ∀[ Parser P Tok ]
  runParser anyTok m≤n s = case view (lower s) of λ where
    nothing  → 𝕄.∅
-   (just t) → t 𝕄.<$ P.recordToken (lower $ Success.value t)
+   (just t) → t 𝕄.<$ recordToken (lower $ Success.value t)
 
  module _ {A B : Set≤ l} where
 
   guardM : (theSet A → theSet (Maybe B)) → ∀[ Parser P A ⇒ Parser P B ]
   runParser (guardM p A) m≤n s =
-    runParser A m≤n s 𝕄.>>= maybe 𝕄.return 𝕄.∅ ∘ S.guardM p
+    runParser A m≤n s 𝕄.>>= maybe 𝕄.return 𝕄.∅ ∘′ S.guardM p
 
  module _ {A : Set≤ l} where
 
   guard : (theSet A → Bool) → ∀[ Parser P A ⇒ Parser P A ]
   guard p = guardM (λ a → if p a then just a else nothing)
 
-  maybeTok : (theSet P.Tok → theSet (Maybe A)) → ∀[ Parser P A ]
+  maybeTok : (theSet Tok → theSet (Maybe A)) → ∀[ Parser P A ]
   maybeTok p = guardM p anyTok
 
   ≤-lower : {m n : ℕ} → .(m ≤ n) → Parser P A n → Parser P A m
@@ -152,15 +148,15 @@ module _ {l} {P : Parameters l} (open Parameters P)
   F <*> A = uncurry _$_ <$> (F <&> A)
 
   infixl 4 _<&M>_ _<&M_ _&M>_
-  _<&M>_ : ∀[ Parser P A ⇒ const (P.M (Lift B)) ⇒ Parser P (A × B) ]
+  _<&M>_ : ∀[ Parser P A ⇒ const (M (Lift B)) ⇒ Parser P (A × B) ]
   runParser (A <&M> B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA → B 𝕄.>>= λ b →
     𝕄.return (S.map (_, lower b) rA)
 
-  _<&M_ : ∀[ Parser P A ⇒ const (P.M (Lift B)) ⇒ Parser P A ]
+  _<&M_ : ∀[ Parser P A ⇒ const (M (Lift B)) ⇒ Parser P A ]
   A <&M B = proj₁ <$> (A <&M> B)
 
-  _&M>_ : ∀[ Parser P A ⇒ const (P.M (Lift B)) ⇒ Parser P B ]
+  _&M>_ : ∀[ Parser P A ⇒ const (M (Lift B)) ⇒ Parser P B ]
   A &M> B = proj₂ <$> (A <&M> B)
 
   infixl 4 _<&?>_ _<&?_ _&?>_
@@ -188,14 +184,14 @@ module _ {l} {P : Parameters l} (open Parameters P)
   A ?&> B = proj₂ <$> (A <?&> B)
 
   infixl 4 _<M&>_ _<M&_ _M&>_
-  _<M&>_ : ∀[ const (P.M (Lift A)) ⇒ Parser P B ⇒ Parser P (A × B) ]
+  _<M&>_ : ∀[ const (M (Lift A)) ⇒ Parser P B ⇒ Parser P (A × B) ]
   runParser (A <M&> B) m≤n s =
     A 𝕄.>>= λ a → S.map (lower a ,_) 𝕄.<$> runParser B m≤n s
 
-  _<M&_ : ∀[ const (P.M (Lift A)) ⇒ Parser P B ⇒ Parser P A ]
+  _<M&_ : ∀[ const (M (Lift A)) ⇒ Parser P B ⇒ Parser P A ]
   A <M& B = proj₁ <$> (A <M&> B)
 
-  _M&>_ : ∀[ const (P.M (Lift A)) ⇒ Parser P B ⇒ Parser P B ]
+  _M&>_ : ∀[ const (M (Lift A)) ⇒ Parser P B ⇒ Parser P B ]
   A M&> B = proj₂ <$> (A <M&> B)
 
  module _ {A B C : Set≤ l} where
@@ -208,34 +204,34 @@ module _ {l} {P : Parameters l} (open Parameters P)
 
  module _ {{eq? : DecidableEquality (theSet Tok)}} where
 
-  anyOf : theSet (List Tok) → ∀[ Parser P P.Tok ]
+  anyOf : theSet (List Tok) → ∀[ Parser P Tok ]
   anyOf ts = guard (λ c → not (null ts) ∧ List.any (⌊_⌋ ∘ decide eq? c) ts) anyTok
 
-  exact : theSet Tok → ∀[ Parser P P.Tok ]
+  exact : theSet Tok → ∀[ Parser P Tok ]
   exact = anyOf ∘′ List.[_]
 
-  exacts : theSet (List⁺ Tok) → ∀[ Parser P (List⁺ P.Tok) ]
+  exacts : theSet (List⁺ Tok) → ∀[ Parser P (List⁺ Tok) ]
   exacts ts = ands (List⁺.map (λ t → exact t) ts)
 
-  noneOf : theSet (List Tok) → ∀[ Parser P P.Tok ]
+  noneOf : theSet (List Tok) → ∀[ Parser P Tok ]
   noneOf ts = maybeTok $ λ t → case Any.any? (eq? .decide t) ts of λ where
     (yes p) → nothing
     (no ¬p) → just t
 
-  anyTokenBut : theSet Tok → ∀[ Parser P P.Tok ]
+  anyTokenBut : theSet Tok → ∀[ Parser P Tok ]
   anyTokenBut = noneOf ∘′ List.[_]
 
  module _ {A : Set≤ l} where
 
-  schainl : ∀[ Success Toks A ⇒ □ Parser P (A ⟶ A) ⇒ P.M ∘ Success P.Toks A ]
+  schainl : ∀[ Success Toks A ⇒ □ Parser P (A ⟶ A) ⇒ M ∘′ Success Toks A ]
   schainl = Box.fix goal $ λ rec sA op → rest rec sA op 𝕄.∣ 𝕄.return sA where
 
-    goal = Success P.Toks A ⇒ □ Parser P (A ⟶ A) ⇒ P.M ∘ Success P.Toks A
+    goal = Success Toks A ⇒ □ Parser P (A ⟶ A) ⇒ M ∘′ Success Toks A
 
     rest : ∀[ □ goal ⇒ goal ]
     rest rec (a ^ p<m , s) op = runParser (Box.call op p<m) ≤-refl s 𝕄.>>= λ sOp →
           Box.call rec p<m (S.map (_$ lower a) sOp) (Box.<-lower p<m op) 𝕄.>>=
-          𝕄.return ∘ <-lift p<m
+          𝕄.return ∘′ <-lift p<m
 
   iterate : ∀[ Parser P A ⇒ □ Parser P (A ⟶ A) ⇒ Parser P A ]
   runParser (iterate {n} a op) m≤n s =
@@ -261,11 +257,11 @@ module _ {l} {P : Parameters l} (open Parameters P)
     goal = Parser P A ⇒ □ Parser P (A ⟶ A ⟶ A) ⇒ Parser P A
 
     rest : ∀[ □ goal ⇒ Parser P A ⇒ □ Parser P (A ⟶ A ⟶ A) ⇒
-             Success P.Toks A ⇒ P.M ∘ Success P.Toks A ]
+             Success Toks A ⇒ M ∘′ Success Toks A ]
     rest rec A op sA@(a ^ m<n , s) = runParser (Box.call op m<n) ≤-refl s 𝕄.>>=
           λ sOp → let (f ^ p<m , s′) = sOp ; .p<n : _ < _; p<n = <-trans p<m m<n in
           let rec′ = Box.call rec p<n (<-lower p<n A) (Box.<-lower p<n op) in
-          <-lift p<n ∘ S.map (lower f (lower a) $_) 𝕄.<$> runParser rec′ ≤-refl s′
+          <-lift p<n ∘′ S.map (lower f (lower a) $_) 𝕄.<$> runParser rec′ ≤-refl s′
 
   head+tail : ∀[ Parser P A ⇒ □ Parser P A ⇒ Parser P (List⁺ A) ]
   head+tail hd tl = List⁺.reverse
@@ -273,5 +269,5 @@ module _ {l} {P : Parameters l} (open Parameters P)
 
   list⁺ : ∀[ Parser P A ⇒ Parser P (List⁺ A) ]
   list⁺ = Box.fix (Parser P A ⇒ Parser P (List⁺ A)) $ λ rec pA →
-          uncurry (λ hd → (hd ∷_) ∘ maybe List⁺.toList [])
+          uncurry (λ hd → (hd ∷_) ∘′ maybe List⁺.toList [])
           <$> (pA <&?> (Box.app rec (box pA)))
