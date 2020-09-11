@@ -1,8 +1,8 @@
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --without-K --safe --overlapping-instances #-}
 
 module Level.Bounded where
 
-open import Level using (Level; zero; suc)
+open import Level using (Level; Setω)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong₂)
 
 record _≤l_ (a l : Level) : Set where
@@ -10,47 +10,99 @@ record _≤l_ (a l : Level) : Set where
 open _≤l_ public
 
 record Level≤ (l : Level) : Set where
-  field level     : Level
-        {{bound}} : level ≤l l
+  field level : Level
+        bound : level ≤l l
 open Level≤ public
+
+BSet : ∀ {l} (a : Level≤ l) → Set (Level.suc (level a))
+BSet a = Set (level a)
+
+record Set≤ (l : Level) : Setω where
+  field level≤ : Level≤ l
+        theSet : BSet level≤
+open Set≤ public
+
+zero : ∀ {l} → Level≤ l
+level zero = Level.zero
+bound zero = record { proof = refl }
 
 infixl 6 _⊔_
 _⊔_ : ∀ {l₁ l₂} (a : Level≤ l₁) (b : Level≤ l₂) → Level≤ (l₁ Level.⊔ l₂)
 a ⊔ b = record
   { level = level a Level.⊔ level b
-  ; bound = record { proof = cong₂ Level._⊔_ (proof (bound a)) (proof (bound b)) }
+  ; bound = record { proof = cong₂ Level._⊔_ (proof (Level≤.bound a)) (proof (Level≤.bound b)) }
   }
 
-BSet : ∀ {l} (a : Level≤ l) → Set (suc (level a))
-BSet a = Set (level a)
+import Data.Unit.Base as Unit
 
-Lift : ∀ l {a} {{la : a ≤l l}} → Set a → Set l
-Lift l {a} {{la}} = cast (proof la) module Lift where
+⊤ : ∀ {l} → Set≤ l
+level≤ ⊤ = zero
+theSet ⊤ = Unit.⊤
 
-  cast : ∀ {b} → l Level.⊔ a ≡ b → Set a → Set b
+infixr 0 _⟶_
+_⟶_ : ∀ {l} (A B : Set≤ l) → Set≤ l
+level≤ (A ⟶ B) = level≤ A ⊔ level≤ B
+theSet (A ⟶ B) = theSet A → theSet B
+
+import Data.Product as Product
+
+infixr 2 _×_
+_×_ : ∀ {l} (A B : Set≤ l) → Set≤ l
+level≤ (A × B) = level≤ A ⊔ level≤ B
+theSet (A × B) = theSet A Product.× theSet B
+
+import Data.Sum.Base as Sum
+
+infixr 1 _⊎_
+_⊎_ : ∀ {l} (A B : Set≤ l) → Set≤ l
+level≤ (A ⊎ B) = level≤ A ⊔ level≤ B
+theSet (A ⊎ B) = theSet A Sum.⊎ theSet B
+
+import Data.Maybe.Base as Maybe
+
+Maybe : ∀ {l} → Set≤ l → Set≤ l
+level≤ (Maybe A) = level≤ A
+theSet (Maybe A) = Maybe.Maybe (theSet A)
+
+import Data.List.Base as List
+
+List : ∀ {l} → Set≤ l → Set≤ l
+level≤ (List A) = level≤ A
+theSet (List A) = List.List (theSet A)
+
+open import Data.Nat.Base using (ℕ)
+import Data.Vec.Base as Vec
+
+Vec : ∀ {l} → Set≤ l → ℕ → Set≤ l
+level≤ (Vec A n) = level≤ A
+theSet (Vec A n) = Vec.Vec (theSet A) n
+
+import Data.List.NonEmpty as List⁺
+
+List⁺ : ∀ {l} → Set≤ l → Set≤ l
+level≤ (List⁺ A) = level≤ A
+theSet (List⁺ A) = List⁺.List⁺ (theSet A)
+
+Lift : ∀ {l} → Set≤ l → Set l
+Lift {l} A = cast (proof (bound (level≤ A))) (theSet A) module Lift where
+
+  cast : ∀ {b} → l Level.⊔ (level (level≤ A)) ≡ b →
+         Set (level (level≤ A)) → Set b
   cast refl = Level.Lift l
 
-lift : ∀ {l a} {{la : a ≤l l}} {A : Set a} → A → Lift l A
-lift {l} {a} {{la}} {A} = uncast (proof la) where
+lift : ∀ {l} {A : Set≤ l} → theSet A → Lift A
+lift {l} {A} = cast (proof (bound (level≤ A))) where
 
-  uncast : ∀ {b} (eq : l Level.⊔ a ≡ b) → A → Lift.cast l eq A
-  uncast refl = Level.lift
+  cast : ∀ {b} (eq : l Level.⊔ (level (level≤ A)) ≡ b) →
+         theSet A → Lift.cast A eq (theSet A)
+  cast refl = Level.lift
 
-lower : ∀ {l a} {{la : a ≤l l}} {A : Set a} → Lift l A → A
-lower {l} {a} {{la}} {A} = uncast (proof la) where
+lower : ∀ {l} {A : Set≤ l} → Lift A → theSet A
+lower {l} {A} = cast (proof (bound (level≤ A))) where
 
-  uncast : ∀ {b} (eq : l Level.⊔ a ≡ b) → Lift.cast l eq A → A
-  uncast refl = Level.lower
+  cast : ∀ {b} (eq : l Level.⊔ (level (level≤ A)) ≡ b) →
+         Lift.cast A eq (theSet A) → theSet A
+  cast refl = Level.lower
 
-map : ∀ {l a b} {{la : a ≤l l}} {{lb : b ≤l l}} {A : Set a} {B : Set b} →
-      (A → B) → Lift l A → Lift l B
+map : ∀ {l} {A B : Set≤ l} → (theSet A → theSet B) → Lift A → Lift B
 map f a = lift (f (lower a))
-
-
--- Sometimes we want things to be solved automatically.
--- Problem is: we can't declare too many of this or we will have overlapping
--- solutions...
-
-instance
-  z≤n : ∀ {a} → zero ≤l a
-  z≤n .proof = refl
