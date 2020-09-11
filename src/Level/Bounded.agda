@@ -13,12 +13,9 @@ record Level≤ (l : Level) : Set where
         bound : level ≤l l
 open Level≤ public
 
-BSet : ∀ {l} (a : Level≤ l) → Set (Level.suc (level a))
-BSet a = Set (level a)
-
 record Set≤ (l : Level) : Setω where
   field level≤ : Level≤ l
-        theSet : BSet level≤
+        theSet : Set (level level≤)
 open Set≤ public
 
 zero : ∀ {l} → Level≤ l
