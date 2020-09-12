@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --safe --overlapping-instances #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Level.Bounded where
 

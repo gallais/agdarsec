@@ -42,16 +42,16 @@ module _ {l} {P : Parameters l} (open Parameters P)
 
  module _ {A B : Set≤ l} where
 
-  guardM : (theSet A → theSet (Maybe B)) → ∀[ Parser P A ⇒ Parser P B ]
+  guardM : theSet (A ⟶ Maybe B) → ∀[ Parser P A ⇒ Parser P B ]
   runParser (guardM p A) m≤n s =
     runParser A m≤n s 𝕄.>>= maybe 𝕄.return 𝕄.∅ ∘′ S.guardM p
 
  module _ {A : Set≤ l} where
 
-  guard : (theSet A → Bool) → ∀[ Parser P A ⇒ Parser P A ]
+  guard : theSet (A ⟶ [ Bool ]) → ∀[ Parser P A ⇒ Parser P A ]
   guard p = guardM (λ a → if p a then just a else nothing)
 
-  maybeTok : (theSet Tok → theSet (Maybe A)) → ∀[ Parser P A ]
+  maybeTok : theSet (Tok ⟶ Maybe A) → ∀[ Parser P A ]
   maybeTok p = guardM p anyTok
 
   ≤-lower : {m n : ℕ} → .(m ≤ n) → Parser P A n → Parser P A m
@@ -87,7 +87,7 @@ module _ {l} {P : Parameters l} (open Parameters P)
  module _ {A B : Set≤ l} where
 
   infixr 5 _<$>_
-  _<$>_ : (theSet A → theSet B) → ∀[ Parser P A ⇒ Parser P B ]
+  _<$>_ : theSet (A ⟶ B) → ∀[ Parser P A ⇒ Parser P B ]
   runParser (f <$> p) lt s = S.map f 𝕄.<$> (runParser p lt s)
 
   infixr 5 _<$_

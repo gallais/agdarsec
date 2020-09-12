@@ -1,6 +1,7 @@
-module Base where
+open import Level using (Level)
 
-import Level
+module Base (l : Level) where
+
 open import Level.Bounded
 
 import Data.Nat as Nat
@@ -34,14 +35,14 @@ open import Text.Parser.Types            public
 open import Text.Parser.Position         public
 open import Text.Parser.Combinators      public
 open import Text.Parser.Combinators.Char public
-open import Text.Parser.Monad
+open import Text.Parser.Monad public
 open Agdarsec′ public
 
 infix 0 _!
 data Singleton {a} {A : Set a} : A → Set a where
   _! : (a : A) → Singleton a
 
-record Tokenizer l (A : Set≤ l) : Set (level (level≤ A)) where
+record Tokenizer (A : Set≤ l) : Set (level (level≤ A)) where
   constructor mkTokenizer
   field tokenize : List.List Char → List.List (theSet A)
 
@@ -49,53 +50,53 @@ record Tokenizer l (A : Set≤ l) : Set (level (level≤ A)) where
   fromText = tokenize ∘ String.toList
 
 instance
-  tokChar : ∀ {l} → Tokenizer l [ Char ]
+  tokChar : Tokenizer [ Char ]
   tokChar = mkTokenizer id
 
-record RawMonadRun {l} (M : Set l → Set l) : Set (Level.suc l) where
+record RawMonadRun (M : Set l → Set l) : Set (Level.suc l) where
   field runM : ∀ {A} → M A → List.List A
 open RawMonadRun
 
 instance
 
-  Agdarsec′M : ∀ {l} → RawMonad (Agdarsec {l} ⊤ ⊥)
+  Agdarsec′M : RawMonad (Agdarsec {l} ⊤ ⊥)
   Agdarsec′M  = Agdarsec′.monad
 
-  Agdarsec′M0 : ∀ {l} → RawMonadZero (Agdarsec {l} ⊤ ⊥)
+  Agdarsec′M0 : RawMonadZero (Agdarsec {l} ⊤ ⊥)
   Agdarsec′M0 = Agdarsec′.monadZero
 
-  Agdarsec′M+ : ∀ {l} → RawMonadPlus (Agdarsec {l} ⊤ ⊥)
+  Agdarsec′M+ : RawMonadPlus (Agdarsec {l} ⊤ ⊥)
   Agdarsec′M+ = Agdarsec′.monadPlus
 
-  runMaybe : ∀ {l} → RawMonadRun {l} Maybe.Maybe
+  runMaybe : RawMonadRun Maybe.Maybe
   runMaybe = record { runM = maybe′ (_∷ []) [] }
 
-  runList : ∀ {l} → RawMonadRun {l} List.List
+  runList : RawMonadRun List.List
   runList = record { runM = id }
 
-  runResult : ∀ {l} {E : Set l} → RawMonadRun {l} (Result E)
+  runResult : {E : Set l} → RawMonadRun (Result E)
   runResult = record { runM = result (const []) (const []) (_∷ []) }
 
-  runStateT : ∀ {l M A} {{𝕄 : RawMonadRun {l} M}} → RawMonadRun (StateT (Lift ([ Position ] × List A)) M)
+  runStateT : ∀ {M A} {{𝕄 : RawMonadRun M}} → RawMonadRun (StateT (Lift ([ Position ] × List A)) M)
   runStateT {{𝕄}} .RawMonadRun.runM =
     List.map proj₁
     ∘′ runM 𝕄
     ∘′ (_$ lift (start , []))
 
-  monadMaybe : ∀ {l} → RawMonad {l} Maybe.Maybe
+  monadMaybe : RawMonad {l} Maybe.Maybe
   monadMaybe = MaybeCat.monad
 
-  plusMaybe : ∀ {l} → RawMonadPlus {l} Maybe.Maybe
+  plusMaybe : RawMonadPlus {l} Maybe.Maybe
   plusMaybe = MaybeCat.monadPlus
 
-  monadList : ∀ {l} → RawMonad {l} List.List
+  monadList : RawMonad {l} List.List
   monadList = List.monad
 
-  plusList : ∀ {l} → RawMonadPlus {l} List.List
+  plusList : RawMonadPlus {l} List.List
   plusList = List.monadPlus
 
-module _ {l} {P : Parameters l} (open Parameters P)
-         {{t : Tokenizer l Tok}}
+module _ {P : Parameters l} (open Parameters P)
+         {{t : Tokenizer Tok}}
          {{𝕄 : RawMonadPlus M}}
          {{𝕊 : Sized Tok Toks}}
          {{𝕃 : ∀ {n} → Subset (theSet (Vec Tok n)) (theSet (Toks n))}}

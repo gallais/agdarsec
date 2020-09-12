@@ -16,7 +16,7 @@ open import Relation.Binary hiding (DecidableEquality)
 open import Agda.Builtin.Equality
 open import Function
 
-open import Base
+open import Base Level.zero
 
 -- Well-parenthesised string
 data PAR : Set where
@@ -40,7 +40,7 @@ instance
   _ : DecidableEquality PAR
   _ = record { decide = eqPAR }
 
-  tokPAR : Tokenizer Level.zero [ PAR ]
+  tokPAR : Tokenizer [ PAR ]
   tokPAR = mkTokenizer $ List.foldr (_++_ ∘ toPAR) [] where
 
     toPAR : Char → List PAR

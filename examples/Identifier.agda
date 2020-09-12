@@ -1,26 +1,20 @@
 module Identifier where
 
 import Level
-open import Data.Empty
-open import Data.Nat.Base
-open import Data.Char.Base
-open import Data.Vec hiding ([_])
-open import Data.Maybe as Maybe
-open import Data.List as List hiding ([_])
-open import Data.List.NonEmpty as NonEmpty hiding ([_])
-open import Data.List.Sized.Interface using (Sized)
-open import Data.List.Sized
-open import Data.String as String
-open import Category.Monad
-open import Function
+open import Level.Bounded using ([_])
 
-open import Base
+open import Data.Char.Base using (Char)
+open import Data.List as List using ([]; _∷_)
+open import Data.List.NonEmpty as List⁺ using (List⁺; _∷_)
+open import Data.List.Sized.Interface using ()
+
+open import Base Level.zero
 
 record Identifier : Set where
   constructor mkIdentifier
   field getIdentifier : List⁺ Char
 
-identifier : ∀[ Parser chars Identifier ]
+identifier : ∀[ Parser chars [ Identifier ] ]
 identifier = mkIdentifier <$> list⁺ alpha
 
 -- tests

@@ -1,5 +1,7 @@
 module SExp where
 
+import Level
+open import Level.Bounded using (theSet; [_])
 open import Data.Char.Base
 open import Data.String.Base as String using (String)
 
@@ -9,7 +11,7 @@ data SExp : Set where
 
 open import Category.Monad
 open import Data.List.Sized.Interface
-open import Data.List.NonEmpty as List⁺
+open import Data.List.NonEmpty as List⁺ using (List⁺)
 open import Data.Maybe
 open import Data.Product
 open import Data.Subset
@@ -18,23 +20,22 @@ open import Induction.Nat.Strong
 open import Relation.Unary using (IUniversal ; _⇒_)
 open import Relation.Binary.PropositionalEquality.Decidable
 
-
 open import Text.Parser.Types
 open import Text.Parser.Combinators
 open import Text.Parser.Combinators.Char
 
-module _ {P : Parameters} (open Parameters P)
+module _ {l} (P : Parameters l) (open Parameters P)
          {{𝕊 : Sized Tok Toks}}
          {{𝕄 : RawMonadPlus M}}
-         {{𝔻 : DecidableEquality Tok}}
-         {{ℂ : Subset Char Tok}}
-         {{ℂ′ : Subset Tok Char}}
+         {{𝔻 : DecidableEquality (theSet Tok)}}
+         {{ℂ : Subset Char (theSet Tok)}}
+         {{ℂ′ : Subset (theSet Tok) Char}}
          where
 
-  sexp : ∀[ Parser P SExp ]
+  sexp : ∀[ Parser P [ SExp ] ]
   sexp =
     -- SExp is an inductive type so we build the parser as a fixpoint
-    fix (Parser P SExp) $ λ rec →
+    fix (Parser P [ SExp ]) $ λ rec →
         -- First we have atoms. Assuming we have already consumed the leading space, an
         -- atom is just a non empty list of alphabetical characters.
 
@@ -75,16 +76,16 @@ module _ {P : Parameters} (open Parameters P)
         -- `box` to discard the proof and use a normal parser in that guarded position.
 
 
-open import Base
+  -- The full parser is obtained by disregarding spaces before & after the expression
+  SEXP : ∀[ Parser P [ SExp ] ]
+  SEXP = spaces ?&> sexp <&? box spaces
 
--- The full parser is obtained by disregarding spaces before & after the expression
-SEXP : ∀[ Parser chars SExp ]
-SEXP = spaces ?&> sexp <&? box spaces
+open import Base Level.zero
 
 -- And we can run the thing on a test (which is very convenient when refactoring grammars!..):
 _ : "((  this    is)
       ((a (  pair based))
-          ((S)(expression  ))))   " ∈ SEXP
+          ((S)(expression  ))))   " ∈ SEXP chars
 _ = Pair (Pair (Atom "this") (Atom "is"))
          (Pair (Pair (Atom "a")
                      (Pair (Atom "pair") (Atom "based")))

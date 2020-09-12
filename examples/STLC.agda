@@ -1,32 +1,28 @@
 module STLC where
 
+open import Level.Bounded using ([_])
 open import Level
-open import Data.Unit
-open import Data.Empty
-open import Data.Bool.Base
+
+open import Data.Unit.Base using (⊤)
+open import Data.Empty using (⊥)
+open import Data.Bool.Base using (true; false; if_then_else_)
 open import Data.Nat.Properties using (≤-refl)
 open import Data.Char.Base
 open import Data.String as String hiding (parens)
-open import Data.List.Base as List
-open import Data.List.NonEmpty
-open import Data.Vec as Vec
-open import Data.Maybe.Base
+open import Data.List.Base as List using (_∷_; [])
+open import Data.List.NonEmpty as List⁺ using (List⁺; _∷_)
+open import Data.Vec.Base as Vec using (Vec)
+open import Data.Maybe.Base using (Maybe; nothing; just)
 open import Data.List.Sized.Interface
-open import Data.Product
-open import Induction.Nat.Strong as INS using (□_; fix)
-open import Function
+open import Data.Product using (_×_; _,_; uncurry; ∃; proj₁)
+open import Function.Base
 
 open import Relation.Nullary
 open import Relation.Nullary.Decidable using (map′)
-open import Relation.Unary as U renaming (_⇒_ to _⟶_)
-open import Relation.Binary as B hiding (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
+import Relation.Binary as B
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
-open import Text.Parser.Types
-open import Text.Parser.Position
-open import Text.Parser.Combinators
-open import Text.Parser.Combinators.Numbers
-open import Text.Parser.Monad
+open import Base Level.zero hiding (parens; commit)
 
 data Tok : Set where
   LAM ARR DOT COL : Tok
@@ -102,12 +98,16 @@ breaking c = case c of λ where
 
 open import Text.Lexer keywords breaking ID using (tokenize)
 
+instance
+  _ : Tokenizer [ Position × Tok ]
+  _ = record { tokenize = tokenize ∘ fromList }
+
 infixr 15 _`→_
 data Type : Set where
   `κ   : String → Type
   _`→_ : Type → Type → Type
 
-module ParserM = Agdarsec Position ⊥ (record { into = proj₁ })
+module ParserM = Agdarsec Level.zero [ Position ] [ ⊥ ] (record { into = proj₁ })
 open ParserM
 
 instance
@@ -115,37 +115,31 @@ instance
   _ = ParserM.monadPlus
   _ = ParserM.monad
 
-P = ParserM.param Token (Vec Token) λ where (p , _) _ → Value (_ , p , [])
+P = ParserM.param [ Token ] (λ n → [ Vec Token n ]) λ where (p , _) _ → Value (_ , lift (p , []))
 
-theTok : Tok → ∀[ Parser P Token ]
+theTok : Tok → ∀[ Parser P [ Token ] ]
 theTok t = maybeTok $ λ where
   tok@(p , t') → case eqTok t t' of λ where
     (yes eq) → just tok
     (no ¬eq) → nothing
 
-parens : ∀ {A} → ∀[ □ Parser P A ⟶ Parser P A ]
+parens : ∀ {A} → ∀[ □ Parser P A ⇒ Parser P A ]
 parens □p = theTok LPAR &> □p <& box (theTok RPAR)
 
-name : ∀[ Parser P String ]
+name : ∀[ Parser P [ String ] ]
 name = maybeTok λ where (p , ID str) → just str; _ → nothing
 
-type : ∀[ Parser P Type ]
+type : ∀[ Parser P [ Type ] ]
 type = fix _ $ λ rec →
   let varlike str = case String.toList str of λ where
         ('`' ∷ nm) → just (String.fromList nm)
         _ → nothing
-  in chainr1 (`κ <$> guardM varlike name <|> parens rec)
+      typevar : Parser P [ String ] _
+      typevar = guardM varlike name
+  in chainr1 (`κ <$> typevar <|> parens rec)
              (box (_`→_ <$ theTok ARR))
 
-open import Base using (Singleton; _!)
-
-parse : ∀ {A} → ∀[ Parser P A ] → String → Set
-parse p str = let input = Vec.fromList (tokenize str) in
-  case runParser p ≤-refl input (start , []) of λ where
-    (Value ((a ^ _ , _) , _)) → Singleton a
-    _ → ⊥
-
-_ : parse type "`a → (`b → `c) → `b"
+_ : "`a → (`b → `c) → `b" ∈ type
 _ = `κ "a" `→ (`κ "b" `→ `κ "c") `→ `κ "b" !
 
 mutual
@@ -160,14 +154,14 @@ mutual
     App : Neu → Val → Neu
 
 record Language n : Set where
-  field pVal : Parser P Val n
-        pNeu : Parser P Neu n
+  field pVal : Parser P [ Val ] n
+        pNeu : Parser P [ Neu ] n
 open Language
 
 language : ∀[ Language ]
 language = fix Language $ λ rec →
-  let □val = INS.map pVal rec
-      □neu = INS.map pNeu rec
+  let □val = map pVal rec
+      □neu = map pNeu rec
       var  = Var <$> guard (List.all isAlpha ∘′ String.toList) name
       cut  = (λ where ((v , _) , σ) → Cut v σ)
              <$> (theTok LPAR
@@ -177,40 +171,40 @@ language = fix Language $ λ rec →
       neu  = iterate (var <|> cut <|> parens □neu) (box app)
       lam  = uncurry Lam
              <$> ((theTok LAM &> box name)
-             <&> box (theTok DOT &> INS.map commit □val))
+             <&> box (theTok DOT &> map commit □val))
       val = lam <|> Emb <$> neu
 
   in record { pVal = val <|> parens □val
             ; pNeu = neu <|> parens □neu
             }
 
-val : ∀[ Parser P Val ]
+val : ∀[ Parser P [ Val ] ]
 val = pVal language
 
 -- tests
 
-_ : parse val "λx.x"
+_ : "λx.x" ∈ val
 _ = Lam "x" (Emb (Var "x")) !
 
-_ : parse val "λx.(λy.x y)"
+_ : "λx.(λy.x y)" ∈ val
 _ = Lam "x" (Lam "y" (Emb (App (Var "x") (Emb (Var "y"))))) !
 
-_ : parse val "(λx.(λx.x : `a → `a) x)"
+_ : "(λx.(λx.x : `a → `a) x)" ∈ val
 _ = Lam "x"
       (Emb (App (Cut (Lam "x" (Emb (Var "x"))) (`κ "a" `→ `κ "a"))
                 (Emb (Var "x")))) !
 
-_ : parse val "λg.λf.λa.g a (f a)"
+_ : "λg.λf.λa.g a (f a)" ∈ val
 _ = Lam "g" (Lam "f" (Lam "a"
      (Emb (App (App (Var "g") (Emb (Var "a")))
                (Emb (App (Var "f") (Emb (Var "a")))))))) !
 
-_ : parse val "(λg.λf.λa.(g a) (f a))"
+_ : "(λg.λf.λa.(g a) (f a))" ∈ val
 _ = Lam "g" (Lam "f" (Lam "a"
      (Emb (App (App (Var "g") (Emb (Var "a")))
                (Emb (App (Var "f") (Emb (Var "a")))))))) !
 
-_ : parse val "(λg.(λf.(λa.(((g) ((a)))) ((f) (a))))))"
+_ : "(λg.(λf.(λa.(((g) ((a)))) ((f) (a)))))" ∈ val
 _ = Lam "g" (Lam "f" (Lam "a"
      (Emb (App (App (Var "g") (Emb (Var "a")))
                (Emb (App (Var "f") (Emb (Var "a")))))))) !
