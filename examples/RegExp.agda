@@ -1,19 +1,20 @@
 module RegExp where
 
-open import Data.Nat.Base
-open import Data.Bool.Base
-open import Data.Char as C using (Char)
-open import Data.List.Base     as List using (List; []; _∷_)
-open import Data.List.NonEmpty as NonEmpty using (List⁺; toList; _∷_)
+import Level
+open import Level.Bounded using ([_])
+open import Data.Char as Char using (Char)
+open import Data.List.Base as List using (List; []; _∷_)
+open import Data.List.NonEmpty as List⁺ using (List⁺; toList; _∷_)
 import Data.List.Sized.Interface
 open import Data.Maybe using (Maybe; nothing; just; maybe)
 open import Data.Product using (uncurry)
+
 open import Function.Base using (_∘_; _$_; const; id)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary hiding (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
-open import Base
+open import Base Level.zero
 
 infixr 5 _∥_
 infixr 6 _∙_
@@ -32,7 +33,7 @@ data RegExp : Set where
   _⋆    : (e : RegExp) → RegExp
 
 literal : Char → RegExp
-literal c = `[ NonEmpty.[ singleton c ] ]
+literal c = `[ List⁺.[ singleton c ] ]
 
 data TOK : Set where
   OPEN NOPEN CLOSE : TOK
@@ -54,7 +55,7 @@ eqTOK DOTS     DOTS     = yes refl
 eqTOK OR       OR       = yes refl
 eqTOK LPAR     LPAR     = yes refl
 eqTOK RPAR     RPAR     = yes refl
-eqTOK (CHAR c) (CHAR d) with c C.≟ d
+eqTOK (CHAR c) (CHAR d) with c Char.≟ d
 ... | yes eq = yes (cong CHAR eq)
 ... | no ¬eq = no (¬eq ∘ cong (λ { (CHAR c) → c; _ → 'a' }))
 eqTOK _ _ = no whatever where
@@ -78,26 +79,31 @@ instance
 
   _ : DecidableEquality TOK
   _ = record { decide = eqTOK }
+  _ : Tokenizer [ TOK ]
   _ = mkTokenizer toTOKs
 
-P : Parameters
-P = vec TOK
+P : Parameters Level.zero
+P = vec [ TOK ]
 
-range : ∀[ Parser P Range ]
+aChar : ∀[ Parser P [ Char ] ]
+aChar = maybeTok isCHAR
+
+range : ∀[ Parser P [ Range ] ]
 range = (uncurry $ λ c md → maybe (interval c) (singleton c) md)
-        <$> (maybeTok isCHAR <&?> (box $ exact DOTS &> box (maybeTok isCHAR)))
+        <$> (aChar <&?> (box $ exact DOTS &> box aChar))
 
-regexp : ∀[ Parser P RegExp ]
-regexp = fix (Parser P RegExp) $ λ rec →
+regexp : ∀[ Parser P [ RegExp ] ]
+regexp = fix (Parser P [ RegExp ]) $ λ rec →
          let parens   = between (exact LPAR) (box (exact RPAR))
              parens?  = between? (exact LPAR) (box (exact RPAR))
              ranges   = (`[_] <$ exact OPEN <|> `[^_] ∘ toList <$ exact NOPEN)
                         <*> box (list⁺ range <& box (exact CLOSE))
-             literals = NonEmpty.foldr (_∙_ ∘ literal) literal <$> list⁺ (maybeTok isCHAR)
+             literals = List⁺.foldr (_∙_ ∘ literal) literal <$> list⁺ aChar
              base     = ranges <|> `[^ [] ] <$ exact ANY <|> literals <|> parens rec
+             star     : Parser P [ RegExp ] _
              star     = (uncurry $ λ r → maybe (const $ r ⋆) r) <$> (base <&?> box (exact STAR))
              disj     = chainr1 star (box $ _∥_ <$ exact OR)
-         in NonEmpty.foldr _∙_ id <$> list⁺ (parens? disj)
+         in List⁺.foldr _∙_ id <$> list⁺ (parens? disj)
 
 -- test
 

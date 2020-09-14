@@ -2,13 +2,13 @@
 
 module Text.Parser.Position where
 
-open import Data.Bool
-open import Data.Nat
+open import Data.Bool.Base using (if_then_else_)
+open import Data.Nat.Base using (ℕ; suc)
 import Data.Nat.Show as NShow
 open import Data.Char using (Char; _==_)
-open import Data.String using (String ; _++_; toList)
+open import Data.String.Base using (String ; _++_; toList)
 open import Data.List.Base using (foldl)
-open import Function
+open import Function.Base using (flip)
 
 record Position : Set where
   constructor _∶_

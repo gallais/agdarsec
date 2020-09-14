@@ -2,25 +2,28 @@
 
 module Text.Parser.Types where
 
-open import Data.Unit using (⊤)
-open import Data.Nat
+open import Level using (Level; Setω)
+open import Level.Bounded
+open import Data.Nat.Base using (ℕ; _<_; _≤_)
+open import Function.Base using (_∘′_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
 --------------------------------------------------------------------------------
 -- PARAMETERS
 
 -- A parser is parametrised by some types, type constructors and one function.
 
-record Parameters : Set₁ where
+record Parameters (l : Level) : Setω where
    field
 -- Token-related parameters:
 -- * Tok: tokens
+     Tok    : Set≤ l
 -- * Toks: sized input (~ Vec Tok)
-     Tok         : Set
-     Toks        : ℕ → Set
+     Toks    : ℕ → Set≤ l
 -- The monad stack used
-     M           : Set → Set
+     M : Set l → Set l
 -- The action allowing us to track consumed tokens
-     recordToken : Tok → M ⊤
+     recordToken : theSet Tok → M (Lift ⊤)
 
 --------------------------------------------------------------------------------
 -- SUCCESS
@@ -29,13 +32,13 @@ record Parameters : Set₁ where
 -- which are proven to be smaller than the input
 
 infix 1 _^_,_
-record Success (Toks : ℕ → Set) (A : Set) (n : ℕ) : Set where
+record Success {l} (Toks : ℕ → Set≤ l) (A : Set≤ l) (n : ℕ) : Set l where
   constructor _^_,_
   field
-    value     : A
+    value     : Lift A
     {size}    : ℕ
     .small    : size < n
-    leftovers : Toks size
+    leftovers : Lift (Toks size)
 
 --------------------------------------------------------------------------------
 -- PARSER
@@ -43,8 +46,8 @@ record Success (Toks : ℕ → Set) (A : Set) (n : ℕ) : Set where
 -- A parser is the ability to, given an input, return a computation for
 -- a success.
 
-record Parser (P : Parameters) (A : Set) (n : ℕ) : Set where
+record Parser {l} (P : Parameters l) (A : Set≤ l) (n : ℕ) : Set l where
   constructor mkParser
   open Parameters P
-  field runParser : ∀ {m} → .(m ≤ n) → Toks m → M (Success Toks A m)
+  field runParser : ∀ {m} → .(m ≤ n) → Lift (Toks m) → M (Success Toks A m)
 open Parser public

@@ -1,18 +1,22 @@
 module Parentheses where
 
-open import Data.Unit
+import Level
+open import Level.Bounded hiding (List)
+
 open import Data.Maybe
 open import Data.Char
-open import Data.List.Base as List
+open import Data.List.Base as List using (List; []; _∷_; _++_)
 import Data.List.Sized.Interface
 open import Data.Bool
+open import Data.Unit.Base using (tt)
+
 open import Relation.Nullary
 open import Relation.Binary hiding (DecidableEquality)
 
 open import Agda.Builtin.Equality
 open import Function
 
-open import Base
+open import Base Level.zero
 
 -- Well-parenthesised string
 data PAR : Set where
@@ -36,7 +40,7 @@ instance
   _ : DecidableEquality PAR
   _ = record { decide = eqPAR }
 
-  tokPAR : Tokenizer PAR
+  tokPAR : Tokenizer [ PAR ]
   tokPAR = mkTokenizer $ List.foldr (_++_ ∘ toPAR) [] where
 
     toPAR : Char → List PAR
@@ -49,8 +53,8 @@ instance
          else [] -- ignoring other characters as noise
 
 
-Pars : Parameters
-Pars = vec PAR
+Pars : Parameters Level.zero
+Pars = vec [ PAR ]
 
 PAR′ : ∀[ Parser Pars ⊤ ]
 PAR′ = fix (Parser Pars ⊤) $ λ rec →

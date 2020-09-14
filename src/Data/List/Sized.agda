@@ -1,7 +1,8 @@
 module Data.List.Sized where
 
 open import Level using (Level)
-open import Data.Unit
+open import Level.Bounded using (Set≤; _$$_; lower; lift)
+open import Data.Unit.Base as Unit using (⊤; tt)
 open import Data.Empty
 open import Data.Product using (_,_)
 open import Data.Nat.Base hiding (_^_)
@@ -58,7 +59,7 @@ open import Data.List.Sized.Interface
 
 instance
 
-  sized : ∀ {ℓ} {A : Set ℓ} → Sized A (∣List A ∣≡_)
-  Sized.view sized xs with view xs
-  ... | []      = Level.lift tt
-  ... | a ∷ as  = a , as
+  sized : ∀ {ℓ} {A : Set≤ ℓ} → Sized A (λ n → ∣List_∣≡ n $$ A)
+  Sized.view sized xs with {lower xs} | view (lower xs)
+  ... | []     = lift _
+  ... | a ∷ as = lift (a , as)

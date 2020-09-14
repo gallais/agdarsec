@@ -3,17 +3,21 @@
 
 module Expr where
 
-open import Data.Nat.Base
-open import Data.Char.Base
-open import Data.List.Base as List hiding ([_])
-open import Data.List.NonEmpty as NonEmpty hiding ([_])
-open import Data.List.Sized.Interface
-open import Data.Maybe
+
+import Level
+open import Level.Bounded
+
+open import Data.Char using (Char)
+open import Data.List.Base as List using ()
+open import Data.List.NonEmpty as List⁺ using ()
+open import Data.Nat.Base using (ℕ)
+import Data.List.Sized.Interface
+open import Data.Maybe using ()
 open import Data.Product
 open import Function
 import Induction.Nat.Strong as INS
 
-open import Base
+open import Base Level.zero
 open import Identifier
 open import Text.Parser.Combinators.Numbers
 
@@ -23,11 +27,11 @@ data Expr : Set where
   Add Sub : Expr → Expr → Expr
   Mul Div : Expr → Expr → Expr
 
-record PExpr (P : Parameters) (n : ℕ) : Set where
-  field pvar : Parser P Expr n
-        plit : Parser P Expr n
-        pfac : Parser P Expr n
-        pexp : Parser P Expr n
+record PExpr (P : Parameters Level.zero) (n : ℕ) : Set where
+  field pvar : Parser P [ Expr ] n
+        plit : Parser P [ Expr ] n
+        pfac : Parser P [ Expr ] n
+        pexp : Parser P [ Expr ] n
 open PExpr
 
 pExpr : ∀[ PExpr chars ]
@@ -43,20 +47,20 @@ pExpr = fix (PExpr chars) $ λ rec →
 
  module Details where
 
-   var : ∀[ Parser chars Expr ]
-   lit : ∀[ Parser chars Expr ]
+   var : ∀[ Parser chars [ Expr ] ]
+   lit : ∀[ Parser chars [ Expr ] ]
 
    var = Var <$> alpha
    lit = Lit <$> decimalℕ
 
-   addop : ∀[ Parser chars (Expr → Expr → Expr) ]
-   mulop : ∀[ Parser chars (Expr → Expr → Expr) ]
+   addop : ∀[ Parser chars ([ Expr ] ⟶ [ Expr ] ⟶ [ Expr ]) ]
+   mulop : ∀[ Parser chars ([ Expr ] ⟶ [ Expr ] ⟶ [ Expr ]) ]
 
    addop = withSpaces (Add <$ char '+' <|> Sub <$ char '-')
    mulop = withSpaces (Mul <$ char '*' <|> Div <$ char '/')
 
 
-Expr′ : ∀[ Parser chars Expr ]
+Expr′ : ∀[ Parser chars [ Expr ] ]
 Expr′ = pexp pExpr
 
 -- tests

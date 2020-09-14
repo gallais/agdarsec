@@ -1,32 +1,37 @@
 -- Challenge taken from stackoverflow:
 -- http://stackoverflow.com/questions/12380239/agda-parsing-nested-lists
 
-module NList where
+module NList {l} where
 
-open import Data.Nat.Base
-open import Data.Char.Base
-open import Data.List.Base hiding ([_])
-open import Data.List.Sized.Interface
-open import Data.Maybe
-import Data.DifferenceList as DList
-open import Function
+open import Level.Bounded using (Set≤; List; _$$_)
 
-open import Base
+open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.DifferenceList as DList using (DiffList; [_]; _++_)
+open import Data.List.Base using ([]; _∷_)
+open import Data.List.Sized.Interface using ()
+
+open import Function.Base using (_$′_)
+
+open import Base l
 open import Text.Parser.Combinators.Numbers
 
-NList : Set → ℕ → Set
+NList : Set≤ l → ℕ → Set≤ l
 NList A zero    = A
 NList A (suc n) = List (NList A n)
 
-P : Parameters
+P : Parameters l
 P = chars
 
 
-NList′ : {A : Set} → ∀[ Parser P A ] →
-         (n : ℕ)   → ∀[ Parser P (NList A n) ]
-NList′ A zero    = A
-NList′ A (suc n) = parens $ box $ DList.toList <$>
-                   chainl1 (DList.[_] <$> NList′ A n) (box $ DList._++_ <$ char ',')
+module _ {A : Set≤ l} where
+
+  NList′ : ∀[ Parser P A ] →
+           (n : ℕ)      → ∀[ Parser P (NList A n) ]
+  NList′ p zero    = p
+  NList′ p (suc n) =
+    let rec : Parser P (DiffList $$ NList A n) _
+        rec = chainl1 ([_] <$> NList′ p n) (box $′ _++_ <$ char ',')
+    in parens $′ box $′ DList.toList <$> rec
 
 -- tests
 
