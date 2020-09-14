@@ -34,6 +34,10 @@ import RegExp
 import NList
 import SExp
 
+-- And even a parser returning a large type
+
+import Large
+
 -- The key ideas behind the implementation details are largely contained in
 
 import Induction.Nat.Strong
