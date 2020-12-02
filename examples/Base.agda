@@ -30,12 +30,17 @@ open import Relation.Unary using (IUniversal; _⇒_) public
 open import Relation.Binary.PropositionalEquality.Decidable public
 open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 
-open import Data.Subset                  public
-open import Text.Parser.Types            public
-open import Text.Parser.Position         public
-open import Text.Parser.Combinators      public
-open import Text.Parser.Combinators.Char public
-open import Text.Parser.Monad public
+open import Data.Subset public
+
+open import Text.Parser.Types.Core                public
+open import Text.Parser.Types                     public
+open import Text.Parser.Position                  public
+open import Text.Parser.Combinators               public
+open import Text.Parser.Combinators.Char          public
+open import Text.Parser.Combinators.Numbers       public
+open import Text.Parser.Monad                     public
+open import Text.Parser.Monad.Result hiding (map) public
+
 open Agdarsec′ public
 
 infix 0 _!

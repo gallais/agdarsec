@@ -14,12 +14,11 @@ open import Data.Nat.Base using (ℕ)
 import Data.List.Sized.Interface
 open import Data.Maybe using ()
 open import Data.Product
-open import Function
+open import Function.Base
 import Induction.Nat.Strong as INS
 
 open import Base Level.zero
 open import Identifier
-open import Text.Parser.Combinators.Numbers
 
 data Expr : Set where
   Var     : Char → Expr

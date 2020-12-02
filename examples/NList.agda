@@ -13,7 +13,6 @@ open import Data.List.Sized.Interface using ()
 open import Function.Base using (_$′_)
 
 open import Base l
-open import Text.Parser.Combinators.Numbers
 
 NList : Set≤ l → ℕ → Set≤ l
 NList A zero    = A

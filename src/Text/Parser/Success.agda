@@ -1,8 +1,9 @@
 {-# OPTIONS --without-K --safe #-}
 
-module Text.Parser.Success where
+open import Text.Parser.Types.Core using (Parameters)
 
-open import Level using (Level)
+module Text.Parser.Success {l} (P : Parameters l) where
+
 open import Level.Bounded as Level≤ using (Set≤; _×_; theSet; lift; lower)
 open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_)
 open import Data.Nat.Properties using (≤-trans; <⇒≤; ≤-refl)
@@ -12,11 +13,12 @@ open import Data.List.Sized.Interface using (Sized)
 open import Function.Base using (_∘′_; _$_)
 open import Relation.Unary using (IUniversal; _⇒_)
 
-open import Text.Parser.Types
+open Text.Parser.Types.Core
+open import Text.Parser.Types P
+open Parameters P
 open Success
 
-
-module _ {l} {Toks : ℕ → Set≤ l} {A B : Set≤ l} where
+module _ {A B : Set≤ l} where
 
   map : (theSet A → theSet B) → ∀[ Success Toks A ⇒ Success Toks B ]
   map f (a ^ m≤n , s) = Level≤.map f a ^ m≤n , s
@@ -25,7 +27,7 @@ module _ {l} {Toks : ℕ → Set≤ l} {A B : Set≤ l} where
            ∀[ Success Toks A ⇒ Maybe ∘′ Success Toks B ]
   guardM f (a ^ m≤n , s) = Maybe.map ((_^ m≤n , s) ∘′ lift) (f (lower a))
 
-module _ {l} {Toks : ℕ → Set≤ l} {A : Set≤ l} {m n : ℕ} where
+module _ {A : Set≤ l} {m n : ℕ} where
 
   ≤-lift : .(le : m ≤ n) → Success Toks A m → Success Toks A n
   ≤-lift m≤n (a ^ p<m , s) = a ^ ≤-trans p<m m≤n , s
@@ -33,13 +35,13 @@ module _ {l} {Toks : ℕ → Set≤ l} {A : Set≤ l} {m n : ℕ} where
   <-lift : .(le : m < n) → Success Toks A m → Success Toks A n
   <-lift m<n = ≤-lift (<⇒≤ m<n)
 
-module _ {l} {Toks : ℕ → Set≤ l} {A B : Set≤ l} where
+module _ {A B : Set≤ l} where
 
   and : ∀ {n} (p : Success Toks A n) → Success Toks B (size p) →
         Success Toks (A × B) n
   and (a ^ m<n , v) q = <-lift m<n (map (lower a ,_) q)
 
-module _ {l} {Tok : Set≤ l} {Toks : ℕ → Set≤ l} {{𝕊 : Sized Tok Toks}} where
+module _ {{𝕊 : Sized Tok Toks}} where
 
   view : ∀ {n} → theSet (Toks n) → Maybe (Success Toks Tok n)
   view {zero}   ts = nothing
