@@ -33,8 +33,6 @@ open import Data.Nat.Base using (ℕ)
 import Data.Nat.Properties as ℕₚ
 import Data.Integer.Properties as ℤₚ
 
-open import Text.Parser.Combinators.Numbers
-
 ℕorℤ : ∀[ Parser chars (Σ SmallMagma λ m → Expr (Magma.Carrier m)) ]
 ℕorℤ = expr $ ((ℕₚ.*-magma , (λ {x} → decimalℕ)) <$ text "ℕ: ")
           <|> ((ℤₚ.*-magma , (λ {x} → decimalℤ)) <$ text "ℤ: ")

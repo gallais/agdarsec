@@ -21,46 +21,14 @@ open import Category.Monad.State
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 
 open import Relation.Unary
+open import Text.Parser.Types.Core
 open import Text.Parser.Types
 open import Text.Parser.Position
+open import Text.Parser.Monad.Result
 
 private
   variable
-    e a b l : Level
-    E : Set e
-    A : Set a
-    B : Set b
-
---------------------------------------------------------------------------------
--- RESULTT
-
-data Result (E : Set e) (A : Set a) : Set (a Level.⊔ e) where
-  SoftFail : E → Result E A
-  HardFail : E → Result E A
-  Value    : A → Result E A
-
-result : (soft hard : E → B) (val : A → B) → Result E A → B
-result soft hard val = λ where
-  (SoftFail e) → soft e
-  (HardFail e) → hard e
-  (Value v)    → val v
-
-fromMaybe : E → Maybe.Maybe A → Result E A
-fromMaybe = maybe′ Value ∘′ SoftFail
-
-ResultT : Set≤ l →           -- Error
-          (Set l → Set l) → -- Monad
-          (Set l → Set l)
-ResultT E M A = M (Result (Lift E) A)
-
-Result-monadT : ∀ (E : Set≤ l) {M} → RawMonad M → RawMonad (ResultT E M)
-Result-monadT E M = record
-  { return = M.pure ∘′ Value
-  ; _>>=_  = λ m f → m M.>>= result (M.pure ∘′ SoftFail) (M.pure ∘′ HardFail) f
-  } where module M = RawMonad M
-
-Result-monad : (E : Set≤ l) → RawMonad (Result (Lift E))
-Result-monad E = Result-monadT E Id.monad
+    l : Level
 
 --------------------------------------------------------------------------------
 -- AGDARSECT

@@ -1,6 +1,6 @@
 module SExp where
 
-import Level
+open import Level using (0ℓ)
 open import Level.Bounded using (theSet; [_])
 open import Data.Char.Base
 open import Data.String.Base as String using (String)
@@ -20,27 +20,19 @@ open import Induction.Nat.Strong
 open import Relation.Unary using (IUniversal ; _⇒_)
 open import Relation.Binary.PropositionalEquality.Decidable
 
-open import Text.Parser.Types
-open import Text.Parser.Combinators
-open import Text.Parser.Combinators.Char
+open import Text.Parser 0ℓ
 
-module _ {l} (P : Parameters l) (open Parameters P)
-         {{𝕊 : Sized Tok Toks}}
-         {{𝕄 : RawMonadPlus M}}
-         {{𝔻 : DecidableEquality (theSet Tok)}}
-         {{ℂ : Subset Char (theSet Tok)}}
-         {{ℂ′ : Subset (theSet Tok) Char}}
-         where
+module _ where
 
-  sexp : ∀[ Parser P [ SExp ] ]
+  sexp : ∀[ Parser [ SExp ] ]
   sexp =
     -- SExp is an inductive type so we build the parser as a fixpoint
-    fix (Parser P [ SExp ]) $ λ rec →
+    fix (Parser [ SExp ]) $ λ rec →
         -- First we have atoms. Assuming we have already consumed the leading space, an
         -- atom is just a non empty list of alphabetical characters.
 
         -- We use `<$>` to turn that back into a string and apply the `Atom` constructor.
-    let atom = Atom ∘ String.fromList ∘ List⁺.toList ∘ List⁺.map (into ℂ′)
+    let atom = Atom ∘ String.fromList ∘ List⁺.toList
                <$> list⁺ alpha
 
         -- Then we have subexpressions. Here we have to be a bit careful: we can have both
@@ -77,7 +69,7 @@ module _ {l} (P : Parameters l) (open Parameters P)
 
 
   -- The full parser is obtained by disregarding spaces before & after the expression
-  SEXP : ∀[ Parser P [ SExp ] ]
+  SEXP : ∀[ Parser [ SExp ] ]
   SEXP = spaces ?&> sexp <&? box spaces
 
 open import Base Level.zero
@@ -85,7 +77,7 @@ open import Base Level.zero
 -- And we can run the thing on a test (which is very convenient when refactoring grammars!..):
 _ : "((  this    is)
       ((a (  pair based))
-          ((S)(expression  ))))   " ∈ SEXP chars
+          ((S)(expression  ))))   " ∈ SEXP
 _ = Pair (Pair (Atom "this") (Atom "is"))
          (Pair (Pair (Atom "a")
                      (Pair (Atom "pair") (Atom "based")))
