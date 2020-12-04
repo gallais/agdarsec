@@ -26,6 +26,7 @@ open import Text.Parser.Combinators.Char    {P = CHARS} public
 
 open import Data.List.Sized.Interface using (vec) public
 open import Data.Subset using (Subset-refl) public
+open import Relation.Binary.PropositionalEquality.Decidable using (decide-char) public
 
 instance
 
