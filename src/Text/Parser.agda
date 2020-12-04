@@ -73,3 +73,11 @@ runParser p str =
                            then inj₂ (lower (value res))
                            else inj₁ (proj₁ (lower p))
         (inj₁ p) → inj₁ (lower p)
+
+open import IO
+open import System.Exit
+
+runParserIO : {A : Set≤ l} → ∀[ Parser A ] → String → IO (theSet A)
+runParserIO p str = case runParser p str of λ where
+  (inj₁ pos) → die ("Parse error at position: " String.++ Position.show pos)
+  (inj₂ val) → pure val
