@@ -39,6 +39,12 @@ module _ {{𝕄 : RawMonadPlus M}}
               $ (0 , '0') ∷ (1 , '1') ∷ (2 , '2') ∷ (3 , '3') ∷ (4 , '4')
               ∷ (5 , '5') ∷ (6 , '6') ∷ (7 , '7') ∷ (8 , '8') ∷ (9 , '9') ∷ []
 
+ hexadecimalDigit : ∀[ Parser [ ℕ ] ]
+ hexadecimalDigit = decimalDigit <|> alts hex where
+   hex = List.map (uncurry $ λ v c → v <$ exact (ℂ.into c))
+       $ (10 , 'a') ∷ (11 , 'b') ∷ (12 , 'c')
+       ∷ (13 , 'd') ∷ (14 , 'e') ∷ (15 , 'f') ∷ []
+
  decimalℕ : ∀[ Parser [ ℕ ] ]
  decimalℕ = convert <$> list⁺ decimalDigit where
   convert = List⁺.foldl (λ ih v → ih * 10 + v) id
