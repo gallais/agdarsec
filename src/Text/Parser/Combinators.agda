@@ -14,8 +14,10 @@ open import Data.Bool.Base as Bool using (Bool; if_then_else_; not; _∧_)
 open import Data.List.Base as List using (_∷_; []; null)
 open import Data.List.NonEmpty as List⁺ using (_∷⁺_ ; _∷_)
 open import Data.Maybe.Base using (just; nothing; maybe)
+open import Data.Nat.Base using (suc; NonZero)
 open import Data.Product as Product using (_,_; proj₁; proj₂; uncurry)
 open import Data.Sum.Base as Sum using (inj₁; inj₂)
+open import Data.Vec.Base as Vec using (_∷_; [])
 
 open import Data.Nat.Properties as Nat using (≤-refl; ≤-trans; <⇒≤; <-trans)
 import Data.List.Relation.Unary.Any as Any
@@ -275,3 +277,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
   list⁺ = Box.fix (Parser A ⇒ Parser (List⁺ A)) $ λ rec pA →
           uncurry (λ hd → (hd ∷_) ∘′ maybe List⁺.toList [])
           <$> (pA <&?> (Box.app rec (box pA)))
+
+  replicate : (n : ℕ) → {NonZero n} → ∀[ Parser A ⇒ Parser (Vec A n) ]
+  replicate 1               p = Vec.[_] <$> p
+  replicate (suc n@(suc _)) p = uncurry Vec._∷_ <$> (p <&> box (replicate n p))

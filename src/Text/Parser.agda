@@ -26,6 +26,7 @@ private
 
 -- We re-export all of the combinators someone may need, specialised to CHARS
 
+open Level≤ using ([_]) public
 open import Text.Parser.Types               P hiding (runParser) public
 open import Text.Parser.Combinators         {P = P} public
 open import Text.Parser.Combinators.Numbers {P = P} public

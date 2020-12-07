@@ -1,7 +1,7 @@
 module SExp where
 
 open import Level using (0ℓ)
-open import Level.Bounded using (theSet; [_])
+open import Level.Bounded using (theSet)
 open import Data.Char.Base
 open import Data.String.Base as String using (String)
 
