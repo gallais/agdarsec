@@ -33,7 +33,7 @@
         <a id="894" class="Comment">-- atom is just a non empty list of alphabetical characters.</a>
 
         <a id="964" class="Comment">-- We use `&lt;$&gt;` to turn that back into a string and apply the `Atom` constructor.</a>
-    <a id="1050" class="Keyword">let</a> <a id="1054" href="SExp.html#1054" class="Bound">atom</a> <a id="1059" class="Symbol">=</a> <a id="1061" href="SExp.html#196" class="InductiveConstructor">Atom</a> <a id="1066" href="Function.Base.html#1031" class="Function Operator">∘</a> <a id="1068" href="Data.String.Base.html#1546" class="Primitive">String.fromList</a> <a id="1084" href="Function.Base.html#1031" class="Function Operator">∘</a> <a id="1086" href="Data.List.NonEmpty.html#1760" class="Function">List⁺.toList</a>
+    <a id="1050" class="Keyword">let</a> <a id="1054" href="SExp.html#1054" class="Bound">atom</a> <a id="1059" class="Symbol">=</a> <a id="1061" href="SExp.html#196" class="InductiveConstructor">Atom</a> <a id="1066" href="Function.Base.html#1031" class="Function Operator">∘</a> <a id="1068" href="Data.String.Base.html#1623" class="Primitive">String.fromList</a> <a id="1084" href="Function.Base.html#1031" class="Function Operator">∘</a> <a id="1086" href="Data.List.NonEmpty.html#1760" class="Function">List⁺.toList</a>
                <a id="1114" href="Text.Parser.Combinators.html#3101" class="Function Operator">&lt;$&gt;</a> <a id="1118" href="Text.Parser.Combinators.html#9287" class="Function">list⁺</a> <a id="1124" href="Text.Parser.Combinators.Char.html#2243" class="Function">alpha</a>
 
         <a id="1139" class="Comment">-- Then we have subexpressions. Here we have to be a bit careful: we can have both</a>
