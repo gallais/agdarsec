@@ -46,6 +46,10 @@ open Set≤ public
 level≤ [ A ] = zero
 theSet [ A ] = A
 
+embed : ∀ {l} → Set l → Set≤ l
+level≤ (embed {l} A) = MkLevel≤ _
+theSet (embed {l} A) = A
+
 import Data.Unit.Base as Unit
 
 ⊤ : ∀ {l} → Set≤ l
