@@ -7,6 +7,8 @@ open import Data.Char.Base using (Char)
 open import Data.List.Base as List using ([]; _∷_; drop)
 open import Data.Maybe.Base as Maybe using (nothing; just; maybe′)
 open import Data.Product using (_,_; proj₁; proj₂; map₁; map₂)
+open import Data.String.Base using (String)
+open import Data.Text.Sized using (Text)
 
 open import Data.Subset using (Subset; into)
 open import Function.Base using (_∘′_; _$′_)
@@ -119,6 +121,9 @@ module AgdarsecT
   chars : Parameters l
   chars = param [ Char ] (Vec [ Char ]) recordChar
 
+  text : Parameters l
+  text = param [ Char ] (λ n → [ Text n ]) recordChar
+
 module Agdarsec l (E Ann : Set≤ l) (𝕊 : Subset (theSet ([ Position ] × List Ann)) (theSet E)) where
 
   private module M = AgdarsecT E Ann Id.monad 𝕊
@@ -138,6 +143,14 @@ module Agdarsec′ {l : Level} where
   vec Tok = record
     { Tok         = Tok
     ; Toks        = Vec Tok
+    ; M           = Agdarsec ⊤ ⊥
+    ; recordToken = λ _ → M.pure _
+    } where module M = RawMonad monad
+
+  txt : Set≤ l → Parameters l
+  txt Tok = record
+    { Tok         = Tok
+    ; Toks        = λ n → [ Text n ]
     ; M           = Agdarsec ⊤ ⊥
     ; recordToken = λ _ → M.pure _
     } where module M = RawMonad monad
