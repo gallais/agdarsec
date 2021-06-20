@@ -1,7 +1,0 @@
-language: C
-sudo: false
-
-branches:
-  only:
-    - master
-
