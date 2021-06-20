@@ -139,8 +139,6 @@ jobs:
       # Generate a fresh Everything.agda & index.agda and start building!
       - name: Test agdarsec
         run: |
-          cp travis/* .
-          ./everything.sh
           ${{ env.AGDA }} -iexamples index.agda
 
       # Note that if you want to deploy html for different versions like the
