@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module SExp where
 
 open import Level using (0ℓ)
