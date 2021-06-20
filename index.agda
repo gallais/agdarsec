@@ -1,9 +1,15 @@
+{-# OPTIONS --guardedness #-}
+
 module index where
 
 -- The core design decisions behind agdarsec are detailed in
 -- https://gallais.github.io/pdf/agdarsec18.pdf
 
--- You probably want to start with the main types:
+-- We have a simplified frontend with ready made default choices:
+
+import Text.Parser
+
+-- Otherwise you probably want to start with the main types:
 
 import Text.Parser.Types
 
@@ -18,10 +24,6 @@ import Text.Parser.Combinators.Char
 import Text.Parser.Monad
 
 -- We have a small lexer library
-
-import Text.Lexer
-
--- And a small library to define lexers:
 
 import Text.Lexer
 
