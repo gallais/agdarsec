@@ -121,8 +121,8 @@ module AgdarsecT
   chars : Parameters l
   chars = param [ Char ] (Vec [ Char ]) recordChar
 
-  text : Parameters l
-  text = param [ Char ] (λ n → [ Text n ]) recordChar
+  raw : Parameters l
+  raw = param [ Char ] (λ n → [ Text n ]) recordChar
 
 module Agdarsec l (E Ann : Set≤ l) (𝕊 : Subset (theSet ([ Position ] × List Ann)) (theSet E)) where
 
