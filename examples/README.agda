@@ -15,3 +15,6 @@ import SExp
 
 -- example of a large parser
 import Large
+
+-- example of a JSON parser
+import JSONTest
