@@ -34,20 +34,7 @@ open import Text.Parser.Combinators.Char {P = P}
 open import Text.Parser.Combinators.Numbers {P = P}
 open Parameters P
 
-
-module JSON where
-
-  -- I wish I could use a sized type here but unfortunately they're not
-  -- considered safe anymore.
-  data JSON : Set where
-    null   : JSON
-    bool   : Bool → JSON
-    number : Float → JSON
-    string : String → JSON
-    array  : List JSON → JSON
-    object : List (String × JSON) → JSON
-
-open JSON using (JSON)
+open import Data.JSON as JSON using (JSON)
 
 module _ {{𝕄 : RawMonadPlus M}}
          {{𝕊 : Sized Tok Toks}}
@@ -64,7 +51,7 @@ module _ {{𝕄 : RawMonadPlus M}}
 -- Structural characters
 
   structuralChar : Char → ∀[ Parser [ ⊤ ] ]
-  structuralChar c = _ <$ (char c <&? box spaces)
+  structuralChar c = _ <$ (char c  <&? box spaces)
 
   beginArray     = structuralChar '['
   beginObject    = structuralChar '{'

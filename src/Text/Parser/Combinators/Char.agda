@@ -4,11 +4,11 @@ open import Text.Parser.Types.Core using (Parameters)
 
 module Text.Parser.Combinators.Char {l} {P : Parameters l} where
 
-open import Data.Bool.Base using (T; not; if_then_else_)
+open import Data.Bool.Base using (T; not)
 open import Data.Char.Base using (Char)
 open import Data.List.Base as List using ([]; _∷_; null)
 open import Data.List.NonEmpty as List⁺ using (_∷_)
-open import Data.Maybe.Base using (nothing; maybe; fromMaybe)
+open import Data.Maybe.Base using (nothing; just; maybe; fromMaybe)
 open import Data.Nat.Base using (ℕ)
 import Data.Nat.Show as ℕ
 open import Data.Product using (_,_)
@@ -148,17 +148,14 @@ module _ {{𝕊 : Sized Tok Toks}}
 
      escaped : ∀[ Parser toks ]
      escaped =
-       let unicode : ∀[ Parser toks ]
-           unicode = convertUnicode <$> replicate 4 hexadecimalDigit
+       let unicode : ∀[ Parser (Maybe toks) ]
+           unicode = just ∘′ convertUnicode <$> replicate 4 hexadecimalDigit
 
            chunks : ∀[ Parser (List⁺ toks) ]
            chunks = list⁺ ((λ (a , mb) → fromMaybe (a ∷ []) mb)
              <$> (char '\\' -- escaping
-             &> box ((_, nothing) <$> anyOfChars ('"' ∷ '\\' ∷ [])) -- special characters
-               <|> anyTok &?>>= λ c → box $
-                     if does (decide 𝔻 c (ℂ.into 'u')) -- better be a unicode character
-                     then unicode
-                     else fail))
+             &> box ((_, nothing) <$> anyOfChars ('"' ∷ '\\' ∷ 'r' ∷ 'n' ∷ 't' ∷ [])) -- special characters
+               <|> char 'u' <&> box unicode))
        in List⁺.concat <$> chunks
 
      convert : theSet (Maybe toks × Maybe (List⁺ (toks × Maybe toks))) → String

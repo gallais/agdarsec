@@ -75,7 +75,7 @@ module _ {{𝕄 : RawMonadPlus M}}
 
    eNotation : ∀[ Parser [ Maybe Sign × ℕ ] ]
    eNotation = anyOf (ℂ.into 'E' ∷ ℂ.into 'e' ∷ [])
-             &> box sign <?&> decimalℕ
+             &> box (sign <?&> decimalℕ)
 
    fromENotation : Maybe Sign × ℕ → Float → Float
    fromENotation (ms , e) f = case fromMaybe Sign.+ ms of λ where
