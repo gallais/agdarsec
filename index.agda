@@ -19,6 +19,10 @@ import Text.Parser.Combinators
 import Text.Parser.Combinators.Numbers
 import Text.Parser.Combinators.Char
 
+-- And even a concrete instance in:
+
+import Text.Parser.JSON
+
 -- We have some ready-to-use monads for parsing in:
 
 import Text.Parser.Monad
@@ -27,7 +31,7 @@ import Text.Parser.Monad
 
 import Text.Lexer
 
--- We have some fully worked-out in:
+-- We have some fully worked-out examples in:
 
 import Expr
 import STLC
