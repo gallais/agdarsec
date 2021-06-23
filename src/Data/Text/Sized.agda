@@ -19,7 +19,7 @@ private
   variable l : Level
 
 record Text (n : ℕ) : Set where
-  constructor mkTest
+  constructor mkText
   field
     value  : String
     .proof : length value ≡ n
@@ -61,6 +61,6 @@ instance
 
   text : Sized {l} [ Char ] (λ n → [ Text n ])
   Sized.view text {zero}  t = _
-  Sized.view text {suc n} (Level.lift (mkTest val prf)) =
+  Sized.view text {suc n} (Level.lift (mkText val prf)) =
     let (mkSplit hd tl prf _) = split val prf in
-    lift (hd , mkTest tl prf)
+    lift (hd , mkText tl prf)
