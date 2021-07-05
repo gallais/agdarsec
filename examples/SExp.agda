@@ -19,17 +19,16 @@ open import Data.Product
 open import Data.Subset
 open import Function.Base
 open import Induction.Nat.Strong
-open import Relation.Unary using (IUniversal ; _⇒_)
 open import Relation.Binary.PropositionalEquality.Decidable
 
-open import Text.Parser 0ℓ
+open import Text.Parser
 
 module _ where
 
-  sexp : ∀[ Parser [ SExp ] ]
+  sexp : ∀[ Parser SExp ]
   sexp =
     -- SExp is an inductive type so we build the parser as a fixpoint
-    fix (Parser [ SExp ]) $ λ rec →
+    fix (Parser SExp) $ λ rec →
         -- First we have atoms. Assuming we have already consumed the leading space, an
         -- atom is just a non empty list of alphabetical characters.
 
@@ -49,7 +48,7 @@ module _ where
         -- I give a bit more details about `lift` and `box` below.
         -- As for the previous case we use `<$>` to massage the result into a `SExp`.
         sexp = (λ (a , mb) → maybe (Pair a) a mb)
-               <$> parens (lift2 (λ p q → (spaces ?&> p <&? box spaces) <&?> box (q <&? box spaces))
+               <$> parens (lift2 (λ p q → withSpaces p <&?> box (q <&? box spaces))
                                  rec
                                  rec)
      in
@@ -71,10 +70,8 @@ module _ where
 
 
   -- The full parser is obtained by disregarding spaces before & after the expression
-  SEXP : ∀[ Parser [ SExp ] ]
+  SEXP : ∀[ Parser SExp ]
   SEXP = spaces ?&> sexp <&? box spaces
-
-open import Base Level.zero
 
 -- And we can run the thing on a test (which is very convenient when refactoring grammars!..):
 _ : "((  this    is)

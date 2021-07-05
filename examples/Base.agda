@@ -31,6 +31,7 @@ open import Relation.Binary.PropositionalEquality.Decidable public
 open import Induction.Nat.Strong hiding (<-lower ; ≤-lower) public
 
 open import Data.Subset public
+open import Data.Singleton public
 
 open import Text.Parser.Types.Core                public
 open import Text.Parser.Types                     public
@@ -42,10 +43,6 @@ open import Text.Parser.Monad                     public
 open import Text.Parser.Monad.Result hiding (map) public
 
 open Agdarsec′ public
-
-infix 0 _!
-data Singleton {a} {A : Set a} : A → Set a where
-  _! : (a : A) → Singleton a
 
 record Tokenizer (A : Set≤ l) : Set (level (level≤ A)) where
   constructor mkTokenizer
