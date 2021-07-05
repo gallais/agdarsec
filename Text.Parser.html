@@ -16,16 +16,16 @@
 <a id="406" class="Keyword">open</a> <a id="411" class="Keyword">import</a> <a id="418" href="Text.Parser.Monad.html" class="Module">Text.Parser.Monad</a>
 <a id="436" class="Keyword">open</a> <a id="441" class="Keyword">import</a> <a id="448" href="Text.Parser.Position.html" class="Module">Text.Parser.Position</a> <a id="469" class="Symbol">as</a> <a id="472" class="Module">Position</a> <a id="481" class="Keyword">using</a> <a id="487" class="Symbol">(</a><a id="488" href="Text.Parser.Position.html#380" class="Record">Position</a><a id="496" class="Symbol">;</a> <a id="498" class="Keyword">module</a> <a id="505" href="Text.Parser.Position.html#380" class="Module">Position</a><a id="513" class="Symbol">)</a> <a id="515" class="Keyword">public</a>
 
-<a id="523" class="Keyword">module</a> <a id="CHARS"></a><a id="530" href="Text.Parser.html#530" class="Module">CHARS</a> <a id="536" class="Symbol">=</a> <a id="538" href="Text.Parser.Monad.html#3668" class="Module">Agdarsec</a> <a id="547" href="Text.Parser.html#85" class="Bound">l</a> <a id="549" href="Level.Bounded.html#1072" class="Function Operator">[</a> <a id="551" href="Text.Parser.Position.html#380" class="Record">Position</a> <a id="560" href="Level.Bounded.html#1072" class="Function Operator">]</a> <a id="562" href="Level.Bounded.html#1322" class="Function">Level≤.⊥</a> <a id="571" class="Symbol">(</a><a id="572" class="Keyword">record</a> <a id="579" class="Symbol">{</a> <a id="581" href="Data.Subset.html#173" class="Field">into</a> <a id="586" class="Symbol">=</a> <a id="588" href="Agda.Builtin.Sigma.html#252" class="Field">proj₁</a> <a id="594" class="Symbol">})</a>
+<a id="523" class="Keyword">module</a> <a id="CHARS"></a><a id="530" href="Text.Parser.html#530" class="Module">CHARS</a> <a id="536" class="Symbol">=</a> <a id="538" href="Text.Parser.Monad.html#3828" class="Module">Agdarsec</a> <a id="547" href="Text.Parser.html#85" class="Bound">l</a> <a id="549" href="Level.Bounded.html#1072" class="Function Operator">[</a> <a id="551" href="Text.Parser.Position.html#380" class="Record">Position</a> <a id="560" href="Level.Bounded.html#1072" class="Function Operator">]</a> <a id="562" href="Level.Bounded.html#1322" class="Function">Level≤.⊥</a> <a id="571" class="Symbol">(</a><a id="572" class="Keyword">record</a> <a id="579" class="Symbol">{</a> <a id="581" href="Data.Subset.html#173" class="Field">into</a> <a id="586" class="Symbol">=</a> <a id="588" href="Agda.Builtin.Sigma.html#252" class="Field">proj₁</a> <a id="594" class="Symbol">})</a>
 
 <a id="598" class="Comment">-- Our sized text is represented using vectors of characters</a>
 
 <a id="660" class="Keyword">private</a>
   <a id="ParserM"></a><a id="670" href="Text.Parser.html#670" class="Function">ParserM</a> <a id="678" class="Symbol">:</a> <a id="680" href="Agda.Primitive.html#326" class="Primitive">Set</a> <a id="684" href="Text.Parser.html#85" class="Bound">l</a> <a id="686" class="Symbol">→</a> <a id="688" href="Agda.Primitive.html#326" class="Primitive">Set</a> <a id="692" href="Text.Parser.html#85" class="Bound">l</a>
-  <a id="696" href="Text.Parser.html#670" class="Function">ParserM</a> <a id="704" class="Symbol">=</a> <a id="706" href="Text.Parser.Monad.html#991" class="Function">AgdarsecT</a> <a id="716" href="Level.Bounded.html#1072" class="Function Operator">[</a> <a id="718" href="Text.Parser.Position.html#380" class="Record">Position</a> <a id="727" href="Level.Bounded.html#1072" class="Function Operator">]</a> <a id="729" href="Level.Bounded.html#1322" class="Function">Level≤.⊥</a> <a id="738" href="Function.Identity.Categorical.html#451" class="Function">Identity</a>
+  <a id="696" href="Text.Parser.html#670" class="Function">ParserM</a> <a id="704" class="Symbol">=</a> <a id="706" href="Text.Parser.Monad.html#1076" class="Function">AgdarsecT</a> <a id="716" href="Level.Bounded.html#1072" class="Function Operator">[</a> <a id="718" href="Text.Parser.Position.html#380" class="Record">Position</a> <a id="727" href="Level.Bounded.html#1072" class="Function Operator">]</a> <a id="729" href="Level.Bounded.html#1322" class="Function">Level≤.⊥</a> <a id="738" href="Function.Identity.Categorical.html#451" class="Function">Identity</a>
 
   <a id="P"></a><a id="750" href="Text.Parser.html#750" class="Function">P</a> <a id="752" class="Symbol">:</a> <a id="754" href="Text.Parser.Types.Core.html#393" class="Record">Parameters</a> <a id="765" href="Text.Parser.html#85" class="Bound">l</a>
-  <a id="769" href="Text.Parser.html#750" class="Function">P</a> <a id="771" class="Symbol">=</a> <a id="773" href="Text.Parser.Monad.html#3588" class="Function">CHARS.chars</a>
+  <a id="769" href="Text.Parser.html#750" class="Function">P</a> <a id="771" class="Symbol">=</a> <a id="773" href="Text.Parser.Monad.html#3673" class="Function">CHARS.chars</a>
 
 <a id="786" class="Comment">-- We re-export all of the combinators someone may need, specialised to CHARS</a>
 
@@ -45,13 +45,13 @@
 <a id="1439" class="Keyword">instance</a>
 
   <a id="P-monad"></a><a id="1451" href="Text.Parser.html#1451" class="Function">P-monad</a> <a id="1459" class="Symbol">:</a> <a id="1461" href="Category.Monad.html#448" class="Function">RawMonad</a> <a id="1470" href="Text.Parser.html#670" class="Function">ParserM</a>
-  <a id="1480" href="Text.Parser.html#1451" class="Function">P-monad</a>  <a id="1489" class="Symbol">=</a> <a id="1491" href="Text.Parser.Monad.html#3846" class="Function">CHARS.monad</a>
+  <a id="1480" href="Text.Parser.html#1451" class="Function">P-monad</a>  <a id="1489" class="Symbol">=</a> <a id="1491" href="Text.Parser.Monad.html#4006" class="Function">CHARS.monad</a>
 
   <a id="P-monad0"></a><a id="1506" href="Text.Parser.html#1506" class="Function">P-monad0</a> <a id="1515" class="Symbol">:</a> <a id="1517" href="Category.Monad.html#643" class="Function">RawMonadZero</a> <a id="1530" href="Text.Parser.html#670" class="Function">ParserM</a>
-  <a id="1540" href="Text.Parser.html#1506" class="Function">P-monad0</a> <a id="1549" class="Symbol">=</a> <a id="1551" href="Text.Parser.Monad.html#1895" class="Function">CHARS.monadZero</a>
+  <a id="1540" href="Text.Parser.html#1506" class="Function">P-monad0</a> <a id="1549" class="Symbol">=</a> <a id="1551" href="Text.Parser.Monad.html#1980" class="Function">CHARS.monadZero</a>
 
   <a id="P-monad+"></a><a id="1570" href="Text.Parser.html#1570" class="Function">P-monad+</a> <a id="1579" class="Symbol">:</a> <a id="1581" href="Category.Monad.html#734" class="Function">RawMonadPlus</a> <a id="1594" href="Text.Parser.html#670" class="Function">ParserM</a>
-  <a id="1604" href="Text.Parser.html#1570" class="Function">P-monad+</a> <a id="1613" class="Symbol">=</a> <a id="1615" href="Text.Parser.Monad.html#2281" class="Function">CHARS.monadPlus</a>
+  <a id="1604" href="Text.Parser.html#1570" class="Function">P-monad+</a> <a id="1613" class="Symbol">=</a> <a id="1615" href="Text.Parser.Monad.html#2366" class="Function">CHARS.monadPlus</a>
 
 <a id="1632" class="Comment">-- Finally we define a function to run a parser and readily obtain a value</a>
 
