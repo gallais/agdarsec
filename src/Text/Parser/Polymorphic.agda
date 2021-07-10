@@ -1,5 +1,3 @@
-{-# OPTIONS --guardedness #-}
-
 open import Level using (Level)
 
 module Text.Parser.Polymorphic (l : Level) where
@@ -9,7 +7,7 @@ open import Category.Monad
 open import Data.Char.Base using (Char)
 open import Data.Product using (proj₁)
 open import Level.Bounded as Level≤ using (Set≤; theSet; [_]; lift; lower)
-open import Relation.Unary
+open import Relation.Unary using (IUniversal; _⇒_) public
 
 open import Text.Parser.Types.Core
 open import Text.Parser.Monad
@@ -76,11 +74,3 @@ runParser p str =
                            then inj₂ (lower (value res))
                            else inj₁ (proj₁ (lower p))
         (inj₁ p) → inj₁ (lower p)
-
-open import IO
-open import System.Exit
-
-runParserIO : {A : Set≤ l} → ∀[ Parser A ] → String → IO (theSet A)
-runParserIO p str = case runParser p str of λ where
-  (inj₁ pos) → die ("Parse error at position: " String.++ Position.show pos)
-  (inj₂ val) → pure val

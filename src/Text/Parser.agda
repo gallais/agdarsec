@@ -10,8 +10,6 @@
 --
 ------------------------------------------------------------------------
 
-{-# OPTIONS --guardedness #-}
-
 module Text.Parser where
 
 open import Level using (0ℓ)
@@ -94,14 +92,6 @@ str ∈ p = Singleton.fromInj₂ (runParser p str)
 
 _∉_ : String → ∀[ Parser A ] → Set
 str ∉ p = [ const ⊤ , const ⊥ ]′ (runParser p str)
-
-open import IO using (IO; pure)
-open import System.Exit
-
-runParserIO : ∀[ Parser A ] → String → IO A
-runParserIO p str = case runParser p str of λ where
-  (inj₁ pos) → die ("Parse error at position: " String.++ Position.show pos)
-  (inj₂ val) → pure val
 
 import Text.Parser.Combinators {0ℓ} {P} as Combinators
 
