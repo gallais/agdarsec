@@ -75,7 +75,7 @@ Parser A = Types.Parser P [ A ]
 
 private
   variable
-    A B C : Set
+    A B C R : Set
 
 runParser : ∀[ Parser A ] → String → Position ⊎ A
 runParser p str =
@@ -203,6 +203,9 @@ infixr 3 _<⊎>_
 _<⊎>_ : ∀[ Parser A ⇒ Parser B ⇒ Parser (A ⊎ B) ]
 _<⊎>_ = Combinators._<⊎>_
 
+<[_,_]> : ∀[ const (A → R) ⇒ (const B ⇒ □ Parser R) ⇒ Parser (A ⊎ B) ⇒ Parser R ]
+<[_,_]> = Combinators.<[_,_]>
+
 infixl 4 _<?&>_ _<?&_ _?&>_
 _<?&>_ : ∀[ Parser A ⇒ Parser B ⇒ Parser (Maybe A × B) ]
 _<?&>_ = Combinators._<?&>_
@@ -254,7 +257,7 @@ head+tail = Combinators.head+tail
 list⁺ : ∀[ Parser A ⇒ Parser (List⁺ A) ]
 list⁺ = Combinators.list⁺
 
-replicate : (n : ℕ) → {NonZero n} → ∀[ Parser A ⇒ Parser (Vec A n) ]
+replicate : (n : ℕ) → {{NonZero n}} → ∀[ Parser A ⇒ Parser (Vec A n) ]
 replicate = Combinators.replicate
 
 import Text.Parser.Combinators.Numbers {0ℓ} {P} as Numbers

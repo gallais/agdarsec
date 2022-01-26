@@ -211,6 +211,18 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
   _<⊎>_ : ∀[ Parser A ⇒ Parser B ⇒ Parser (A ⊎ B) ]
   A <⊎> B = inj₁ <$> A <|> inj₂ <$> B
 
+ module _ {A B R : Set≤ l} where
+
+  <[_,_]> : ∀[ const (theSet A → theSet R) ⇒ (const (theSet B) ⇒ □ Parser R) ⇒
+               Parser (A ⊎ B) ⇒ Parser R ]
+  runParser (<[ f , k ]> A⊎B) m≤n s =
+    runParser A⊎B m≤n s 𝕄.>>= λ rA⊎B → let (v ^ p<m , s′) = rA⊎B in
+    case lower v of λ where
+      (inj₁ a) → 𝕄.return (lift (f a) ^ p<m , s′)
+      (inj₂ b) → <-lift p<m 𝕄.<$> runParser (Box.call (k b) (≤-trans p<m m≤n)) ≤-refl s′
+
+ module _ {A B : Set≤ l} where
+
   infixl 4 _<?&>_ _<?&_ _?&>_
   _<?&>_ : ∀[ Parser A ⇒ Parser B ⇒ Parser (Maybe A × B) ]
   A <?&> B = just <$> A <&> box B <|> (nothing ,_) <$> B
@@ -310,6 +322,6 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
           uncurry (λ hd → (hd ∷_) ∘′ maybe List⁺.toList [])
           <$> (pA <&?> (Box.app rec (box pA)))
 
-  replicate : (n : ℕ) → {NonZero n} → ∀[ Parser A ⇒ Parser (Vec A n) ]
+  replicate : (n : ℕ) → {{NonZero n}} → ∀[ Parser A ⇒ Parser (Vec A n) ]
   replicate 1               p = Vec.[_] <$> p
   replicate (suc n@(suc _)) p = uncurry Vec._∷_ <$> (p <&> box (replicate n p))

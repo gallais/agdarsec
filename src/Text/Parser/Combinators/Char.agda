@@ -4,6 +4,7 @@ open import Text.Parser.Types.Core using (Parameters)
 
 module Text.Parser.Combinators.Char {l} {P : Parameters l} where
 
+open import Data.Unit.Base
 open import Data.Bool.Base using (T; not)
 open import Data.Char.Base using (Char)
 open import Data.List.Base as List using ([]; _∷_; null)

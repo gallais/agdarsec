@@ -1,6 +1,7 @@
 module Vec where
 
 open import Text.Parser
+open import Data.Unit.Base
 open import Data.Vec hiding (replicate)
 open import Data.Maybe
 open import Data.Nat
