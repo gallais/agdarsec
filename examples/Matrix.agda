@@ -25,7 +25,7 @@ indices = f <$> (decimalℕ <& box space <&> box decimalℕ) where
   f (m , zero) = inj₁ (m , zero , inj₂ refl)
   f (suc m , suc n) = inj₂ (suc m , suc n , _)
 
-matrix : ∀[ Parser (Σ ℕ λ m → Σ ℕ λ n → Matrix ℕ m n) ]
+matrix : ∀[ Parser (Σ[ m ∈ ℕ ] Σ[ n ∈ ℕ ] Matrix ℕ m n) ]
 matrix = <[ ((λ (m , n , p) → [ (λ _ → 0 , n , []) , (λ _ → m , 0 , Vec.replicate []) ] p))
           , (λ (m , n , p , q) → box $ (m ,_) ∘ (n ,_) <$> replicate m {{p}} (replicate n {{q}} (space &> box decimalℕ)))
           ]> indices
