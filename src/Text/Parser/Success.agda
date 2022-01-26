@@ -4,7 +4,7 @@ open import Text.Parser.Types.Core using (Parameters)
 
 module Text.Parser.Success {l} (P : Parameters l) where
 
-open import Level.Bounded as Level≤ using (Set≤; _×_; theSet; lift; lower)
+open import Level.Bounded as Level≤ using (_≤l_; Set≤; Σ; _×_; mkSet≤; theSet; lift; lower)
 open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_)
 open import Data.Nat.Properties using (≤-trans; <⇒≤; ≤-refl)
 open import Data.Maybe.Base as Maybe using (Maybe; nothing; just)
@@ -35,11 +35,18 @@ module _ {A : Set≤ l} {m n : ℕ} where
   <-lift : .(le : m < n) → Success Toks A m → Success Toks A n
   <-lift m<n = ≤-lift (<⇒≤ m<n)
 
+module _ {A : Set≤ l} {b} {{b≤l : b ≤l l}} {B : theSet A → Set b} where
+
+  and : ∀ {n} (p : Success Toks A n) →
+        Success Toks (mkSet≤ (B (lower $ value p))) (size p) →
+        Success Toks (Σ A B) n
+  and (a ^ m<n , v) q = <-lift m<n (map (lower a ,_) q)
+
 module _ {A B : Set≤ l} where
 
-  and : ∀ {n} (p : Success Toks A n) → Success Toks B (size p) →
-        Success Toks (A × B) n
-  and (a ^ m<n , v) q = <-lift m<n (map (lower a ,_) q)
+  and′ : ∀ {n} (p : Success Toks A n) → Success Toks B (size p) →
+         Success Toks (A × B) n
+  and′ (a ^ m<n , v) q = <-lift m<n (map (lower a ,_) q)
 
 module _ {{𝕊 : Sized Tok Toks}} where
 

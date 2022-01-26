@@ -27,7 +27,7 @@ open import Data.List.NonEmpty as List⁺ using (List⁺)
 open import Data.Maybe.Base using (Maybe)
 open import Data.Nat.Base using (ℕ; _≡ᵇ_; NonZero)
 import Data.Nat.Properties as ℕₚ
-open import Data.Product using (_×_; _,_; proj₁)
+open import Data.Product using (Σ; Σ-syntax; _×_; _,_; proj₁)
 open import Data.Sign.Base using (Sign)
 open import Data.String.Base as String using (String)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂; [_,_]′)
@@ -141,16 +141,30 @@ infixr 5 _<$_
 _<$_ : B → ∀[ Parser A ⇒ Parser B ]
 _<$_ = Combinators._<$_
 
-_&?>>=_ : ∀[ Parser A ⇒ (const A ⇒ □ Parser B) ⇒
-             Parser (A × Maybe B) ]
+_&?>>=_ : {B : A → Set} →
+          ∀ {n} → Parser A n → ((a : A) → (□ Parser (B a)) n) →
+          Parser (Σ[ a ∈ A ] Maybe (B a)) n
 _&?>>=_ = Combinators._&?>>=_
 
-_&>>=_ : ∀[ Parser A ⇒ (const A ⇒ □ Parser B) ⇒ Parser (A × B) ]
+_&>>=_ : {B : A → Set} →
+         ∀ {n} → Parser A n → ((a : A) → (□ Parser (B a)) n) → Parser (Σ A B) n
 _&>>=_ = Combinators._&>>=_
 
-_?&>>=_ : ∀[ Parser A ⇒ (const (Maybe A) ⇒ Parser B) ⇒
-            Parser (Maybe A × B) ]
+_?&>>=_ : {B : Maybe A → Set} →
+          ∀ {n} → Parser A n → ((ma : Maybe A) → Parser (B ma) n) →
+          Parser (Σ[ ma ∈ Maybe A ] B ma) n
 _?&>>=_ = Combinators._?&>>=_
+
+_&?>>=′_ : ∀[ Parser A ⇒ (const A ⇒ □ Parser B) ⇒
+             Parser (A × Maybe B) ]
+_&?>>=′_ = Combinators._&?>>=′_
+
+_&>>=′_ : ∀[ Parser A ⇒ (const A ⇒ □ Parser B) ⇒ Parser (A × B) ]
+_&>>=′_ = Combinators._&>>=′_
+
+_?&>>=′_ : ∀[ Parser A ⇒ (const (Maybe A) ⇒ Parser B) ⇒
+              Parser (Maybe A × B) ]
+_?&>>=′_ = Combinators._?&>>=′_
 
 _>>=_ : ∀[ Parser A ⇒ (const A ⇒ □ Parser B) ⇒ Parser B ]
 _>>=_ = Combinators._>>=_

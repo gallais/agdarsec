@@ -13,9 +13,9 @@ open import Data.Nat.Base using (ℕ; _≤_; _<_)
 open import Data.Bool.Base as Bool using (Bool; if_then_else_; not; _∧_)
 open import Data.List.Base as List using (_∷_; []; null)
 open import Data.List.NonEmpty as List⁺ using (_∷⁺_ ; _∷_)
-open import Data.Maybe.Base using (just; nothing; maybe)
+open import Data.Maybe.Base as M using (just; nothing; maybe)
 open import Data.Nat.Base using (suc; NonZero)
-open import Data.Product as Product using (_,_; proj₁; proj₂; uncurry)
+open import Data.Product as Product using (Σ-syntax; _,_; proj₁; proj₂; uncurry)
 open import Data.Sum.Base as Sum using (inj₁; inj₂)
 open import Data.Vec.Base as Vec using (_∷_; [])
 
@@ -90,26 +90,18 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
            ∀[ Parser A ⇒ □ (Parser B) ⇒ □ (Parser C) ]
   lift2r f a b = lift2 f (box a) b
 
- module _ {A B : Set≤ l} where
+ module _ {A : Set≤ l} {b} {{b≤l : b ≤l l}} {B : theSet A → Set b} where
 
-  infixr 5 _<$>_
-  _<$>_ : theSet (A ⟶ B) → ∀[ Parser A ⇒ Parser B ]
-  runParser (f <$> p) lt s = S.map f 𝕄.<$> (runParser p lt s)
-
-  infixr 5 _<$_
-  _<$_ : theSet B → ∀[ Parser A ⇒ Parser B ]
-  b <$ p = const b <$> p
-
-  _&?>>=_ : ∀[ Parser A ⇒ (const (theSet A) ⇒ □ Parser B) ⇒
-               Parser (A × Maybe B) ]
+  _&?>>=_ : ∀ {n} → Parser A n → ((a : theSet A) → (□ Parser (mkSet≤ (B a))) n) →
+            Parser (Σ A λ a → M.Maybe (B a)) n
   runParser (A &?>>= B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
-    (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (S.and rA (S.map just rB)))
-    𝕄.∣ 𝕄.return (lift (lower a , nothing) ^ p<m , s′)
+    runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
+    𝕄.return (S.and rA (S.map just rB)) 𝕄.∣ 𝕄.return ((lift (lower a , nothing)) ^ p<m , s′)
 
-  _&>>=_ : ∀[ Parser A ⇒ (const (theSet A) ⇒ □ Parser B) ⇒ Parser (A × B) ]
+  _&>>=_ : ∀ {n} → Parser A n → ((a : theSet A) → (□ Parser (mkSet≤ (B a))) n) →
+           Parser (Σ A B) n
   runParser (A &>>= B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
@@ -118,19 +110,58 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
 
  module _ {A B : Set≤ l} where
 
-  _?&>>=_ : ∀[ Parser A ⇒ (const (theSet (Maybe A)) ⇒ Parser B) ⇒
-            Parser (Maybe A × B) ]
-  A ?&>>= B = (Product.map₁ just <$> A &>>= λ a → box (B (just a)))
-          <|> ((nothing ,_)   <$> B nothing)
+  infixr 5 _<$>_
+  _<$>_ : theSet (A ⟶ B) → ∀[ Parser A ⇒ Parser B ]
+  runParser (f <$> p) lt s = S.map f 𝕄.<$> runParser p lt s
+
+  infixr 5 _<$_
+  _<$_ : theSet B → ∀[ Parser A ⇒ Parser B ]
+  b <$ p = const b <$> p
+
+ module _ {A : Set≤ l} {b} {{b≤l : b ≤l l}} {B : theSet (Maybe A) → Set b} where
+
+  _?&>>=_ : ∀ {n} → Parser A n → ((ma : theSet (Maybe A)) → Parser (mkSet≤ (B ma)) n) →
+            Parser (Σ (Maybe A) B) n
+  runParser (_?&>>=_ {n} pA pB) m≤n s =
+   let p : Parser (A ⊎ mkSet≤ (B nothing)) n
+       p = inj₁ <$> pA <|> inj₂ <$> pB nothing
+   in runParser p m≤n s 𝕄.>>= λ (v ^ p<m , ts) → case lower v of λ where
+        (inj₂ b) → 𝕄.pure (lift (nothing , b) ^ p<m , ts)
+        (inj₁ a) → (S.map (just a ,_) ∘′ <-lift p<m)
+             𝕄.<$> runParser (pB (just a)) (≤-trans (<⇒≤ p<m) m≤n) ts
+
+ module _ {A B : Set≤ l} where
+
+  _&?>>=′_ : ∀[ Parser A ⇒ (const (theSet A) ⇒ □ Parser B) ⇒
+                Parser (A × Maybe B) ]
+  runParser (A &?>>=′ B) m≤n s =
+    runParser A m≤n s 𝕄.>>= λ rA →
+    let (a ^ p<m , s′) = rA in
+    (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
+     𝕄.return (S.and′ rA (S.map just rB)))
+    𝕄.∣ 𝕄.return (lift (lower a , nothing) ^ p<m , s′)
+
+  _&>>=′_ : ∀[ Parser A ⇒ (const (theSet A) ⇒ □ Parser B) ⇒ Parser (A × B) ]
+  runParser (A &>>=′ B) m≤n s =
+    runParser A m≤n s 𝕄.>>= λ rA →
+    let (a ^ p<m , s′) = rA in
+    (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
+     𝕄.return (S.and′ rA rB))
+
+ module _ {A B : Set≤ l} where
+
+  _?&>>=′_ : ∀[ Parser A ⇒ (const (theSet (Maybe A)) ⇒ Parser B) ⇒
+                Parser (Maybe A × B) ]
+  _?&>>=′_ = _?&>>=_
 
  module _ {A B : Set≤ l} where
 
   _>>=_ : ∀[ Parser A ⇒ (const (theSet A) ⇒ □ Parser B) ⇒ Parser B ]
-  A >>= B = proj₂ <$> A &>>= B
+  A >>= B = proj₂ <$> A &>>=′ B
 
   infixl 4 _<&>_ _<&_ _&>_
   _<&>_ : ∀[ Parser A ⇒ □ Parser B ⇒ Parser (A × B) ]
-  A <&> B = A &>>= const B
+  A <&> B = A &>>=′ const B
 
   _<&_ : ∀[ Parser A ⇒ □ Parser B ⇒ Parser A ]
   A <& B = proj₁ <$> (A <&> B)
@@ -167,7 +198,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
 
   infixl 4 _<&?>_ _<&?_ _&?>_
   _<&?>_ : ∀[ Parser A ⇒ □ Parser B ⇒ Parser (A × Maybe B) ]
-  A <&?> B = A &?>>= const B
+  A <&?> B = A &?>>=′ const B
 
   _<&?_ : ∀[ Parser A ⇒ □ Parser B ⇒ Parser A ]
   A <&? B = proj₁ <$> (A <&?> B)
