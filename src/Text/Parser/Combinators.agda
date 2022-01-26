@@ -97,8 +97,9 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
   runParser (A &?>>= B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
-    runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-    𝕄.return (S.and rA (S.map just rB)) 𝕄.∣ 𝕄.return ((lift (lower a , nothing)) ^ p<m , s′)
+    (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
+    𝕄.return (S.and rA (S.map just rB)))
+    𝕄.∣ 𝕄.return ((lift (lower a , nothing)) ^ p<m , s′)
 
   _&>>=_ : ∀ {n} → Parser A n → ((a : theSet A) → (□ Parser (mkSet≤ (B a))) n) →
            Parser (Σ A B) n
