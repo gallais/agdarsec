@@ -39,6 +39,10 @@ record Set≤ (l : Level) : Setω where
         theSet : Set (level level≤)
 open Set≤ public
 
+mkSet≤ : {l b : Level} → {{b ≤l l}} → Set b → Set≤ l
+mkSet≤ {{pr}} A .level≤ = MkLevel≤ _
+mkSet≤        A .theSet = A
+
 ------------------------------------------------------------------------
 -- Type constructors
 

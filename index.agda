@@ -39,6 +39,8 @@ import Parentheses
 import RegExp
 import NList
 import SExp
+import Vec
+import Matrix
 
 -- And even a parser returning a large type
 
