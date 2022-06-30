@@ -2,11 +2,11 @@ module Text.Parser.Monad.Result where
 
 open import Level using (Level)
 open import Level.Bounded using (Set≤; Lift)
-open import Category.Monad using (RawMonad)
+open import Effect.Monad using (RawMonad)
 open import Data.Maybe.Base using (Maybe; maybe′)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Function.Base using (_∘′_)
-import Function.Identity.Categorical as Id
+import Function.Identity.Effectful as Id
 
 private
   variable

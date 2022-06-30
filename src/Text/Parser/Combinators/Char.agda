@@ -16,7 +16,7 @@ open import Data.Product using (_,_)
 open import Data.String.Base as String using (String)
 open import Data.Vec.Base as Vec using (toList)
 
-open import Category.Monad using (RawMonadPlus)
+open import Effect.Monad using (RawMonadPlus)
 open import Function.Base using (_∘′_; _$′_; _$_)
 
 open import Relation.Nullary using (does)

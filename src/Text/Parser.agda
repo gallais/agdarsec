@@ -14,9 +14,9 @@ module Text.Parser where
 
 open import Level using (0ℓ)
 open import Level.Bounded as Level≤ using ([_])
-open import Category.Monad using (RawMonad; RawMonadZero; RawMonadPlus)
+open import Effect.Monad using (RawMonad; RawMonadZero; RawMonadPlus)
 open import Function.Base using (const; _∘′_; case_of_)
-open import Function.Identity.Categorical as Identity
+open import Function.Identity.Effectful as Identity
 open import Data.Bool.Base using (Bool; T; not; if_then_else_)
 open import Data.Char.Base using (Char)
 open import Data.Empty using (⊥)

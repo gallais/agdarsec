@@ -25,7 +25,7 @@ open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Relation.Binary.PropositionalEquality.Decidable.Core using (DecidableEquality; decide)
 
-open import Category.Monad using (RawMonadPlus)
+open import Effect.Monad using (RawMonadPlus)
 open import Data.List.Sized.Interface using (Sized)
 
 open import Function.Base using (const; _$_; _∘_; _∘′_; flip; case_of_)

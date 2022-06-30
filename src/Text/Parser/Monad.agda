@@ -13,12 +13,12 @@ open import Data.Text.Sized using (Text)
 open import Data.Subset using (Subset; into)
 open import Function.Base using (_∘′_; _$′_)
 
-open import Category.Functor
-open import Category.Applicative
-open import Category.Monad
+open import Effect.Functor
+open import Effect.Applicative
+open import Effect.Monad
 
-open import Function.Identity.Categorical as Id using (Identity)
-open import Category.Monad.State
+open import Function.Identity.Effectful as Id using (Identity)
+open import Effect.Monad.State
 
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 
