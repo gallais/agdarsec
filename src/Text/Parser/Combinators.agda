@@ -50,7 +50,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
 
   guardM : theSet (A ⟶ Maybe B) → ∀[ Parser A ⇒ Parser B ]
   runParser (guardM p A) m≤n s =
-    runParser A m≤n s 𝕄.>>= maybe 𝕄.return 𝕄.∅ ∘′ S.guardM p
+    runParser A m≤n s 𝕄.>>= maybe 𝕄.pure 𝕄.∅ ∘′ S.guardM p
 
  module _ {A : Set≤ l} where
 
@@ -98,8 +98,8 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-    𝕄.return (S.and rA (S.map just rB)))
-    𝕄.∣ 𝕄.return ((lift (lower a , nothing)) ^ p<m , s′)
+    𝕄.pure (S.and rA (S.map just rB)))
+    𝕄.∣ 𝕄.pure ((lift (lower a , nothing)) ^ p<m , s′)
 
   _&>>=_ : ∀ {n} → Parser A n → ((a : theSet A) → (□ Parser (mkSet≤ (B a))) n) →
            Parser (Σ A B) n
@@ -107,7 +107,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (S.and rA rB))
+     𝕄.pure (S.and rA rB))
 
  module _ {A B : Set≤ l} where
 
@@ -139,15 +139,15 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (S.and′ rA (S.map just rB)))
-    𝕄.∣ 𝕄.return (lift (lower a , nothing) ^ p<m , s′)
+     𝕄.pure (S.and′ rA (S.map just rB)))
+    𝕄.∣ 𝕄.pure (lift (lower a , nothing) ^ p<m , s′)
 
   _&>>=′_ : ∀[ Parser A ⇒ (const (theSet A) ⇒ □ Parser B) ⇒ Parser (A × B) ]
   runParser (A &>>=′ B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA →
     let (a ^ p<m , s′) = rA in
     (runParser (Box.call (B (lower a)) (≤-trans p<m m≤n)) ≤-refl s′ 𝕄.>>= λ rB →
-     𝕄.return (S.and′ rA rB))
+     𝕄.pure (S.and′ rA rB))
 
  module _ {A B : Set≤ l} where
 
@@ -189,7 +189,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
   _<&M>_ : ∀[ Parser A ⇒ const (M (Lift B)) ⇒ Parser (A × B) ]
   runParser (A <&M> B) m≤n s =
     runParser A m≤n s 𝕄.>>= λ rA → B 𝕄.>>= λ b →
-    𝕄.return (S.map (_, lower b) rA)
+    𝕄.pure (S.map (_, lower b) rA)
 
   _<&M_ : ∀[ Parser A ⇒ const (M (Lift B)) ⇒ Parser A ]
   A <&M B = proj₁ <$> (A <&M> B)
@@ -218,7 +218,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
   runParser (<[ f , k ]> A⊎B) m≤n s =
     runParser A⊎B m≤n s 𝕄.>>= λ rA⊎B → let (v ^ p<m , s′) = rA⊎B in
     case lower v of λ where
-      (inj₁ a) → 𝕄.return (lift (f a) ^ p<m , s′)
+      (inj₁ a) → 𝕄.pure (lift (f a) ^ p<m , s′)
       (inj₂ b) → <-lift p<m 𝕄.<$> runParser (Box.call (k b) (≤-trans p<m m≤n)) ≤-refl s′
 
  module _ {A B : Set≤ l} where
@@ -274,14 +274,14 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
  module _ {A : Set≤ l} where
 
   schainl : ∀[ Success Toks A ⇒ □ Parser (A ⟶ A) ⇒ M ∘′ Success Toks A ]
-  schainl = Box.fix goal $ λ rec sA op → rest rec sA op 𝕄.∣ 𝕄.return sA where
+  schainl = Box.fix goal $ λ rec sA op → rest rec sA op 𝕄.∣ 𝕄.pure sA where
 
     goal = Success Toks A ⇒ □ Parser (A ⟶ A) ⇒ M ∘′ Success Toks A
 
     rest : ∀[ □ goal ⇒ goal ]
     rest rec (a ^ p<m , s) op = runParser (Box.call op p<m) ≤-refl s 𝕄.>>= λ sOp →
           Box.call rec p<m (S.map (_$ lower a) sOp) (Box.<-lower p<m op) 𝕄.>>=
-          𝕄.return ∘′ <-lift p<m
+          𝕄.pure ∘′ <-lift p<m
 
   iterate : ∀[ Parser A ⇒ □ Parser (A ⟶ A) ⇒ Parser A ]
   runParser (iterate {n} a op) m≤n s =
@@ -302,7 +302,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
   chainr1 = Box.fix goal $ λ rec A op → mkParser λ m≤n s →
             runParser A m≤n s 𝕄.>>= λ sA →
             rest (Box.≤-lower m≤n rec) (≤-lower m≤n A) (Box.≤-lower m≤n op) sA
-            𝕄.∣  𝕄.return sA where
+            𝕄.∣  𝕄.pure sA where
 
     goal = Parser A ⇒ □ Parser (A ⟶ A ⟶ A) ⇒ Parser A
 

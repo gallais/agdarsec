@@ -2,7 +2,9 @@ module Text.Parser.Monad.Result where
 
 open import Level using (Level)
 open import Level.Bounded using (Set≤; Lift)
-open import Effect.Monad using (RawMonad)
+open import Effect.Monad using (RawMonad; mkRawMonad)
+open import Effect.Empty
+open import Effect.Choice
 open import Data.Maybe.Base using (Maybe; maybe′)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Function.Base using (_∘′_)
@@ -43,10 +45,20 @@ ResultT : Set≤ l →          -- Error
 ResultT E M A = M (Result (Lift E) A)
 
 Result-monadT : ∀ (E : Set≤ l) {M} → RawMonad M → RawMonad (ResultT E M)
-Result-monadT E M = record
-  { return = M.pure ∘′ Value
-  ; _>>=_  = λ m f → m M.>>= result (M.pure ∘′ SoftFail) (M.pure ∘′ HardFail) f
-  } where module M = RawMonad M
+Result-monadT E {M} monad-M = mkRawMonad (ResultT E M) pure _>>=_
+  where
+    module M = RawMonad monad-M
+    pure : ∀ {A} → A → ResultT E M A
+    pure = M.pure ∘′ Value
+    _>>=_ : ∀ {A B} → ResultT E M A → (A → ResultT E M B) → ResultT E M B
+    _>>=_ = λ m f → m M.>>= result (M.pure ∘′ SoftFail) (M.pure ∘′ HardFail) f
 
 Result-monad : (E : Set≤ l) → RawMonad (Result (Lift E))
 Result-monad E = Result-monadT E Id.monad
+
+ResultT-choice : ∀ (E : Set≤ l) {M} → RawMonad M → RawChoice {ℓ = l} (ResultT E M)
+ResultT-choice E M = record
+  { _<|>_ = λ m₁ m₂ → m₁ >>= λ where
+      (SoftFail _) → m₂
+      r → pure r
+  } where open RawMonad M

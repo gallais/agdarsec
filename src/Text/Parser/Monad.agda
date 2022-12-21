@@ -16,9 +16,12 @@ open import Function.Base using (_∘′_; _$′_)
 open import Effect.Functor
 open import Effect.Applicative
 open import Effect.Monad
+open import Effect.Empty
+open import Effect.Choice
 
 open import Function.Identity.Effectful as Id using (Identity)
-open import Effect.Monad.State
+open import Effect.Monad.State.Transformer as StateT
+  using (StateT; mkStateT; runStateT; RawMonadState)
 
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 
@@ -53,41 +56,50 @@ module AgdarsecT
   private module 𝕄 = RawMonad 𝕄
 
   monadT : RawMonad (AgdarsecT E Ann M)
-  monadT = StateTMonad _ (Result-monadT E 𝕄)
+  monadT = StateT.monad (Result-monadT E 𝕄)
 
   applicative : RawApplicative (AgdarsecT E Ann M)
-  applicative = RawMonad.rawIApplicative monadT
+  applicative = RawMonad.rawApplicative monadT
+
+  empty : RawEmpty (AgdarsecT E Ann M)
+  empty = record
+    { empty = mkStateT (𝕄.pure ∘′ SoftFail ∘′ Level≤.map (into 𝕊))
+    }
 
   applicativeZero : RawApplicativeZero (AgdarsecT E Ann M)
   applicativeZero = record
-    { applicative = applicative
-    ; ∅           = 𝕄.pure ∘′ SoftFail ∘′ Level≤.map (into 𝕊)
+    { rawApplicative = applicative
+    ; rawEmpty = empty
     }
 
   monadZero : RawMonadZero (AgdarsecT E Ann M)
   monadZero = record
-    { monad           = monadT
-    ; applicativeZero = applicativeZero
+    { rawMonad = monadT
+    ; rawEmpty = empty
     }
+
+  choice : RawChoice (AgdarsecT E Ann M)
+  choice = StateT.choice (ResultT-choice E 𝕄)
 
   alternative : RawAlternative (AgdarsecT E Ann M)
   alternative = record
-    { applicativeZero = applicativeZero
-    ; _∣_             = λ ma₁ ma₂ s → ma₁ s 𝕄.>>= λ where
-        (SoftFail _) → ma₂ s
-        r            → 𝕄.pure r
+    { rawApplicativeZero = applicativeZero
+    ; rawChoice = choice
     }
 
   monadPlus : RawMonadPlus (AgdarsecT E Ann M)
   monadPlus = record
-    { monad       = monadT
-    ; alternative = alternative
+    { rawMonadZero = monadZero
+    ; rawChoice = choice
     }
 
   monadState : RawMonadState (Lift ([ Position ] × List Ann)) (AgdarsecT E Ann M)
-  monadState = StateTMonadState _ (Result-monadT E 𝕄)
+  monadState = StateT.monadState (Result-monadT E 𝕄)
 
-  private module ST = RawMonadState monadState
+  private
+    module ST where
+      open RawMonad monadT public
+      open RawMonadState monadState public
 
   getPosition : AgdarsecT E Ann M (Lift [ Position ])
   getPosition = Level≤.map proj₁ ST.<$> ST.get
@@ -97,10 +109,10 @@ module AgdarsecT
 
   withAnnotation : ∀ {A} → theSet Ann → AgdarsecT E Ann M A → AgdarsecT E Ann M A
   withAnnotation c ma = let open ST in do
-    ST.modify (Level≤.map $′ map₂ (c ∷_))
+    modify (Level≤.map $′ map₂ (c ∷_))
     a ← ma
-    ST.modify (Level≤.map $′ map₂ (drop 1))
-    ST.pure a
+    modify (Level≤.map $′ map₂ (drop 1))
+    pure a
 
   recordChar : Char → AgdarsecT E Ann M (Lift ⊤)
   recordChar c = _ ST.<$ ST.modify (Level≤.map $′ map₁ (update c))
@@ -108,7 +120,7 @@ module AgdarsecT
   -- Commiting to a branch makes all the failures in that branch hard failures
   -- that we cannot recover from
   commit : ∀ {A} → AgdarsecT E Ann M A → AgdarsecT E Ann M A
-  commit m s = result HardFail HardFail Value 𝕄.<$> m s
+  commit m = mkStateT λ s → result HardFail HardFail Value 𝕄.<$> runStateT m s
 
   param : ∀ Tok Toks recTok → Parameters l
   param Tok Toks recTok = record
