@@ -6,7 +6,7 @@ open import Text.Parser.Types.Core using (Parameters)
 
 module Text.Parser.JSON {l} {P : Parameters l} where
 
-open import Category.Monad using (RawMonadPlus)
+open import Effect.Monad using (RawMonadPlus)
 
 open import Data.Bool.Base using (Bool; true; false)
 open import Data.Char.Base using (Char)

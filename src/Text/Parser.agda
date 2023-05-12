@@ -14,9 +14,10 @@ module Text.Parser where
 
 open import Level using (0ℓ)
 open import Level.Bounded as Level≤ using ([_])
-open import Category.Monad using (RawMonad; RawMonadZero; RawMonadPlus)
+open import Effect.Monad using (RawMonad; RawMonadZero; RawMonadPlus)
+open import Effect.Monad.State.Transformer.Base using (runStateT)
 open import Function.Base using (const; _∘′_; case_of_)
-open import Function.Identity.Categorical as Identity
+open import Function.Identity.Effectful as Identity
 open import Data.Bool.Base using (Bool; T; not; if_then_else_)
 open import Data.Char.Base using (Char)
 open import Data.Empty using (⊥)
@@ -81,8 +82,8 @@ runParser : ∀[ Parser A ] → String → Position ⊎ A
 runParser p str =
   let init  = Level≤.lift (start , [])
       input = Level≤.lift (mkText str refl)
-  in case Result.toSum (Types.Parser.runParser p (ℕₚ.n≤1+n _) input init) of λ where
-        (inj₂ (res , p)) → if Success.size res ≡ᵇ 0
+  in case Result.toSum (runStateT (Types.Parser.runParser p (ℕₚ.n≤1+n _) input) init) of λ where
+        (inj₂ (p , res)) → if Success.size res ≡ᵇ 0
                            then inj₂ (Level≤.lower (Success.value res))
                            else inj₁ (proj₁ (Level≤.lower p))
         (inj₁ p) → inj₁ (Level≤.lower p)

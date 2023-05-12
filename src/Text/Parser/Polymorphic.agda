@@ -2,8 +2,8 @@ open import Level using (Level)
 
 module Text.Parser.Polymorphic (l : Level) where
 
-open import Function.Identity.Categorical using (Identity)
-open import Category.Monad
+open import Function.Identity.Effectful using (Identity)
+open import Effect.Monad
 open import Data.Char.Base using (Char)
 open import Data.Product using (proj₁)
 open import Level.Bounded as Level≤ using (Set≤; theSet; [_]; lift; lower)

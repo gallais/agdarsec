@@ -18,7 +18,7 @@ open import Data.Sign.Base using (Sign)
 open import Data.Sum.Base using ([_,_]′)
 
 open import Function.Base using (const; id; _$_; _∘′_; case_of_)
-open import Category.Monad using (RawMonadPlus)
+open import Effect.Monad using (RawMonadPlus)
 
 open import Relation.Unary
 open import Relation.Binary.PropositionalEquality.Decidable using (DecidableEquality)
