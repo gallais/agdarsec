@@ -6,49 +6,53 @@
 <a id="52" class="Comment">-- The core design decisions behind agdarsec are detailed in</a>
 <a id="113" class="Comment">-- https://gallais.github.io/pdf/agdarsec18.pdf</a>
 
-<a id="162" class="Comment">-- We have a simplified frontend with ready made default choices:</a>
+<a id="162" class="Comment">-- The most general version of the library is in</a>
 
-<a id="229" class="Keyword">import</a> <a id="236" href="Text.Parser.html" class="Module">Text.Parser</a>
+<a id="212" class="Keyword">import</a> <a id="219" href="Text.Parser.Polymorphic.html" class="Module">Text.Parser.Polymorphic</a>
 
-<a id="249" class="Comment">-- Otherwise you probably want to start with the main types:</a>
+<a id="244" class="Comment">-- We have a simplified frontend with ready made default choices:</a>
 
-<a id="311" class="Keyword">import</a> <a id="318" href="Text.Parser.Types.html" class="Module">Text.Parser.Types</a>
+<a id="311" class="Keyword">import</a> <a id="318" href="Text.Parser.html" class="Module">Text.Parser</a>
 
-<a id="337" class="Comment">-- You can see the parser combinators themselves in:</a>
+<a id="331" class="Comment">-- Otherwise you probably want to start with the main types:</a>
 
-<a id="391" class="Keyword">import</a> <a id="398" href="Text.Parser.Combinators.html" class="Module">Text.Parser.Combinators</a>
-<a id="422" class="Keyword">import</a> <a id="429" href="Text.Parser.Combinators.Numbers.html" class="Module">Text.Parser.Combinators.Numbers</a>
-<a id="461" class="Keyword">import</a> <a id="468" href="Text.Parser.Combinators.Char.html" class="Module">Text.Parser.Combinators.Char</a>
+<a id="393" class="Keyword">import</a> <a id="400" href="Text.Parser.Types.html" class="Module">Text.Parser.Types</a>
 
-<a id="498" class="Comment">-- And even a concrete instance in:</a>
+<a id="419" class="Comment">-- You can see the parser combinators themselves in:</a>
 
-<a id="535" class="Keyword">import</a> <a id="542" href="Text.Parser.JSON.html" class="Module">Text.Parser.JSON</a>
+<a id="473" class="Keyword">import</a> <a id="480" href="Text.Parser.Combinators.html" class="Module">Text.Parser.Combinators</a>
+<a id="504" class="Keyword">import</a> <a id="511" href="Text.Parser.Combinators.Numbers.html" class="Module">Text.Parser.Combinators.Numbers</a>
+<a id="543" class="Keyword">import</a> <a id="550" href="Text.Parser.Combinators.Char.html" class="Module">Text.Parser.Combinators.Char</a>
 
-<a id="560" class="Comment">-- We have some ready-to-use monads for parsing in:</a>
+<a id="580" class="Comment">-- And even a concrete instance in:</a>
 
-<a id="613" class="Keyword">import</a> <a id="620" href="Text.Parser.Monad.html" class="Module">Text.Parser.Monad</a>
+<a id="617" class="Keyword">import</a> <a id="624" href="Text.Parser.JSON.html" class="Module">Text.Parser.JSON</a>
 
-<a id="639" class="Comment">-- We have a small lexer library</a>
+<a id="642" class="Comment">-- We have some ready-to-use monads for parsing in:</a>
 
-<a id="673" class="Keyword">import</a> <a id="680" href="Text.Lexer.html" class="Module">Text.Lexer</a>
+<a id="695" class="Keyword">import</a> <a id="702" href="Text.Parser.Monad.html" class="Module">Text.Parser.Monad</a>
 
-<a id="692" class="Comment">-- We have some fully worked-out examples in:</a>
+<a id="721" class="Comment">-- We have a small lexer library</a>
 
-<a id="739" class="Keyword">import</a> <a id="746" href="Expr.html" class="Module">Expr</a>
-<a id="751" class="Keyword">import</a> <a id="758" href="STLC.html" class="Module">STLC</a>
-<a id="763" class="Keyword">import</a> <a id="770" href="Parentheses.html" class="Module">Parentheses</a>
-<a id="782" class="Keyword">import</a> <a id="789" href="RegExp.html" class="Module">RegExp</a>
-<a id="796" class="Keyword">import</a> <a id="803" href="NList.html" class="Module">NList</a>
-<a id="809" class="Keyword">import</a> <a id="816" href="SExp.html" class="Module">SExp</a>
-<a id="821" class="Keyword">import</a> <a id="828" href="Vec.html" class="Module">Vec</a>
-<a id="832" class="Keyword">import</a> <a id="839" href="Matrix.html" class="Module">Matrix</a>
+<a id="755" class="Keyword">import</a> <a id="762" href="Text.Lexer.html" class="Module">Text.Lexer</a>
 
-<a id="847" class="Comment">-- And even a parser returning a large type</a>
+<a id="774" class="Comment">-- We have some fully worked-out examples in:</a>
 
-<a id="892" class="Keyword">import</a> <a id="899" href="Large.html" class="Module">Large</a>
+<a id="821" class="Keyword">import</a> <a id="828" href="Expr.html" class="Module">Expr</a>
+<a id="833" class="Keyword">import</a> <a id="840" href="STLC.html" class="Module">STLC</a>
+<a id="845" class="Keyword">import</a> <a id="852" href="Parentheses.html" class="Module">Parentheses</a>
+<a id="864" class="Keyword">import</a> <a id="871" href="RegExp.html" class="Module">RegExp</a>
+<a id="878" class="Keyword">import</a> <a id="885" href="NList.html" class="Module">NList</a>
+<a id="891" class="Keyword">import</a> <a id="898" href="SExp.html" class="Module">SExp</a>
+<a id="903" class="Keyword">import</a> <a id="910" href="Vec.html" class="Module">Vec</a>
+<a id="914" class="Keyword">import</a> <a id="921" href="Matrix.html" class="Module">Matrix</a>
 
-<a id="906" class="Comment">-- The key ideas behind the implementation details are largely contained in</a>
+<a id="929" class="Comment">-- And even a parser returning a large type</a>
 
-<a id="983" class="Keyword">import</a> <a id="990" href="Induction.Nat.Strong.html" class="Module">Induction.Nat.Strong</a>
-<a id="1011" class="Keyword">import</a> <a id="1018" href="Text.Parser.Success.html" class="Module">Text.Parser.Success</a>
+<a id="974" class="Keyword">import</a> <a id="981" href="Large.html" class="Module">Large</a>
+
+<a id="988" class="Comment">-- The key ideas behind the implementation details are largely contained in</a>
+
+<a id="1065" class="Keyword">import</a> <a id="1072" href="Induction.Nat.Strong.html" class="Module">Induction.Nat.Strong</a>
+<a id="1093" class="Keyword">import</a> <a id="1100" href="Text.Parser.Success.html" class="Module">Text.Parser.Success</a>
 </pre></body></html>
