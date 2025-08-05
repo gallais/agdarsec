@@ -5,6 +5,10 @@ module index where
 -- The core design decisions behind agdarsec are detailed in
 -- https://gallais.github.io/pdf/agdarsec18.pdf
 
+-- The most general version of the library is in
+
+import Text.Parser.Polymorphic
+
 -- We have a simplified frontend with ready made default choices:
 
 import Text.Parser

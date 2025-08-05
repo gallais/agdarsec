@@ -1,12 +1,13 @@
 AGDA_EXEC?=agda
 .PHONY: test Everything.agda clean
 
-OTHEROPTS = --auto-inline -Werror
+OTHEROPTS = -Werror
 
 RTSARGS = +RTS -M6G -A128M -RTS ${OTHEROPTS}
 
 test: Everything.agda
 	${AGDA_EXEC} ${RTSARGS} -i. Everything.agda
+	${AGDA_EXEC} ${RTSARGS} -i. -i src/ -iexamples index.agda
 
 html: Everything.agda
 	${AGDA_EXEC} ${RTSARGS} --html -i. Everything.agda

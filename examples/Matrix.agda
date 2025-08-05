@@ -1,8 +1,10 @@
+{-# OPTIONS --guardedness #-}
+
 module Matrix where
 
 open import Data.Maybe.Base as Maybe
-open import Data.Nat.Base
-open import Data.Product as Product
+open import Data.Nat.Base hiding (_!)
+open import Data.Product.Base as Product
 open import Data.Sum.Base
 open import Data.Vec.Base as Vec using (Vec; _∷_; [])
 open import Function.Base
@@ -26,7 +28,7 @@ indices = f <$> (decimalℕ <& box space <&> box decimalℕ) where
   f (suc m , suc n) = inj₂ (suc m , suc n , _)
 
 matrix : ∀[ Parser (Σ[ m ∈ ℕ ] Σ[ n ∈ ℕ ] Matrix ℕ m n) ]
-matrix = <[ ((λ (m , n , p) → [ (λ _ → 0 , n , []) , (λ _ → m , 0 , Vec.replicate []) ] p))
+matrix = <[ ((λ (m , n , p) → [ (λ _ → 0 , n , []) , (λ _ → m , 0 , Vec.replicate _ []) ] p))
           , (λ (m , n , p , q) → box $ (m ,_) ∘ (n ,_) <$> replicate m {{p}} (replicate n {{q}} (space &> box decimalℕ)))
           ]> indices
 

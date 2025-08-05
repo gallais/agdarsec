@@ -1,11 +1,13 @@
+{-# OPTIONS --guardedness #-}
+
 module Vec where
 
 open import Text.Parser
 open import Data.Unit.Base
 open import Data.Vec hiding (replicate)
-open import Data.Maybe
-open import Data.Nat
-open import Data.Product
+open import Data.Maybe.Base
+open import Data.Nat.Base hiding (_!)
+open import Data.Product.Base
 
 n-times : {A : Set} → ∀[ Parser A ⇒ Parser (∃[ n ] Vec A (suc n)) ]
 n-times p = decimalℕ &>>= λ n → box (replicate (suc n) p)

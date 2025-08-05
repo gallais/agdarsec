@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module Identifier where
 
 import Level

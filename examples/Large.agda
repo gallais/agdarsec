@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module Large where
 
 import Level

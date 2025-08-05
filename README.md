@@ -7,12 +7,10 @@ The motivation and design decisions behind agdarsec are detailed in:
 
 ## Compilation
 
-[![Travis Status](https://api.travis-ci.org/gallais/agdarsec.svg?branch=master)](https://travis-ci.org/gallais/agdarsec)
-
 To typecheck and compile this project you will need:
 
-* Agda version 2.6.2
-* Agda's standard library (version 1.7)
+* Agda version 2.6.4.3
+* Agda's standard library (version 2.0)
 
 ## Ports
 

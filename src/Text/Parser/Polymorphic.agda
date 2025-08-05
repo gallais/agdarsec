@@ -59,6 +59,7 @@ open import Data.Nat.Base using (_≡ᵇ_)
 import Data.Nat.Properties as ℕₚ
 open import Data.Product using (_,_)
 open import Data.String as String using (String)
+open import Effect.Monad.State.Transformer using (runStateT)
 open import Function.Base using (case_of_)
 
 import Text.Parser.Monad.Result as Result
@@ -68,8 +69,8 @@ runParser : {A : Set≤ l} → ∀[ Parser A ] → String → Position ⊎ theSe
 runParser p str =
   let init  = lift (start , [])
       input = lift (String.toVec str)
-  in case Result.toSum (Parser.runParser p (ℕₚ.n≤1+n _) input init) of λ where
-        (inj₂ (res , p)) → let open Success in
+  in case Result.toSum (runStateT (Parser.runParser p (ℕₚ.n≤1+n _) input) init) of λ where
+        (inj₂ (p , res)) → let open Success in
                            if size res ≡ᵇ 0
                            then inj₂ (lower (value res))
                            else inj₁ (proj₁ (lower p))

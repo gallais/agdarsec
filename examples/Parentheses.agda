@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module Parentheses where
 
 import Level

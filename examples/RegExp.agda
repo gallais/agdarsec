@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module RegExp where
 
 import Level

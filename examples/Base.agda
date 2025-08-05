@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 open import Level using (Level)
 
 module Base (l : Level) where
@@ -8,21 +10,21 @@ import Data.Nat as Nat
 open import Data.Nat.Properties
 open import Data.Char.Base as Char using (Char)
 import Data.Empty as Empty
-open import Data.Product as Product using (_,_; proj₁)
+open import Data.Product as Product using (_,_; proj₂)
 
 open import Data.List.Base as List using ([]; _∷_)
-open import Data.List.Categorical as List
+open import Data.List.Effectful as List
 open import Data.List.Sized.Interface
 
 open import Data.String as String
 open import Data.Vec as Vec using ()
 open import Data.Bool
 open import Data.Maybe as Maybe using (nothing; just; maybe′)
-open import Data.Maybe.Categorical as MaybeCat
+open import Data.Maybe.Effectful as MaybeCat
 open import Data.Sum
 open import Function
-open import Category.Monad
-open import Category.Monad.State
+open import Effect.Monad
+open import Effect.Monad.State.Transformer as StateT using (StateT)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 
@@ -81,9 +83,10 @@ instance
 
   runStateT : ∀ {M A} {{𝕄 : RawMonadRun M}} → RawMonadRun (StateT (Lift ([ Position ] × List A)) M)
   runStateT {{𝕄}} .RawMonadRun.runM =
-    List.map proj₁
+    List.map proj₂
     ∘′ runM 𝕄
     ∘′ (_$ lift (start , []))
+    ∘′ StateT.runStateT
 
   monadMaybe : RawMonad {l} Maybe.Maybe
   monadMaybe = MaybeCat.monad

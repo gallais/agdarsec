@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module STLC where
 
 open import Level.Bounded using ([_])
@@ -15,6 +17,7 @@ open import Data.Vec.Base as Vec using (Vec)
 open import Data.Maybe.Base using (Maybe; nothing; just)
 open import Data.List.Sized.Interface
 open import Data.Product using (_×_; _,_; uncurry; ∃; proj₁)
+import Effect.Monad.State.Transformer as StateT
 open import Function.Base
 
 open import Relation.Nullary
@@ -115,7 +118,9 @@ instance
   _ = ParserM.monadPlus
   _ = ParserM.monad
 
-P = ParserM.param [ Token ] (λ n → [ Vec Token n ]) λ where (p , _) _ → Value (_ , lift (p , []))
+P = ParserM.param [ Token ] (λ n → [ Vec Token n ]) λ
+  where (p , _) .StateT.runStateT _ → Value (lift (p , []) , _)
+
 
 theTok : Tok → ∀[ Parser P [ Token ] ]
 theTok t = maybeTok $ λ where

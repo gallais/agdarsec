@@ -1,6 +1,8 @@
 -- Example taken from parsec's documentation
 -- https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Combinator.html#v:chainl1
 
+{-# OPTIONS --guardedness #-}
+
 module Expr where
 
 

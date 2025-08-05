@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 -- Challenge taken from stackoverflow:
 -- http://stackoverflow.com/questions/12380239/agda-parsing-nested-lists
 

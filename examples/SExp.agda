@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module SExp where
 
 open import Level using (0ℓ)
@@ -9,7 +11,7 @@ data SExp : Set where
   Atom : String → SExp
   Pair : SExp → SExp → SExp
 
-open import Category.Monad
+open import Effect.Monad
 open import Data.List.Sized.Interface
 open import Data.List.NonEmpty as List⁺ using (List⁺)
 open import Data.Maybe
