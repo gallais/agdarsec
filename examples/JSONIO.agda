@@ -1,14 +1,9 @@
 {-# OPTIONS --guardedness #-}
 
-module JSONTest where
+module JSONIO where
 
-open import Level using (0ℓ)
 open import Data.List.Base using (_∷_; [])
-open import Data.JSON
-open import Text.Parser 0ℓ
-  using (runParserIO; P-monad; P-monad0; P-monad+
-        ; vec; decide-char
-        ; Subset-refl)
+open import Text.Parser.IO using (runParserIO)
 open import Text.Parser.JSON using (value)
 
 open import Function.Base using (_$_)
