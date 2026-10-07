@@ -11,6 +11,7 @@ open import Induction.Nat.Strong as Box using (□_)
 open import Data.Nat.Base using (ℕ; _≤_; _<_)
 
 open import Data.Bool.Base as Bool using (Bool; if_then_else_; not; _∧_)
+open import Data.Bool.ListAction using (any)
 open import Data.List.Base as List using (_∷_; []; null)
 open import Data.List.NonEmpty as List⁺ using (_∷⁺_ ; _∷_)
 open import Data.Maybe.Base as M using (just; nothing; maybe)
@@ -255,7 +256,7 @@ module _ {{𝕊 : Sized Tok Toks}} {{𝕄 : RawMonadPlus M}}
  module _ {{eq? : DecidableEquality (theSet Tok)}} where
 
   anyOf : theSet (List Tok) → ∀[ Parser Tok ]
-  anyOf ts = guard (λ c → not (null ts) ∧ List.any (⌊_⌋ ∘ decide eq? c) ts) anyTok
+  anyOf ts = guard (λ c → not (null ts) ∧ any (⌊_⌋ ∘ decide eq? c) ts) anyTok
 
   exact : theSet Tok → ∀[ Parser Tok ]
   exact = anyOf ∘′ List.[_]
